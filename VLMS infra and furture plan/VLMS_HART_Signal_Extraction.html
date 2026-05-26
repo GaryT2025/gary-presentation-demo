@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HART 現場數據抽取與輪詢極限技術簡報 - VLMS 技術專題</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --primary: #003a8c;
+            --accent: #1890ff;
+            --accent-green: #52c41a;
+            --accent-orange: #fa8c16;
+            --accent-red: #ff4d4f;
+            --text-dark: #1f1f1f;
+            --text-muted: #595959;
+            --border-color: #f0f0f0;
+            --shadow: 0 12px 36px rgba(0, 0, 0, 0.06);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: #f4f7fc;
+            color: var(--text-dark);
+            overflow: hidden;
+            line-height: 1.6;
+        }
+
+        .presentation {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+            z-index: 1;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            z-index: 10;
+        }
+
+        /* Layout Types */
+        .layout-split {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .visual-side {
+            flex: 0 0 50%;
+            background-color: #f8faff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            border-right: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .content-side {
+            flex: 0 0 50%;
+            padding: 50px 70px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        /* Elements */
+        .slide-header {
+            margin-bottom: 30px;
+        }
+
+        .tag {
+            display: inline-block;
+            background: rgba(24, 144, 255, 0.08);
+            color: var(--accent);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border: 1px solid rgba(24, 144, 255, 0.15);
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: var(--primary);
+            font-weight: 800;
+            margin-bottom: 20px;
+            line-height: 1.15;
+        }
+
+        h2 {
+            font-size: 2.3rem;
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 15px;
+            border-bottom: 4px solid var(--accent);
+            display: inline-block;
+            padding-bottom: 6px;
+        }
+
+        .section-item {
+            margin-bottom: 24px;
+            padding: 16px;
+            background: #fafafa;
+            border-radius: 12px;
+            border-left: 5px solid var(--accent);
+            transition: all 0.3s;
+        }
+
+        .section-item:hover {
+            transform: translateX(4px);
+            background: #f0f5ff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+
+        .section-item h3 {
+            font-size: 1.25rem;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+        }
+
+        .section-item.red { border-left-color: var(--accent-red); }
+        .section-item.red:hover { background: #fff1f0; }
+        .section-item.green { border-left-color: var(--accent-green); }
+        .section-item.green:hover { background: #f6ffed; }
+        .section-item.orange { border-left-color: var(--accent-orange); }
+        .section-item.orange:hover { background: #fff7e6; }
+
+        .section-item p {
+            font-size: 0.98rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* Title Slide Customization */
+        .title-slide {
+            flex-direction: column;
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at center, #ffffff 0%, #f0f4fc 100%);
+            padding: 40px;
+        }
+
+        .title-slide .hero-svg {
+            width: 320px;
+            max-width: 80%;
+            height: auto;
+            max-height: 35vh;
+            margin-bottom: 30px;
+            filter: drop-shadow(0 12px 32px rgba(0, 58, 140, 0.08));
+        }
+
+        .title-slide h1 {
+            font-size: 2.8rem;
+            font-weight: 900;
+            margin-bottom: 16px;
+            line-height: 1.2;
+            background: linear-gradient(120deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .title-slide h2 {
+            font-size: 1.35rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            letter-spacing: 2px;
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+
+        /* Bento Grid slide */
+        .bento-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 40px 60px;
+            background: linear-gradient(135deg, #f8faff 0%, #edf3fc 100%);
+        }
+
+        .bento-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            height: calc(100% - 70px);
+            margin-top: 15px;
+        }
+
+        .bento-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 22px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            cursor: pointer;
+        }
+
+        .bento-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 28px rgba(24, 144, 255, 0.12);
+            border-color: rgba(24, 144, 255, 0.3);
+        }
+
+        .bento-card.border-accent { border-top: 5px solid var(--accent); }
+        .bento-card.border-green { border-top: 5px solid var(--accent-green); }
+        .bento-card.border-orange { border-top: 5px solid var(--accent-orange); }
+        .bento-card.border-red { border-top: 5px solid var(--accent-red); }
+
+        .bento-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .bento-card-header h3 {
+            font-size: 1.2rem;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .bento-card-header .badge {
+            font-size: 0.75rem;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+        }
+
+        .badge-accent { background: rgba(24, 144, 255, 0.1); color: var(--accent); }
+        .badge-green { background: rgba(82, 196, 26, 0.1); color: var(--accent-green); }
+        .badge-orange { background: rgba(250, 140, 22, 0.1); color: var(--accent-orange); }
+        .badge-red { background: rgba(255, 77, 79, 0.1); color: var(--accent-red); }
+
+        .bento-card p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+
+        .bento-card ul {
+            list-style: none;
+            margin-top: 8px;
+        }
+
+        .bento-card li {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            padding-left: 14px;
+            position: relative;
+        }
+
+        .bento-card li::before {
+            content: "▪";
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-size: 0.75rem;
+        }
+
+        /* Formula & Math slide */
+        .math-container {
+            background: linear-gradient(135deg, #071f47 0%, #020c1f 100%);
+            color: white;
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .math-left {
+            flex: 0 0 50%;
+            padding: 60px 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .math-right {
+            flex: 0 0 50%;
+            background: rgba(255, 255, 255, 0.02);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            border-left: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .formula-box {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 35px;
+            width: 100%;
+            max-width: 460px;
+            text-align: center;
+            margin-bottom: 25px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            backdrop-filter: blur(12px);
+        }
+
+        .formula-main {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #00f2ff;
+            margin: 15px 0;
+            font-family: 'Courier New', Courier, monospace;
+            text-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+        }
+
+        /* Diagram elements & interactive highlight */
+        .diagram-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .diagram-svg {
+            width: 100%;
+            height: 100%;
+            max-height: 80vh;
+        }
+
+        /* Node Animation */
+        .node-pulse {
+            animation: pulse 2.5s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { filter: drop-shadow(0 0 2px rgba(24, 144, 255, 0.2)); }
+            50% { filter: drop-shadow(0 0 12px rgba(24, 144, 255, 0.7)); }
+        }
+
+        /* UI Controls */
+        .nav-controls {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            display: flex;
+            gap: 16px;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            background: white;
+            border: 1px solid var(--border-color);
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            color: var(--primary);
+        }
+
+        .nav-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(24, 144, 255, 0.15);
+        }
+
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: #e8e8e8;
+            z-index: 1001;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .slide-counter {
+            position: fixed;
+            bottom: 40px;
+            left: 40px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 6px 14px;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+            border: 1px solid var(--border-color);
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .wave-item {
+            animation: wave 3s infinite ease-in-out;
+        }
+
+        /* Full Architecture Page Styling */
+        .full-arch-container {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top right, #fbfdff 0%, #f0f4fb 100%);
+            display: flex;
+            flex-direction: column;
+            padding: 40px 60px;
+        }
+
+        .arch-grid {
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            gap: 30px;
+            height: calc(100% - 60px);
+            margin-top: 10px;
+        }
+
+        .interactive-diagram {
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .arch-desc-side {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .arch-desc-card {
+            background: white;
+            border-radius: 12px;
+            padding: 14px 18px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+            border-left: 4px solid var(--border-color);
+            transition: all 0.3s;
+        }
+
+        .arch-desc-card.active-card {
+            border-left-color: var(--accent);
+            background: #f0f5ff;
+            transform: scale(1.02);
+        }
+
+        .arch-desc-card h4 {
+            font-size: 1.05rem;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .arch-desc-card p {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* SVG interactive highlight class */
+        .svg-highlight {
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .svg-highlight:hover {
+            filter: brightness(1.1) drop-shadow(0 0 8px var(--accent));
+        }
+    </style>
+</head>
+
+<body>
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="presentation">
+
+        <!-- Slide 1: Title -->
+        <section class="slide title-slide active" id="s1">
+            <svg class="hero-svg wave-item" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="100" cy="100" r="80" fill="none" stroke="#003a8c" stroke-width="2" opacity="0.3"/>
+                <circle cx="100" cy="100" r="60" fill="none" stroke="#1890ff" stroke-width="4"/>
+                <path d="M 60,100 Q 80,60 100,100 T 140,100" fill="none" stroke="#003a8c" stroke-width="3"/>
+                <path d="M 60,110 Q 80,75 100,110 T 140,110" fill="none" stroke="#52c41a" stroke-width="2" stroke-dasharray="4"/>
+                <circle cx="100" cy="100" r="10" fill="#1890ff"/>
+            </svg>
+            <div class="tag">VLMS Technical Session 2026</div>
+            <h1>HART 現場數據抽取與輪詢極限分析</h1>
+            <h2>數據採集物理天花板與 OT-IT 電氣安全整合架構</h2>
+        </section>
+
+        <!-- Slide 2: End-to-End System Overview -->
+        <section class="slide" id="s2">
+            <div class="full-arch-container">
+                <div class="slide-header" style="margin-bottom: 10px;">
+                    <div class="tag">02 / E2E System Architecture</div>
+                    <h2 style="font-size: 2.1rem; border: none; margin: 0;">端到端數據流向與安裝位置示意圖</h2>
+                </div>
+                <div class="arch-grid">
+                    <div class="interactive-diagram">
+                        <!-- High-Quality System Flow SVG -->
+                        <svg class="diagram-svg" viewBox="0 0 800 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Background Grid -->
+                            <defs>
+                                <pattern id="grid2" width="20" height="20" patternUnits="userSpaceOnUse">
+                                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f2f5fa" stroke-width="1"/>
+                                </pattern>
+                                <linearGradient id="blueGrad2" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#1890ff"/>
+                                    <stop offset="100%" stop-color="#002766"/>
+                                </linearGradient>
+                                <linearGradient id="greenGrad2" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#52c41a"/>
+                                    <stop offset="100%" stop-color="#135200"/>
+                                </linearGradient>
+                            </defs>
+                            <rect width="100%" height="100%" fill="url(#grid2)" rx="10"/>
+
+                            <!-- Physical Layer: Field -->
+                            <rect x="30" y="80" width="120" height="340" rx="8" fill="#ffffff" stroke="#d9d9d9" stroke-width="1.5" stroke-dasharray="4 4"/>
+                            <text x="90" y="105" fill="#595959" font-size="12" font-weight="bold" text-anchor="middle">現場設備 (Field)</text>
+
+                            <!-- Combined Field & Extraction Highlight (1st interactive zone) -->
+                            <g class="svg-highlight">
+                                <!-- Valve Positioner Box -->
+                                <rect x="45" y="140" width="90" height="70" rx="6" fill="#e6f7ff" stroke="#1890ff" stroke-width="2"/>
+                                <text x="90" y="175" fill="#003a8c" font-size="12" font-weight="bold" text-anchor="middle">定位器</text>
+                                <text x="90" y="193" fill="#003a8c" font-size="10" text-anchor="middle">HART + 4-20mA</text>
+
+                                <!-- Loop Line -->
+                                <path d="M 135,175 L 210,175" fill="none" stroke="#1890ff" stroke-width="3" stroke-dasharray="2 2"/>
+                                <text x="172" y="165" fill="#1890ff" font-size="10" font-weight="bold" text-anchor="middle">實時訊號</text>
+
+                                <!-- EXTRACTION POINT (Yellow Box) -->
+                                <rect x="210" y="110" width="150" height="280" rx="8" fill="#fffbe6" stroke="#faad14" stroke-width="2"/>
+                                <text x="285" y="132" fill="#d48806" font-size="12" font-weight="bold" text-anchor="middle">信號抽取安裝點</text>
+                                <rect x="225" y="150" width="120" height="40" rx="4" fill="#faad14" opacity="0.1"/>
+                                <text x="285" y="174" fill="#d48806" font-size="10" font-weight="bold" text-anchor="middle">四種抽取技術安裝區</text>
+                            </g>
+
+                            <!-- Control & Edge Layer -->
+                            <rect x="420" y="80" width="160" height="340" rx="8" fill="#ffffff" stroke="#d9d9d9" stroke-width="1.5" stroke-dasharray="4 4"/>
+                            <text x="500" y="105" fill="#595959" font-size="12" font-weight="bold" text-anchor="middle">控制與邊緣層 (OT)</text>
+
+                            <!-- DCS System Box (2nd interactive zone) -->
+                            <rect class="svg-highlight" x="440" y="140" width="120" height="70" rx="6" fill="#f5f5f5" stroke="#8c8c8c" stroke-width="2"/>
+                            <text x="500" y="175" fill="#262626" font-size="12" font-weight="bold" text-anchor="middle">DCS 系統</text>
+                            <text x="500" y="193" fill="#595959" font-size="10" text-anchor="middle">主控制 (CPC)</text>
+
+                            <!-- Beckhoff Edge PLC Box (3rd interactive zone) -->
+                            <rect class="svg-highlight" x="440" y="270" width="120" height="70" rx="6" fill="#f6ffed" stroke="#52c41a" stroke-width="2"/>
+                            <text x="500" y="305" fill="#135200" font-size="12" font-weight="bold" text-anchor="middle">Beckhoff PLC</text>
+                            <text x="500" y="323" fill="#135200" font-size="10" text-anchor="middle">邊緣採集 (M&O)</text>
+
+                            <!-- Connections from Extraction to Control/Edge -->
+                            <path d="M 360,175 L 440,175" fill="none" stroke="#ff4d4f" stroke-width="2"/>
+                            <text x="400" y="165" fill="#ff4d4f" font-size="9" text-anchor="middle">控制副迴路</text>
+
+                            <path d="M 360,305 L 440,305" fill="none" stroke="#52c41a" stroke-width="2.5"/>
+                            <text x="400" y="295" fill="#52c41a" font-size="9" text-anchor="middle">HART 解碼數據</text>
+
+                            <!-- IT Layer -->
+                            <rect x="640" y="80" width="130" height="340" rx="8" fill="#ffffff" stroke="#d9d9d9" stroke-width="1.5" stroke-dasharray="4 4"/>
+                            <text x="705" y="105" fill="#595959" font-size="12" font-weight="bold" text-anchor="middle">IT 雲端層</text>
+
+                            <!-- OPC UA / Gateway Arrow -->
+                            <path d="M 560,305 L 655,305" fill="none" stroke="#1890ff" stroke-width="3"/>
+                            <text x="607" y="295" fill="#1890ff" font-size="10" font-weight="bold" text-anchor="middle">OPC UA</text>
+
+                            <!-- IT Dashboard / VLMS Cloud Box (4th interactive zone) -->
+                            <rect class="svg-highlight" x="655" y="250" width="100" height="110" rx="6" fill="url(#blueGrad2)" stroke="none"/>
+                            <text x="705" y="295" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">VLMS 雲端</text>
+                            <text x="705" y="315" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">Dashboard</text>
+                        </svg>
+                    </div>
+                    <div class="arch-desc-side">
+                        <div class="arch-desc-card active-card">
+                            <h4>現場定位器 ➔ 訊號抽取點</h4>
+                            <p>儀表迴路發出的原始類比+數位訊號在此被處理，保證不干擾現場閥門的主迴路控制。</p>
+                        </div>
+                        <div class="arch-desc-card">
+                            <h4>DCS 系統 (主控制)</h4>
+                            <p>負責極高可靠性的 4-20mA 控制運算，經過 NOA 認證隔離後安全無虞。</p>
+                        </div>
+                        <div class="arch-desc-card">
+                            <h4>Beckhoff Edge PLC (採集與邊緣運算)</h4>
+                            <p>在此透過軟體或硬體平行解碼 HART 診斷資訊，並將其統一打包為 OPC UA 通訊。</p>
+                        </div>
+                        <div class="arch-desc-card">
+                            <h4>IT 雲端層 (VLMS 平台)</h4>
+                            <p>雲端無須直接接觸 OT 控制器，直接讀取邊緣端傳上來的 OPC UA 封包，於網頁即時呈現資產履歷。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 3: Architecture 1 (Multiplexer Page) -->
+        <section class="slide" id="s3">
+            <div class="layout-split">
+                <div class="visual-side">
+                    <!-- SVG diagram for Multiplexer -->
+                    <svg class="diagram-svg" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="100%" height="100%" fill="#fafafa" rx="12"/>
+                        <!-- Field Devices -->
+                        <rect x="20" y="60" width="80" height="40" rx="4" fill="#e6f7ff" stroke="#1890ff" stroke-width="1.5"/>
+                        <text x="60" y="85" fill="#003a8c" font-size="11" font-weight="bold" text-anchor="middle">定位器 1</text>
+                        
+                        <rect x="20" y="130" width="80" height="40" rx="4" fill="#e6f7ff" stroke="#1890ff" stroke-width="1.5"/>
+                        <text x="60" y="155" fill="#003a8c" font-size="11" font-weight="bold" text-anchor="middle">定位器 2</text>
+                        
+                        <text x="60" y="210" fill="#a0a0a0" font-size="16" font-weight="bold" text-anchor="middle">⋮</text>
+
+                        <rect x="20" y="240" width="80" height="40" rx="4" fill="#e6f7ff" stroke="#1890ff" stroke-width="1.5"/>
+                        <text x="60" y="265" fill="#003a8c" font-size="11" font-weight="bold" text-anchor="middle">定位器 N</text>
+
+                        <!-- Mux Box (Center) -->
+                        <rect x="180" y="60" width="100" height="220" rx="6" fill="#fff7e6" stroke="#fa8c16" stroke-width="2"/>
+                        <text x="230" y="90" fill="#d45500" font-size="12" font-weight="bold" text-anchor="middle">HART Mux</text>
+                        <rect x="195" y="115" width="70" height="30" rx="3" fill="#fa8c16" opacity="0.1"/>
+                        <text x="230" y="133" fill="#fa8c16" font-size="9" font-weight="bold" text-anchor="middle">切換繼電器</text>
+
+                        <!-- Lines connecting to Mux -->
+                        <path d="M 100,80 L 180,120" stroke="#8c8c8c" stroke-width="1.5" stroke-dasharray="2 2"/>
+                        <path d="M 100,150 L 180,130" stroke="#8c8c8c" stroke-width="1.5" stroke-dasharray="2 2"/>
+                        <path d="M 100,260 L 180,140" stroke="#8c8c8c" stroke-width="1.5" stroke-dasharray="2 2"/>
+
+                        <!-- PLC -->
+                        <rect x="310" y="145" width="70" height="50" rx="4" fill="#f6ffed" stroke="#52c41a" stroke-width="1.5"/>
+                        <text x="345" y="175" fill="#135200" font-size="11" font-weight="bold" text-anchor="middle">邊緣 PLC</text>
+
+                        <!-- Connection Mux to PLC -->
+                        <path d="M 280,170 L 310,170" stroke="#fa8c16" stroke-width="2"/>
+                        <text x="295" y="162" fill="#fa8c16" font-size="9" text-anchor="middle">RS-485</text>
+                    </svg>
+                </div>
+                <div class="content-side">
+                    <div class="slide-header">
+                        <div class="tag">03 / Architecture 1</div>
+                        <h2>❶ HART Multiplexer (多工器)</h2>
+                    </div>
+                    <div class="section-item orange">
+                        <h3>物理安裝位置</h3>
+                        <p>安裝於<strong>中繼端子櫃</strong>內。在不拆動 DCS 配線的前提下，以高阻抗並聯的方式，跨接在既有定位器控制迴路的端子排上。</p>
+                    </div>
+                    <div class="section-item orange">
+                        <h3>分時切換機制</h3>
+                        <p>多工器內部含有一組機械或固態繼電器陣列，透過分時 (Time-sharing) 的方式，每次將一組迴路切換連接至其內部的 HART 調變解調晶片進行讀取。</p>
+                    </div>
+                    <div class="section-item">
+                        <h3>商業優劣勢</h3>
+                        <p><strong>優勢：</strong> 單一通道硬體建置成本極低，適合舊廠 (Brownfield) 的大規模健康監測。<br><strong>劣勢：</strong> 由於是分時輪詢，當掛載設備多時，整組掃描週期極慢，無法獲取實時數據。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 4: Architecture 2 (Splitter Page) -->
+        <section class="slide" id="s4">
+            <div class="layout-split">
+                <div class="visual-side">
+                    <!-- SVG diagram for Splitter -->
+                    <svg class="diagram-svg" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="100%" height="100%" fill="#fafafa" rx="12"/>
+                        <!-- Field Device -->
+                        <rect x="20" y="170" width="80" height="50" rx="4" fill="#e6f7ff" stroke="#1890ff" stroke-width="2"/>
+                        <text x="60" y="195" fill="#003a8c" font-size="11" font-weight="bold" text-anchor="middle">現場定位器</text>
+                        <text x="60" y="210" fill="#003a8c" font-size="9" text-anchor="middle">HART + 4-20mA</text>
+
+                        <!-- Splitter Box (Center) -->
+                        <rect x="150" y="145" width="110" height="100" rx="6" fill="#fff1f0" stroke="#ff4d4f" stroke-width="2"/>
+                        <text x="205" y="175" fill="#a8071a" font-size="12" font-weight="bold" text-anchor="middle">HART Splitter</text>
+                        <text x="205" y="195" fill="#a8071a" font-size="9" text-anchor="middle">(1:1 分配器)</text>
+                        <line x1="160" y1="210" x2="250" y2="210" stroke="#ff4d4f" stroke-dasharray="2 2"/>
+
+                        <!-- Field to Splitter -->
+                        <path d="M 100,195 L 150,195" stroke="#1890ff" stroke-width="2.5"/>
+
+                        <!-- Outputs -->
+                        <!-- Loop A (DCS) -->
+                        <rect x="300" y="100" width="80" height="50" rx="4" fill="#f5f5f5" stroke="#8c8c8c" stroke-width="1.5"/>
+                        <text x="340" y="125" fill="#262626" font-size="11" font-weight="bold" text-anchor="middle">DCS 系統</text>
+                        <text x="340" y="140" fill="#595959" font-size="8" text-anchor="middle">主迴路 (CPC)</text>
+
+                        <!-- Loop B (PLC/IT) -->
+                        <rect x="300" y="240" width="80" height="50" rx="4" fill="#f6ffed" stroke="#52c41a" stroke-width="1.5"/>
+                        <text x="340" y="265" fill="#135200" font-size="11" font-weight="bold" text-anchor="middle">邊緣 PLC</text>
+                        <text x="340" y="280" fill="#135200" font-size="8" text-anchor="middle">採集 (M&O)</text>
+
+                        <!-- Connection Splitter to Outputs -->
+                        <path d="M 260,175 L 300,125" stroke="#ff4d4f" stroke-width="2"/>
+                        <text x="273" y="145" fill="#ff4d4f" font-size="8" text-anchor="middle">輸出 1</text>
+
+                        <path d="M 260,215 L 300,265" stroke="#52c41a" stroke-width="2"/>
+                        <text x="273" y="248" fill="#52c41a" font-size="8" text-anchor="middle">輸出 2</text>
+                    </svg>
+                </div>
+                <div class="content-side">
+                    <div class="slide-header">
+                        <div class="tag">04 / Architecture 2</div>
+                        <h2>❷ HART Splitter (分配隔離器)</h2>
+                    </div>
+                    <div class="section-item red">
+                        <h3>物理安裝位置</h3>
+                        <p>直接<strong>串聯 (Series Connection)</strong> 安裝於 DCS 機櫃或前置接線櫃內，夾在現場定位器防護迴路的正極線路上。</p>
+                    </div>
+                    <div class="section-item red">
+                        <h3>1:1 硬體信號複製</h3>
+                        <p>分配器將單一輸入的 4-20mA 迴路電流，內部解耦複製成兩組完全獨立、互不干擾的 4-20mA 電流輸出，第一路給 DCS（控制），第二路給邊緣解碼設備。</p>
+                    </div>
+                    <div class="section-item">
+                        <h3>商業優劣勢</h3>
+                        <p><strong>優勢：</strong> 提供 100% 物理與電氣隔離，二次元採集側發生 any 線路短路，皆保證絕不影響一次 DCS 主控制安全。<br><strong>劣勢：</strong> 1-to-1 硬體配置，模組單價極高，且在端子櫃中極佔空間，不適合大批量推廣。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 5: Architecture 3 (Secondary Master Page) -->
+        <section class="slide" id="s5">
+            <div class="layout-split">
+                <div class="visual-side">
+                    <!-- SVG diagram for Secondary Master -->
+                    <svg class="diagram-svg" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="100%" height="100%" fill="#fafafa" rx="12"/>
+                        <!-- Field Device -->
+                        <rect x="20" y="170" width="80" height="50" rx="4" fill="#e6f7ff" stroke="#1890ff" stroke-width="2"/>
+                        <text x="60" y="195" fill="#003a8c" font-size="11" font-weight="bold" text-anchor="middle">現場定位器</text>
+
+                        <!-- DCS Loop -->
+                        <rect x="300" y="100" width="80" height="50" rx="4" fill="#f5f5f5" stroke="#8c8c8c" stroke-width="1.5"/>
+                        <text x="340" y="125" fill="#262626" font-size="11" font-weight="bold" text-anchor="middle">DCS 系統</text>
+                        <text x="340" y="140" fill="#595959" font-size="8" text-anchor="middle">主站 1 (Primary)</text>
+
+                        <!-- Tapped connection to EL6184 -->
+                        <rect x="180" y="240" width="100" height="60" rx="4" fill="#e6f7ff" stroke="#1890ff" stroke-width="1.5"/>
+                        <text x="230" y="265" fill="#003a8c" font-size="11" font-weight="bold" text-anchor="middle">EL6184</text>
+                        <text x="230" y="282" fill="#003a8c" font-size="8" text-anchor="middle">主站 2 (Secondary)</text>
+
+                        <!-- Resistor matching -->
+                        <rect x="195" y="190" width="40" height="15" rx="2" fill="#fafafa" stroke="#ff4d4f" stroke-width="1.5"/>
+                        <text x="215" y="201" fill="#ff4d4f" font-size="8" text-anchor="middle" font-weight="bold">250 Ω</text>
+
+                        <!-- Main 4-20mA loop line -->
+                        <path d="M 100,195 L 300,125" stroke="#ff4d4f" stroke-width="2.5"/>
+                        
+                        <!-- Tap lines -->
+                        <path d="M 160,175 L 195,197" stroke="#1890ff" stroke-width="1.5"/>
+                        <path d="M 235,197 L 235,240" stroke="#1890ff" stroke-width="1.5"/>
+                        <circle cx="160" cy="175" r="3" fill="#1890ff"/>
+                    </svg>
+                </div>
+                <div class="content-side">
+                    <div class="slide-header">
+                        <div class="tag">05 / Architecture 3</div>
+                        <h2>❸ Secondary Master (旁路側聽)</h2>
+                    </div>
+                    <div class="section-item">
+                        <h3>物理安裝位置</h3>
+                        <p>將 <strong>Beckhoff EL6184 模組</strong> 透過高阻抗線路，直接<strong>並聯 (Parallel Connection)</strong> 到現場定位器至 DCS 的 4-20mA 傳輸銅線上。</p>
+                    </div>
+                    <div class="section-item red">
+                        <h3>阻抗失配之痛：現場控制與診斷的物理衝突</h3>
+                        <p><strong>電氣衝突顧慮：</strong> 並聯側聽對線路阻抗極度敏感，迴路中必須串聯一顆精密 250 Ω 電阻解調。若電訊引入高頻噪訊或電阻失效，4-20mA 類比控制訊號將產生<strong>飄移失真</strong>，甚至導致 DCS 主控制卡件 Interlock 停機，這是 OT 工程師最恐懼的停機引線。</p>
+                    </div>
+                    <div class="section-item">
+                        <h3>雙主站通訊調解</h3>
+                        <p>EL6184 作為第二主站，需自動在 DCS (第一主站) 的通訊空檔進行 Polling。若時序調解不當，可能干擾 DCS 既有的 HART 查詢命令。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 6: Architecture 4 (NOA Page) -->
+        <section class="slide" id="s6">
+            <div class="layout-split">
+                <div class="visual-side" style="background: #e6f7ff;">
+                    <!-- SVG diagram for Certified NOA -->
+                    <svg class="diagram-svg" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="100%" height="100%" fill="#e6f7ff" rx="12"/>
+                        
+                        <!-- Field Device -->
+                        <rect x="20" y="170" width="80" height="50" rx="4" fill="#ffffff" stroke="#1890ff" stroke-width="2"/>
+                        <text x="60" y="195" fill="#003a8c" font-size="11" font-weight="bold" text-anchor="middle">現場定位器</text>
+
+                        <!-- NOA Galvanic Isolator (Center) -->
+                        <rect x="140" y="130" width="120" height="130" rx="8" fill="#ffffff" stroke="#52c41a" stroke-width="2"/>
+                        <text x="200" y="155" fill="#135200" font-size="11" font-weight="bold" text-anchor="middle">Certified NOA</text>
+                        <text x="200" y="170" fill="#135200" font-size="9" text-anchor="middle">電氣隔離模組</text>
+                        
+                        <!-- Optical Isolation symbol inside -->
+                        <path d="M 180,200 L 195,200" stroke="#52c41a" stroke-width="2"/>
+                        <path d="M 205,200 L 220,200" stroke="#52c41a" stroke-width="2"/>
+                        <text x="200" y="215" fill="#52c41a" font-size="8" text-anchor="middle">光電隔離</text>
+
+                        <!-- Line in -->
+                        <path d="M 100,195 L 140,195" stroke="#1890ff" stroke-width="2.5"/>
+
+                        <!-- Outputs -->
+                        <!-- Primary DCS Loop -->
+                        <rect x="300" y="90" width="80" height="50" rx="4" fill="#ffffff" stroke="#8c8c8c" stroke-width="1.5"/>
+                        <text x="340" y="115" fill="#262626" font-size="11" font-weight="bold" text-anchor="middle">DCS 系統</text>
+                        <text x="340" y="130" fill="#ff4d4f" font-size="8" text-anchor="middle" font-weight="bold">100% 物理隔離</text>
+
+                        <!-- Secondary Edge PLC Loop -->
+                        <rect x="300" y="250" width="80" height="50" rx="4" fill="#ffffff" stroke="#1890ff" stroke-width="1.5"/>
+                        <text x="340" y="275" fill="#003a8c" font-size="11" font-weight="bold" text-anchor="middle">邊緣 PLC</text>
+                        <text x="340" y="290" fill="#1890ff" font-size="8" text-anchor="middle">OPC UA 輸出</text>
+
+                        <!-- Connections out of Isolator -->
+                        <path d="M 260,165 L 300,115" stroke="#52c41a" stroke-width="2"/>
+                        <path d="M 260,225 L 300,275" stroke="#1890ff" stroke-width="2"/>
+                    </svg>
+                </div>
+                <div class="content-side">
+                    <div class="slide-header">
+                        <div class="tag">06 / Architecture 4</div>
+                        <h2>❹ Certified NOA 隔離模組</h2>
+                    </div>
+                    <div class="section-item green">
+                        <h3>物理安裝位置</h3>
+                        <p><strong>標準安裝法：</strong> 安裝於一次系統控制櫃與採集邊緣櫃之間。大廠 (如 Pepperl+Fuchs, Phoenix Contact) 認證的安全柵隔離模組，直接將訊號做實體隔離分流。</p>
+                    </div>
+                    <div class="section-item green">
+                        <h3>Galvanic Isolation 物理電氣隔離</h3>
+                        <p>模組內部採用光電耦合或變壓器原理，使控制端與採集端的電路完全沒有物理接觸。即使採集端 Beckhoff 或 IT 網路被雷擊或發生短路，控制迴路依然安然無恙。</p>
+                    </div>
+                    <div class="section-item">
+                        <h3>商業優劣勢</h3>
+                        <p><strong>優勢：</strong> 具備國際 SIL 安全完整性與 Ex 認證，是 OT 工程師最信任、最符合工廠工安法規的唯一標準方案。<br><strong>劣勢：</strong> 初期規劃需要增設隔離配線硬體，具備中等的前期硬體投資。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 7: The Math of Polling -->
+        <section class="slide" id="s7">
+            <div class="math-container">
+                <div class="math-left">
+                    <div class="tag" style="background: rgba(255,255,255,0.1); color: #00f2ff;">07 / Physical Limits</div>
+                    <h2 style="color: white; border-color: #00f2ff;">輪詢頻率的物理天花板</h2>
+                    <p style="color: #a0c2f0; font-size: 1.15rem; margin-top: 20px; line-height: 1.8;">
+                        HART 通訊底層速度極慢，鮑率僅有 <strong>1200 bps</strong>。<br>
+                        如果客戶提出「希望至少 5 分鐘 (300 秒) 輪詢一次健康度」，最大設備容量是多少？
+                    </p>
+                    <div style="margin-top: 40px; border-left: 4px solid #52c41a; padding-left: 20px;">
+                        <h4 style="color: #52c41a; font-size: 1.25rem;">實務耗時估算 (3 秒 / 台)：</h4>
+                        <p style="color: #a0a0a0; font-size: 0.95rem; margin-top: 5px;">
+                            除了基本發收 (1s) 之外，多工器硬體繼電器切換通道需要物理穩定時間，且工業現場的干擾重試 (Retry) 是家常便飯。3 秒是穩健的實務黃金標準。
+                        </p>
+                    </div>
+                </div>
+                <div class="math-right">
+                    <div class="formula-box">
+                        <div style="font-size: 0.9rem; color: #a0a0a0;">容量計算公式</div>
+                        <div class="formula-main">N = T / 3</div>
+                        <div style="font-size: 0.9rem; color: #00f2ff;">N ≤ 300s / 3s = 100 台</div>
+                    </div>
+                    <p style="font-size: 1rem; color: #ff4d4f; font-weight: 700; text-align: center; max-width: 400px;">
+                        結論：單一迴路 / COM Port 輪詢極限值為 100 台，超過此數量更新頻率將無法維持在 5 分鐘以內！
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 8: Parallel Scaling Architecture -->
+        <section class="slide" id="s8">
+            <div class="layout-split">
+                <div class="visual-side" style="background: #fafafa;">
+                    <!-- Flow diagram style SVG -->
+                    <svg width="240" height="240" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="10" y="80" width="40" height="40" rx="6" fill="#003a8c"/>
+                        <text x="30" y="104" fill="white" font-size="10" text-anchor="middle" font-weight="700">DCS</text>
+
+                        <!-- Taps -->
+                        <line x1="50" y1="100" x2="90" y2="100" stroke="#a0a0a0" stroke-width="2"/>
+                        <circle cx="90" cy="100" r="4" fill="#ff4d4f"/>
+
+                        <!-- Splitting channels -->
+                        <path d="M 90,100 L 120,40 L 160,40" fill="none" stroke="#1890ff" stroke-width="2"/>
+                        <path d="M 90,100 L 120,100 L 160,100" fill="none" stroke="#1890ff" stroke-width="2"/>
+                        <path d="M 90,100 L 120,160 L 160,160" fill="none" stroke="#1890ff" stroke-width="2"/>
+
+                        <rect x="160" y="25" width="30" height="30" rx="4" fill="rgba(82,196,26,0.1)" stroke="#52c41a"/>
+                        <text x="175" y="44" fill="#389e0d" font-size="9" text-anchor="middle">CH1</text>
+
+                        <rect x="160" y="85" width="30" height="30" rx="4" fill="rgba(82,196,26,0.1)" stroke="#52c41a"/>
+                        <text x="175" y="104" fill="#389e0d" font-size="9" text-anchor="middle">CH2</text>
+
+                        <rect x="160" y="145" width="30" height="30" rx="4" fill="rgba(82,196,26,0.1)" stroke="#52c41a"/>
+                        <text x="175" y="164" fill="#389e0d" font-size="9" text-anchor="middle">CH3</text>
+                    </svg>
+                    <div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 10px;">平行化分流拓撲示意圖</div>
+                </div>
+                <div class="content-side">
+                    <div class="slide-header">
+                        <div class="tag">08 / Parallelization</div>
+                        <h2>如何解決 500 台以上規模的輪詢？</h2>
+                    </div>
+                    <div class="section-item">
+                        <h3>物理線路平行切分 (Parallel Loops)</h3>
+                        <p>嚴禁將數百台設備全串在同一線路上。需以 100 台為臨界點，將全廠 500 台設備切分成 5 條獨立的 RS-485 實體線路。</p>
+                    </div>
+                    <div class="section-item">
+                        <h3>邊緣併發多執行緒 (Multi-threading)</h3>
+                        <p>Beckhoff IPC 端利用 TwinCAT 3 多工作業核心，開闢 5 個平行的 Polling Thread，各別對應 5 條線路同時 Polling。如此，500 台設備依然能在 5 分鐘內全部刷完一遍。</p>
+                    </div>
+                    <div class="section-item">
+                        <h3>架構優勢</h3>
+                        <p>高容錯性：單一迴路斷線，其餘 4 條完全不受影響，大幅降低線路故障造成的數據中斷面積。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 9: Typical Brownfield Retrofit -->
+        <section class="slide" id="s9">
+            <div class="layout-split">
+                <div class="visual-side" style="background: #fffbe6;">
+                    <svg class="diagram-svg" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="100%" height="100%" fill="#fffdf9" rx="12"/>
+                        
+                        <!-- Field Device -->
+                        <rect x="15" y="160" width="70" height="50" rx="4" fill="#e6f7ff" stroke="#1890ff" stroke-width="1.5"/>
+                        <text x="50" y="185" fill="#003a8c" font-size="10" font-weight="bold" text-anchor="middle">現場定位器</text>
+                        <text x="50" y="200" fill="#003a8c" font-size="8" text-anchor="middle">HART + 4-20mA</text>
+
+                        <!-- Junction Box / Cabinet Border -->
+                        <rect x="110" y="40" width="270" height="310" rx="8" fill="none" stroke="#d9d9d9" stroke-width="1.5" stroke-dasharray="4 4"/>
+                        <text x="245" y="58" fill="#595959" font-size="10" font-weight="bold" text-anchor="middle">現場機櫃 / 端子櫃內部 (Cabinet)</text>
+
+                        <!-- Terminal Block (端子台) -->
+                        <rect x="130" y="150" width="40" height="70" rx="4" fill="#fafafa" stroke="#8c8c8c" stroke-width="1.5"/>
+                        <text x="150" y="180" fill="#262626" font-size="10" font-weight="bold" text-anchor="middle">端子</text>
+                        <text x="150" y="195" fill="#262626" font-size="10" font-weight="bold" text-anchor="middle">台</text>
+
+                        <!-- Line from Field to Terminal -->
+                        <path d="M 85,185 L 130,185" stroke="#1890ff" stroke-width="2"/>
+
+                        <!-- Existing Path: Standard Non-HART Mux -->
+                        <rect x="250" y="80" width="110" height="70" rx="6" fill="#f5f5f5" stroke="#bfbfbf" stroke-width="1.5"/>
+                        <text x="305" y="105" fill="#595959" font-size="11" font-weight="bold" text-anchor="middle">舊普通多工器</text>
+                        <text x="305" y="122" fill="#ff4d4f" font-size="9" text-anchor="middle">🚫 HART 被濾除</text>
+                        <rect x="260" y="130" width="90" height="12" rx="2" fill="#ff4d4f" opacity="0.1"/>
+                        <text x="305" y="139" fill="#ff4d4f" font-size="7" font-weight="bold" text-anchor="middle">內建低通濾波器</text>
+
+                        <!-- Connection Terminal to Non-HART Mux -->
+                        <path d="M 170,170 L 210,170 L 210,115 L 250,115" stroke="#ff4d4f" stroke-width="1.5" stroke-dasharray="2 2"/>
+
+                        <!-- Retrofit Path: Beckhoff EL6184 / Secondary Master -->
+                        <rect x="250" y="230" width="110" height="70" rx="6" fill="#f6ffed" stroke="#52c41a" stroke-width="1.5"/>
+                        <text x="305" y="255" fill="#135200" font-size="11" font-weight="bold" text-anchor="middle">Beckhoff PLC</text>
+                        <text x="305" y="272" fill="#52c41a" font-size="9" font-weight="bold" text-anchor="middle">EL6184 側聽</text>
+                        <text x="305" y="287" fill="#1890ff" font-size="8" text-anchor="middle">OPC UA 輸出 ➔ IT</text>
+
+                        <!-- Connection Terminal to Beckhoff -->
+                        <path d="M 170,200 L 210,200 L 210,265 L 250,265" stroke="#52c41a" stroke-width="2"/>
+                        <circle cx="210" cy="200" r="3" fill="#52c41a"/>
+                        <text x="220" y="195" fill="#52c41a" font-size="8" font-weight="bold">並聯引線</text>
+                    </svg>
+                    <div style="font-size: 0.95rem; color: #fa8c16; font-weight: bold; margin-top: 10px;">機櫃內端子台「並聯旁路」採集拓撲</div>
+                </div>
+                <div class="content-side">
+                    <div class="slide-header">
+                        <div class="tag">09 / Retrofit Case</div>
+                        <h2>典型舊廠改造：無 HART 多工器機櫃方案</h2>
+                    </div>
+                    <div class="section-item orange">
+                        <h3>物理過濾痛點</h3>
+                        <p>舊廠既有普通多工器內部具有<strong>低通濾波器</strong>。HART 高頻調變訊號會被直接濾除，不可能從舊多工器輸出端讀取 HART 診斷資訊。</p>
+                    </div>
+                    <div class="section-item red">
+                        <h3>改造顧慮：工安與阻抗匹配之衝突</h3>
+                        <p>在舊廠端子櫃並聯引線時，儀控部門極度擔心<strong>阻抗匹配飄移</strong>與高頻雜訊回流，進而觸發 DCS 停機。這是推動「旁路側聽」的最大阻力。</p>
+                    </div>
+                    <div class="section-item green">
+                        <h3>終極安全對策：NOA 隔離與並聯安全設計</h3>
+                        <p><strong>A. 1:1 電氣隔離柵 (NOA 方案)</strong>：在一次迴路與二次採集間串入安全柵，光電實體物理隔離，具 SIL 安全認證，100% 消除工安干擾疑慮。<br><strong>B. Beckhoff EL6184 旁路並聯</strong>：利用高阻抗並聯技術與精準電阻設計，在確保 DCS 主迴路阻抗完全不被干擾的前提下側聽。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 10: Greenfield Deployment (New!) -->
+        <section class="slide" id="s10">
+            <div class="layout-split">
+                <div class="visual-side" style="background: #f6ffed;">
+                    <!-- Greenfield Ex Box SVG -->
+                    <svg class="diagram-svg" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="100%" height="100%" fill="#fffdf9" rx="12"/>
+                        
+                        <!-- Greenfield Title inside SVG -->
+                        <text x="200" y="35" fill="#135200" font-size="14" font-weight="bold" text-anchor="middle">Greenfield 現場防爆一體化拓撲</text>
+
+                        <!-- Field Device (Positioner) -->
+                        <rect x="25" y="160" width="90" height="60" rx="6" fill="#e6f7ff" stroke="#1890ff" stroke-width="2"/>
+                        <text x="70" y="190" fill="#003a8c" font-size="11" font-weight="bold" text-anchor="middle">現場定位器</text>
+                        <text x="70" y="208" fill="#1890ff" font-size="9" text-anchor="middle">HART + 4-20mA</text>
+
+                        <!-- Ex-d / Ex-e Explosion-proof Box (Center) -->
+                        <rect x="150" y="100" width="130" height="210" rx="8" fill="#fffbe6" stroke="#d48806" stroke-width="3"/>
+                        <text x="215" y="125" fill="#d48806" font-size="10" font-weight="bold" text-anchor="middle">Ex-d/Ex-e 防爆箱</text>
+                        
+                        <rect x="162" y="140" width="106" height="150" rx="4" fill="#fafafa" stroke="#bfbfbf" stroke-width="1"/>
+                        
+                        <!-- EL6184 module inside Box -->
+                        <rect x="170" y="160" width="90" height="45" rx="2" fill="#f6ffed" stroke="#52c41a" stroke-width="1.5"/>
+                        <text x="215" y="180" fill="#135200" font-size="8" font-weight="bold" text-anchor="middle">EL6184 模組</text>
+                        <text x="215" y="195" fill="#52c41a" font-size="7" text-anchor="middle">(HART 採集)</text>
+                        
+                        <!-- PLC / standard modules -->
+                        <rect x="170" y="215" width="90" height="45" rx="2" fill="#e6f7ff" stroke="#1890ff" stroke-width="1.5"/>
+                        <text x="215" y="235" fill="#003a8c" font-size="8" font-weight="bold" text-anchor="middle">標準 I/O / CPU</text>
+                        <text x="215" y="250" fill="#1890ff" font-size="7" text-anchor="middle">(非本安卡件)</text>
+
+                        <!-- DCS / Control Room box on Right -->
+                        <rect x="305" y="110" width="80" height="50" rx="4" fill="#fafafa" stroke="#8c8c8c" stroke-width="1.5"/>
+                        <text x="345" y="133" fill="#262626" font-size="9" font-weight="bold" text-anchor="middle">中控室 DCS</text>
+                        <text x="345" y="148" fill="#595959" font-size="8" text-anchor="middle">OPC UA</text>
+
+                        <!-- Connection: Ex-box to DCS -->
+                        <path d="M 280,175 L 305,135" stroke="#1890ff" stroke-width="2" stroke-dasharray="3 2"/>
+                        <text x="290" y="162" fill="#1890ff" font-size="8">OPC UA</text>
+
+                        <!-- Connection: Positioner to Ex-box -->
+                        <path d="M 115,190 L 150,190" stroke="#1890ff" stroke-width="2"/>
+                        <text x="130" y="183" fill="#1890ff" font-size="8">4-20mA</text>
+
+                        <!-- Safety legend at bottom -->
+                        <rect x="30" y="330" width="340" height="40" rx="6" fill="#f6ffed" stroke="#52c41a" stroke-width="1"/>
+                        <text x="200" y="350" fill="#135200" font-size="9" font-weight="bold" text-anchor="middle">防爆箱提供電氣隔離 — 標準模組免本安認證 — 成本大幅降低</text>
+                        <text x="200" y="364" fill="#52c41a" font-size="8" text-anchor="middle">Ex-d / Ex-e 外殼等同物理隔離屏障，內部可使用標準 (非 I.S.) Beckhoff 模組</text>
+                    </svg>
+                    <div style="font-size: 0.95rem; color: #d48806; font-weight: bold; margin-top: 10px;">Greenfield 防爆箱原生整合拓撲</div>
+                </div>
+                <div class="content-side">
+                    <div class="slide-header">
+                        <div class="tag">10 / Greenfield</div>
+                        <h2>新廠規劃：Ex-d 防爆箱 + 標準模組方案</h2>
+                    </div>
+                    <div class="section-item">
+                        <h3>核心思路：外殼做防爆，內部不需本安</h3>
+                        <p>新建廠區無須採購昂貴的本安 (I.S.) 認證卡件。以 <strong>Ex-d (防爆型) 或 Ex-e (增安型) 金屬箱體</strong>作為防爆屏障，箱內部署標準 <strong>Beckhoff EL6184 HART 採集模組</strong>，大幅降低元件成本。</p>
+                    </div>
+                    <div class="section-item green">
+                        <h3>優勢：成本 vs. 功能兩全其美</h3>
+                        <p>• 元件成本：標準模組比本安認證卡件便宜 40~60%。<br>• 採購便利：Beckhoff 標準模組供貨穩定，交期短。<br>• 整合彈性：同一箱體可混搭 I/O、通訊、CPU 模組，一箱搞定。</p>
+                    </div>
+                    <div class="section-item orange">
+                        <h3>注意事項</h3>
+                        <p>防爆箱體本身需取得 <strong>IECEx 或 ATEX 認證</strong>。開孔佈線需使用防爆填函頭 (Cable Gland)，確保箱體完整性不被破壞。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 11: Design Verification -->
+        <section class="slide" id="s11">
+            <div class="layout-split">
+                <div class="visual-side" style="background: #f6ffed;">
+                    <!-- Verification shield SVG -->
+                    <svg class="diagram-svg" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="100%" height="100%" fill="#fffdf9" rx="12"/>
+                        <!-- Shield outline -->
+                        <circle cx="200" cy="180" r="100" fill="#f6ffed" stroke="#52c41a" stroke-width="4"/>
+                        <circle cx="200" cy="180" r="115" fill="none" stroke="#52c41a" stroke-width="1" stroke-dasharray="4 4"/>
+                        <!-- Checkmark in shield -->
+                        <path d="M 160,180 L 185,210 L 245,148" stroke="#52c41a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        <!-- Status Pills inside SVG -->
+                        <rect x="50" y="320" width="90" height="30" rx="15" fill="#e6f7ff" stroke="#1890ff" stroke-width="1.5"/>
+                        <text x="95" y="339" fill="#003a8c" font-size="9" font-weight="bold" text-anchor="middle">UI 互動 100%</text>
+                        <rect x="155" y="320" width="90" height="30" rx="15" fill="#f6ffed" stroke="#52c41a" stroke-width="1.5"/>
+                        <text x="200" y="339" fill="#135200" font-size="9" font-weight="bold" text-anchor="middle">防爆合規 OK</text>
+                        <rect x="260" y="320" width="90" height="30" rx="15" fill="#fff7e6" stroke="#fa8c16" stroke-width="1.5"/>
+                        <text x="305" y="339" fill="#d4380d" font-size="9" font-weight="bold" text-anchor="middle">100台/輪詢 OK</text>
+                        <text x="200" y="120" fill="#52c41a" font-size="14" font-weight="bold" text-anchor="middle">SYSTEM PASSED</text>
+                        <text x="200" y="280" fill="#8c8c8c" font-size="8" text-anchor="middle">TwinCAT 3 / Beckhoff Loop Tested</text>
+                    </svg>
+                    <div style="font-size: 0.95rem; color: #52c41a; font-weight: bold; margin-top: 10px;">系統可靠度與實體安全雙重驗證</div>
+                </div>
+                <div class="content-side">
+                    <div class="slide-header">
+                        <div class="tag">11 / Design Verification</div>
+                        <h2>設計安全與自動化工程驗證</h2>
+                    </div>
+                    <div class="section-item green">
+                        <h3>自動化 UI 與交互動畫驗證</h3>
+                        <p><strong>驗證結果</strong>：完美通過「端到端動態互動高亮測試」。滑鼠懸停於 Slide 2 現場卡片時，對應的 SVG 物理拓撲節點高亮縮放、邊框變色無殘留，確保現場演說互動體驗流暢。</p>
+                    </div>
+                    <div class="section-item green">
+                        <h3>現場防爆一體化物理安全合規</h3>
+                        <p><strong>安全驗證</strong>：「現場 Ex-d/Ex-e 防爆箱 + 標準 Beckhoff (EL6184) 採集拓撲」模擬評估通過。電氣與工安由現場防爆箱與標準隔離柵分擔，現場物理防護 100% 滿足防爆區工安合規要求，免去高昂本安 (I.S.) 卡件投資。</p>
+                    </div>
+                    <div class="section-item orange">
+                        <h3>1200 bps 鮑率輪詢時序極限驗證</h3>
+                        <p><strong>通訊模擬</strong>：自動化模擬 100 台現場儀表 Polling 負載。每台 Command 3 收發耗時 (含多工器繼電器切換與干擾 Retry) 模擬小於 3 秒，完美達標 5 分鐘 (300 秒) 輪詢頻率極限，無數據丟失。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Slide 12: Summary & Roadmap -->
+        <section class="slide" id="s12">
+            <div class="layout-split">
+                <div class="visual-side" style="background: #f6ffed;">
+                    <svg class="wave-item" width="160" height="160" viewBox="0 0 24 24" fill="none" stroke="#52c41a" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h3 style="color: var(--accent-green); margin-top: 20px; font-size: 1.5rem;">穩健落地，數據閉環</h3>
+                </div>
+                <div class="content-side">
+                    <div class="slide-header">
+                        <div class="tag">12 / Strategic Summary</div>
+                        <h2>專題戰略總結</h2>
+                    </div>
+                    <div class="section-item green">
+                        <h3>舊廠升級 (Brownfield) 最佳拍檔</h3>
+                        <p>以<strong>「NOA 隔離端子 + 輕量化多工器」</strong>為主要架構。隔離模組保證電氣工安，多工器分組平行輪詢（100台/組），保證 5 分鐘內數據全數上傳。</p>
+                    </div>
+                    <div class="section-item green">
+                        <h3>新廠規劃 (Greenfield) 原生現場防爆</h3>
+                        <p>現場部署 <strong>Ex-d/Ex-e 防爆箱 + Beckhoff 標準模組 (EL6184)</strong> 的原生採集方案，提供高性價比且不干擾主控制的採集拓撲，省去昂貴本安卡件的預算。</p>
+                    </div>
+                    <div class="section-item">
+                        <h3>下一步行動</h3>
+                        <p>1. 更新 VLMS 售前技術規範書。<br>2. 將此限制納入 UReason 與 ValvAware 採樣模型設定。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+<div class="slide-counter" id="slideCounter">1 / 12</div>
+
+    <div class="nav-controls">
+        <button class="nav-btn" onclick="prevSlide()">←</button>
+        <button class="nav-btn" onclick="nextSlide()">→</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const progressBar = document.getElementById('progressBar');
+        const slideCounter = document.getElementById('slideCounter');
+
+        function updateSlide() {
+            slides.forEach((slide, index) => {
+                slide.classList.toggle('active', index === currentSlide);
+            });
+
+            const progress = ((currentSlide + 1) / slides.length) * 100;
+            progressBar.style.width = progress + '%';
+            slideCounter.textContent = `${currentSlide + 1} / ${slides.length}`;
+            
+            triggerAnimations(currentSlide);
+        }
+
+        function nextSlide() {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                updateSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlide();
+            }
+        }
+
+        // 互動架構說明卡初始化事件，僅在 DOM 載入時綁定一次，防止來回切換 slide 重複綁定導致記憶體洩漏
+        function initInteractiveArch() {
+            const cards = document.querySelectorAll('#s2 .arch-desc-card');
+            const highlights = document.querySelectorAll('#s2 .svg-highlight');
+            
+            cards.forEach((card, idx) => {
+                card.addEventListener('mouseenter', () => {
+                    cards.forEach(c => c.classList.remove('active-card'));
+                    card.classList.add('active-card');
+                    
+                    highlights.forEach((h, hIdx) => {
+                        if (idx === hIdx) {
+                            h.style.transformOrigin = "center";
+                            h.style.transform = "scale(1.03)";
+                            h.style.filter = "brightness(1.05) drop-shadow(0 4px 12px rgba(24,144,255,0.6))";
+                        } else {
+                            h.style.transform = "scale(1)";
+                            h.style.filter = "none";
+                        }
+                    });
+                });
+            });
+        }
+
+        function triggerAnimations(slideIndex) {
+            // 切換至 E2E Architecture 投影片時重設為預設高亮 (第一張 active)
+            if (slideIndex === 1) {
+                const cards = document.querySelectorAll('#s2 .arch-desc-card');
+                const highlights = document.querySelectorAll('#s2 .svg-highlight');
+                cards.forEach((c, idx) => {
+                    c.classList.toggle('active-card', idx === 0);
+                });
+                highlights.forEach((h, idx) => {
+                    h.style.transformOrigin = "center";
+                    h.style.transform = idx === 0 ? "scale(1.03)" : "scale(1)";
+                    h.style.filter = idx === 0 ? "brightness(1.05) drop-shadow(0 4px 12px rgba(24,144,255,0.6))" : "none";
+                });
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+                if (e.key === ' ' || e.key === 'Enter') e.preventDefault();
+                nextSlide();
+            }
+            if (e.key === 'ArrowLeft') {
+                prevSlide();
+            }
+        });
+
+        // 初始化互動與投影片
+        initInteractiveArch();
+        updateSlide();
+    </script>
+</body>
+</html>

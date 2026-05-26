@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VLMS 戰略藍圖 - 數據驅動的生態系轉型</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Noto+Sans+TC:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050505;
+            --accent-primary: #00f2ff;
+            --accent-secondary: #7000ff;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-dim: #a0a0a0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        .presentation-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            opacity: 0;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .slide.active {
+            opacity: 1;
+            pointer-events: all;
+            z-index: 2;
+        }
+
+        /* Layout 70/30 */
+        .visual-side {
+            flex: 0 0 70%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .visual-side img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.8);
+            transform: scale(1.1);
+            transition: transform 10s linear;
+        }
+
+        .slide.active .visual-side img {
+            transform: scale(1);
+        }
+
+        .content-side {
+            flex: 0 0 30%;
+            height: 100%;
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: linear-gradient(90deg, rgba(5,5,5,0) 0%, rgba(5,5,5,1) 10%);
+            backdrop-filter: blur(5px);
+            z-index: 10;
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #fff 0%, var(--accent-primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            margin-bottom: 30px;
+            color: var(--accent-primary);
+            letter-spacing: 1px;
+        }
+
+        .slide-num {
+            font-size: 0.9rem;
+            color: var(--accent-secondary);
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        li {
+            margin-bottom: 20px;
+            position: relative;
+            padding-left: 25px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: var(--text-dim);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .slide.active li {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 10px;
+            width: 8px;
+            height: 8px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-primary);
+        }
+
+        .highlight {
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        /* Specific Styles */
+        .title-slide .content-side {
+            flex: 0 0 100%;
+            align-items: center;
+            text-align: center;
+            background: radial-gradient(circle, rgba(112,0,255,0.15) 0%, rgba(5,5,5,1) 70%);
+        }
+
+        .title-slide .visual-side {
+            position: absolute;
+            width: 100%;
+            opacity: 0.4;
+        }
+
+        /* Controls */
+        .controls {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            display: flex;
+            gap: 20px;
+            z-index: 100;
+        }
+
+        button {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        button:hover {
+            background: var(--accent-primary);
+            color: black;
+            box-shadow: 0 0 20px var(--accent-primary);
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary));
+            z-index: 1000;
+            transition: width 0.3s ease;
+        }
+
+        /* Animations */
+        li:nth-child(1) { transition-delay: 0.2s; }
+        li:nth-child(2) { transition-delay: 0.4s; }
+        li:nth-child(3) { transition-delay: 0.6s; }
+        li:nth-child(4) { transition-delay: 0.8s; }
+
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progress"></div>
+    
+    <div class="presentation-container">
+        <!-- Slide 1: Title -->
+        <section class="slide active title-slide" id="slide-1">
+            <div class="visual-side">
+                <img src="./assets/hero.png" alt="VLMS Hero">
+            </div>
+            <div class="content-side">
+                <div class="slide-num">Strategic Roadmap</div>
+                <h1>VLMS 戰略藍圖</h1>
+                <p style="font-size: 1.5rem; color: var(--accent-primary); margin-top: 20px; font-weight: 300; letter-spacing: 4px;">數據驅動的生態系轉型</p>
+                <div style="margin-top: 50px; opacity: 0.6; font-size: 0.9rem;">FCI Digital Transformation 2026</div>
+            </div>
+        </section>
+
+        <!-- Slide 2: Vision & Goals -->
+        <section class="slide" id="slide-2">
+            <div class="visual-side">
+                <img src="./assets/hero.png" alt="Vision">
+            </div>
+            <div class="content-side">
+                <div class="slide-num">01 / Vision</div>
+                <h2>雙重終極目標</h2>
+                <ul>
+                    <li><span class="highlight">進入決策循環：</span>讓 VLMS 成為客戶每天採購、排程時不可或缺的決策輔助系統。</li>
+                    <li><span class="highlight">強化生產 Synergy：</span>透過數據串聯「維修、備品、銷售」。</li>
+                    <li><span class="highlight">自動化轉型：</span>將人工轉單進化為數據驅動的自動化循環。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Slide 3: Ecosystem -->
+        <section class="slide" id="slide-3">
+            <div class="visual-side">
+                <img src="./assets/ecosystem.png" alt="Ecosystem">
+            </div>
+            <div class="content-side">
+                <div class="slide-num">02 / Big Picture</div>
+                <h2>數位生態系整合</h2>
+                <ul>
+                    <li><span class="highlight">生產生態系：</span>銷售與維修的硬核閉環。</li>
+                    <li><span class="highlight">消費生態系：</span>平台互動與數據透明化的軟體價值。</li>
+                    <li><span class="highlight">核心橋樑：</span>VLMS 創造數據綜效 (Synergy)，連結兩大齒輪。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Slide 4: HOW - DIISA -->
+        <section class="slide" id="slide-4">
+            <div class="visual-side">
+                <img src="./assets/diisa.png" alt="DIISA">
+            </div>
+            <div class="content-side">
+                <div class="slide-num">03 / Implementation</div>
+                <h2>DIISA 數據引擎</h2>
+                <ul>
+                    <li><span class="highlight">Data Input：</span>Ureason 初篩 + Votes Infinity 深診 + 數位履歷。</li>
+                    <li><span class="highlight">Insight：</span>AI 發現趨勢，精準預判設備風險。</li>
+                    <li><span class="highlight">Strategy & Action：</span>自動建議維修排程，達成真正的預測維護。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Slide 5: Interaction -->
+        <section class="slide" id="slide-5">
+            <div class="visual-side">
+                <img src="./assets/rfid_nfc.png" alt="RFID NFC">
+            </div>
+            <div class="content-side">
+                <div class="slide-num">04 / Interface</div>
+                <h2>虛實對接入口</h2>
+                <ul>
+                    <li><span class="highlight">RFID + NFC：</span>手機感應，現場直通 Ragic 透明數據。</li>
+                    <li><span class="highlight">互動回饋：</span>即時回報問題，縮短反應鏈條。</li>
+                    <li><span class="highlight">建立依賴：</span>讓客戶在現場即刻感受平台的強力支援。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Slide 6: Moats -->
+        <section class="slide" id="slide-6">
+            <div class="visual-side">
+                <img src="./assets/moat.png" alt="Moats">
+            </div>
+            <div class="content-side">
+                <div class="slide-num">05 / Competitive Advantage</div>
+                <h2>戰略護城河</h2>
+                <ul>
+                    <li><span class="highlight">資料牆：</span>自動化導入歷史維修紀錄，建立絕對門檻。</li>
+                    <li><span class="highlight">習慣牆：</span>深度嵌入客戶決策流程，轉換成本極高。</li>
+                    <li><span class="highlight">規格牆：</span>讓數位標準成為招標規範的代名詞。</li>
+                </ul>
+            </div>
+        </section>
+    </div>
+
+    <div class="controls">
+        <button onclick="prevSlide()">←</button>
+        <button onclick="nextSlide()">→</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const progress = document.getElementById('progress');
+
+        function updateSlide() {
+            slides.forEach((slide, index) => {
+                slide.classList.toggle('active', index === currentSlide);
+            });
+            progress.style.width = ((currentSlide + 1) / slides.length) * 100 + '%';
+        }
+
+        function nextSlide() {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                updateSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlide();
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antigravity ä¼æ¥­ AI è§?±º?¹æ?å±•ç¤º</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --accent: #3b82f6;
+            --bg-body: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        .presentation-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slide {
+            position: absolute;
+            width: 90%;
+            max-height: 85vh;
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 60px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+            overflow-y: auto;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+            z-index: 10;
+        }
+
+        .slide-number {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            background: rgba(255,255,255,0.1);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: var(--accent);
+            letter-spacing: 1px;
+        }
+
+        .tag {
+            display: inline-block;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 3.2em;
+            line-height: 1.2;
+            margin-top: 0;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #ffffff, #94a3b8);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 2em;
+            margin-top: 0;
+            margin-bottom: 25px;
+            color: #f1f5f9;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 15px;
+        }
+
+        p {
+            font-size: 1.2em;
+            line-height: 1.7;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.3);
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+
+        .card-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .card-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #f8fafc;
+            margin-bottom: 10px;
+        }
+
+        .card-desc {
+            font-size: 0.95em;
+            color: var(--text-muted);
+        }
+
+        .flow-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 16px;
+            margin: 30px 0;
+            border: 1px dashed rgba(255,255,255,0.1);
+        }
+
+        .flow-step {
+            text-align: center;
+            flex: 1;
+        }
+
+        .flow-arrow {
+            color: var(--accent);
+            font-size: 2em;
+            opacity: 0.6;
+        }
+
+        .highlight-box {
+            background: linear-gradient(to right, rgba(16, 185, 129, 0.1), transparent);
+            border-left: 4px solid var(--success);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin-top: 30px;
+            font-size: 1.1em;
+        }
+        
+        .danger-box {
+            background: linear-gradient(to right, rgba(239, 68, 68, 0.1), transparent);
+            border-left: 4px solid var(--danger);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin-top: 30px;
+            font-size: 1.1em;
+        }
+
+        /* Controls */
+        .controls {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 100;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px 24px;
+            font-size: 1.1em;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-family: inherit;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: scale(1.05);
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .code-block {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            color: #e2e8f0;
+            margin: 10px 0;
+            border: 1px solid #1e293b;
+            text-align: left;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="presentation-container">
+        
+        <!-- Slide 1: Cover -->
+        <div class="slide active" id="slide-0">
+            <span class="slide-number">1 / 6</span>
+            <div style="text-align: center; margin-top: 40px;">
+                <span class="tag">AI Transformation</span>
+                <h1>Antigravity<br><span style="color: var(--accent); font-size: 0.6em;">ä¼æ¥­ç´?AI ?‡æ®å®˜è§£æ±ºæ–¹æ¡?/span></h1>
+                <p style="font-size: 1.5em; max-width: 800px; margin: 30px auto;">è®?AI ?ç‚º?¨ç?è¶…ç?å¤§è…¦??24 å°æ??¡ä??„è²¼èº«å???/p>
+                <div class="grid-cards">
+                    <div class="card">
+                        <span class="card-icon">??</span>
+                        <div class="card-title">?¥è?æ±²å?</div>
+                        <div class="card-desc">ç§’é€Ÿæ¢³?†æµ·?æ­·?²æ?ä»¶è?è¦æ ¼</div>
+                    </div>
+                    <div class="card">
+                        <span class="card-icon">??/span>
+                        <div class="card-title">?ªå?ä½œæ¥­</div>
+                        <div class="card-desc">å¾¹å??Šåˆ¥ç¹ç‘£?„æ?å·¥è??™è¼¸??/div>
+                    </div>
+                    <div class="card">
+                        <span class="card-icon">?›¡ï¸?/span>
+                        <div class="card-title">?²å?å¯©æŸ¥</div>
+                        <div class="card-desc">ä¸»å??Šé??æ??ªäºº?ºç?æ¼è??°å¸¸</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2: What is Antigravity -->
+        <div class="slide" id="slide-1">
+            <span class="slide-number">2 / 6</span>
+            <span class="tag">Concept</span>
+            <h2>ä»€éº¼æ˜¯ Antigravityï¼?/h2>
+            <p>Antigravity ä¸æ˜¯ä¸€?‹è¢«?•ç??Œè?å¤©å?è©±æ??ï??Œæ˜¯ä¸€ä½å…·??*?Œèª¿åº¦æ???*??AI ä¸­å??‡æ®å®˜ã€?/p>
+            <p>?é?å»ºç?æ¨™æ?ä½œæ¥­æµç? (SOP/Skills)ï¼Œå??½è‡ª?•ä¸²?¥æ??‘å¹³å¸¸ç”¨?„å?ç¨®å·¥?·ï?ä¾‹å?ï¼šGoogle Drive?è©¦ç®—è¡¨?NotebookLM ?¥è?åº«ï?ï¼Œæ?äººç??¦å?å¾ã€Œæ•´?†è??™ã€è§£?¾å‡ºä¾†ï?å°ˆæ³¨?¼ã€Œæ±ºç­–ã€ã€?/p>
+            
+            <div class="flow-container">
+                <div class="flow-step">
+                    <span class="card-icon">?‘¤</span>
+                    <strong style="color:white; font-size:1.1em;">??(ç¶“ç?äº?</strong><br>
+                    <span style="font-size:0.9em; color:var(--text-muted)">?¼å‡º?‡ä»¤</span>
+                </div>
+                <div class="flow-arrow">?¡ï?</div>
+                <div class="flow-step" style="transform: scale(1.1);">
+                    <span class="card-icon">??</span>
+                    <strong style="color:var(--accent); font-size:1.2em;">Antigravity</strong><br>
+                    <span style="font-size:0.9em; color:var(--text-muted)">ä¾æ? SOP ?²è?èª¿åº¦</span>
+                </div>
+                <div class="flow-arrow">?¡ï?</div>
+                <div class="flow-step">
+                    <span class="card-icon">?™ï?</span>
+                    <strong style="color:white; font-size:1.1em;">MCP ?Ÿæ?ç³?/strong><br>
+                    <span style="font-size:0.9em; color:var(--text-muted)">ä¸²æ¥ NotebookLM?Google</span>
+                </div>
+            </div>
+            <div class="highlight-box">
+                <strong style="color: #10b981;">?’¡ ?ˆç?ï¼?/strong>?¨ä??€è¦æ?ç¨‹å?ç¢¼ï??ªè?çµ¦å‡ºæ¸…æ™°?„æ¥­?™é?è¼¯ï?AI å°±èƒ½?ªå?å®Œæ?è·¨ç³»çµ±ç??ä???            </div>
+        </div>
+
+        <!-- Slide 2.5: Demystifying MCP (Text) -->
+        <div class="slide" id="slide-mcp-1">
+            <span class="slide-number"></span>
+            <span class="tag" style="background: linear-gradient(90deg, #38bdf8, #8b5cf6);">Tech Concept</span>
+            <h2>ç§‘æ™®ä¸€ä¸‹ï?ä»€éº¼æ˜¯ MCPï¼?/h2>
+            <p>?›å??‘å€‘æ??°ä? MCP ?Ÿæ?ç³»ï??™è½èµ·ä?å¾ˆæ?è¡“ï?ä½†å…¶å¯¦æ?å¿µé?å¸¸ç°¡?®ã€‚ä?å®Œå…¨?¯ä»¥?Šå??³å???*?Œè?é«”ç???Type-C è½‰æ¥ç·šã€?*??/p>
+            
+            <div style="display: flex; gap: 20px; align-items: stretch; margin-top: 30px; max-width: 1000px; margin-left: auto; margin-right: auto;">
+                <div class="card" style="flex: 1; text-align: left; padding: 30px; border-color: rgba(239, 68, 68, 0.4);">
+                    <h3 style="color: #ef4444; margin-top: 0; font-size: 1.3em;">ä»¥å???API (?„ç¨®å°ˆå±¬?…é›»ç·?</h3>
+                    <p style="color: var(--text-muted); font-size: 1.05em; line-height: 1.8; margin-bottom: 0;">ä»¥å? AI è¦æ¥ Google Drive?æ¥ ERP?æ¥è²¡å?åº«ï?å·¥ç?å¸«å??ˆç‚ºæ¯å€‹ç³»çµ±é??¼ã€Œå?å±¬ç???¥ç·?API?ã€‚é€™å°±?ä?å®¶ç??½å?èººè??Œä???Micro-USB?Lightning ç­‰è?ç·šæ?ï¼Œè²·?°è¨­?™å°±è¦è²·?°ç?ï¼Œæ¥µåº¦è€—æ?ä¸”é›£ä»¥æ“´?…ç¶­è­·ã€?/p>
+                </div>
+                
+                <div style="flex: 0; display: flex; align-items: center; font-size: 2.5em; color: var(--accent);">
+                    ??
+                </div>
+                
+                <div class="card" style="flex: 1; text-align: left; padding: 30px; border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.05);">
+                    <h3 style="color: #10b981; margin-top: 0; font-size: 1.3em;">?¾åœ¨??MCP (Type-C ?¬ç”¨å¿«å?ç·?</h3>
+                    <p style="color: var(--text-muted); font-size: 1.05em; line-height: 1.8; margin-bottom: 0;">MCP (Model Context Protocol) ?¯ä??‹å…¨?ƒçµ±ä¸€?„é?æºæ?æº–æ¥?­ã€‚ç¾?¨ï??ªè?çµ?AI å¤§è…¦?å??™æ??Œè¬??Type-C?ï??¡è??¯ç?è¨˜æœ¬?„æ˜¯è³‡æ?åº«ï?ä¸€?’ä??»ç¬?“å°±?½è??‚ä??„æ•¸?šï?å®Œå…¨ä¸é??æ–°å®¢è£½?–ï?</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2.6: Demystifying MCP (Visual 1) -->
+        <div class="slide" id="slide-mcp-2">
+            <span class="slide-number"></span>
+            <span class="tag" style="background: linear-gradient(90deg, #38bdf8, #8b5cf6);">AI Generated</span>
+            <h2>NBLM ?¢å‡º??MCP è³‡è??–è¡¨ (æ¨™æ???</h2>
+            <p style="font-size: 1.1em; max-width: 800px; margin: 10px auto 30px auto; color: var(--text-muted);">
+                ?™å¼µ?–æ˜¯??NotebookLM ?¹æ??ä??ç??‡å?ï¼ŒèŠ±è²?30 ç§’è‡ª?•æ??ˆæ¸²?“å‡º?„å?æ¥­ç°¡?±ç??ã€?            </p>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <img src="mcp_concept.jpg" alt="MCP Diagram Standard" style="max-width: 900px; width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            </div>
+        </div>
+
+        <!-- Slide 2.7: Demystifying MCP (Visual 2 - Simple) -->
+        <div class="slide" id="slide-mcp-3">
+            <span class="slide-number"></span>
+            <span class="tag" style="background: linear-gradient(90deg, #38bdf8, #8b5cf6);">AI Generated</span>
+            <h2>NBLM ?¢å‡º??MCP è³‡è??–è¡¨ (çµ¦é??€è¡“äºº??</h2>
+            <p style="font-size: 1.1em; max-width: 800px; margin: 10px auto 30px auto; color: var(--text-muted);">
+                å¦‚æ?ä¸»ç®¡è¦ºå??›æ??„å?å¤ªè??œï??‘å€‘å?æ¬¡è? AI ?æ–°ç¹ªè£½ä¸€å¼?*?Œä??å??ä??æ???*?„æ¥µç°¡ç?å°æ??–ã€?            </p>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <img src="mcp_concept_v2.jpg" alt="MCP Diagram Simple" style="max-width: 900px; width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px; font-size: 1.1em; color: #f8fafc; background: rgba(59, 130, 246, 0.1); padding: 15px; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.3); max-width: 800px; margin-left: auto; margin-right: auto;">
+                <strong>?’¡ çµè?ï¼?/strong>MCP è®?Antigravity ?¯ä»¥?éš¨èº«ç?ä¸€æ¨??ä¸€?’å³?¨ï??¡ç¸«æ±²å??„ç¨®ç§æ?ç³»çµ±?‡çŸ¥è­˜åº«ï¼?            </div>
+        </div>
+
+        <!-- Slide 3: The Demo Flow -->
+        <div class="slide" id="slide-2">
+            <span class="slide-number">3 / 6</span>
+            <span class="tag">Agenda</span>
+            <h2>?‘å€‘ä?å¤?Demo ä»€éº¼ï?</h2>
+            <p>?ºä?è®“å¤§å®¶æ??Ÿé???AI å¦‚ä??¹è?å·¥ä?æµç?ï¼Œæ??‘è¨­è¨ˆä?å¾ªå?æ¼¸é€²ç?ä¸‰å€‹é?æ®µå?ç¤ºï?</p>
+            
+            <div class="card" style="text-align: left; padding: 25px; margin-bottom: 20px; display: flex; align-items: center; gap: 20px;">
+                <div style="background: rgba(59, 130, 246, 0.2); padding: 15px; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 1.5em; font-weight: bold; color: var(--accent);">1</div>
+                <div>
+                    <div class="card-title" style="margin-bottom: 5px;">?¥è?å¤§è…¦å»ºç½® (?´ç?æ­¸ç?)</div>
+                    <div class="card-desc">å°‡ä??˜ä??„å?å§?PDF ?‡ä»¶äº¤çµ¦ AI ?†é?ï¼Œä¸¦?ªå?ä¸²è¯ NotebookLM è®Šæ??¯ä?è©¢å??„çŸ¥è­˜åº«??/div>
+                </div>
+            </div>
+            
+            <div class="card" style="text-align: left; padding: 25px; margin-bottom: 20px; display: flex; align-items: center; gap: 20px;">
+                <div style="background: rgba(59, 130, 246, 0.2); padding: 15px; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 1.5em; font-weight: bold; color: var(--accent);">2</div>
+                <div>
+                    <div class="card-title" style="margin-bottom: 5px;">?ªå??–è??™è???(?é™¤?‹ç™»)</div>
+                    <div class="card-desc">ä¸é?äººå·¥?µå…¥ï¼ŒAI ?´æ¥è®€?–æ??å ±?¹å–®?„è¡¨?¼ï?è½‰æ???Google è©¦ç?è¡¨è¿½è¹¤è¡¨??/div>
+                </div>
+            </div>
+            
+            <div class="card" style="text-align: left; padding: 25px; display: flex; align-items: center; gap: 20px; border-color: rgba(16, 185, 129, 0.4);">
+                <div style="background: rgba(16, 185, 129, 0.2); padding: 15px; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 1.5em; font-weight: bold; color: var(--success);">3</div>
+                <div>
+                    <div class="card-title" style="margin-bottom: 5px; color: var(--success);">AI ?ºèƒ½å¯©æŸ¥?Šé? (é«˜é??‰ç”¨)</div>
+                    <div class="card-desc">çµå??æ®µä¸€?„ã€Œæ?æº–è??¼çŸ¥è­˜ã€è??æ®µäºŒç??Œå ±?¹å–®?ï?è®?AI ?´æ¥å¹«æ‚¨?ªå‡ºå» å??±åƒ¹?„ä??ˆç?ä¹‹è?ï¼?/div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Stage 1 -->
+        <div class="slide" id="slide-3">
+            <span class="slide-number">4 / 6</span>
+            <span class="tag">Stage 1</span>
+            <h2>ç¬¬ä??æ®µï¼šæ??œä?æª”æ?è®Šæ??Œå³?å³ç­”çŸ¥è­˜åº«??/h2>
+            <p><strong>?‘æˆ°ï¼?/strong> æ¯æ¬¡?½è??¨é?å¤§ç?è³‡æ?å¤¾ä¸­å°‹æ‰¾?¹å??‹è??„è??ˆæ?è¡“è??¼æ›¸??br>
+               <strong>è§??ï¼?/strong> ?ªå??–å?é¡ï?ä¸¦è? NotebookLM ?ç‚ºå°ˆå±¬å¤§è…¦??/p>
+            
+            <div class="flow-container">
+                <div class="flow-step">
+                    <span class="card-icon">??</span>
+                    <strong style="color:white;">?œä???BHMN ?‡ä»¶</strong>
+                </div>
+                <div class="flow-arrow">?¡ï?</div>
+                <div class="flow-step">
+                    <span class="card-icon">??/span>
+                    <strong style="color:var(--accent);">?ªå??†é?æ­¸æ”¾</strong>
+                </div>
+                <div class="flow-arrow">?¡ï?</div>
+                <div class="flow-step">
+                    <span class="card-icon">??</span>
+                    <strong style="color:white;">NLM ?¥è?åº«å»ºç«?/strong>
+                </div>
+            </div>
+            <p style="text-align: center; color: white;">?¥ä?ä¾†æ‚¨?¯ä»¥?´æ¥å°?AI ?å?ï¼?em>?Œæ?è¼ƒæ??‰é–¥?€?‹è??„æ?ä½œæº«åº¦ç??ï???/em>ï¼Œç¬?“ç²å¾—è§£ç­”ã€?/p>
+
+            <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                <span style="color: var(--accent); font-weight: bold; font-size: 0.9em;">?? ?¾å ´?ä??ç¤ºè©?(é»æ?è¤‡è£½)ï¼?/span>
+                <div class="code-block" style="position: relative; cursor: pointer; background: rgba(0,0,0,0.4);" onclick="copyPrompt(`è«‹èª¿??valve-document-organizer ?€?½ï?å°‡æ­¤è³‡æ?å¤¾ä¸­?„æ???PDF æª”æ??²è??ªå??–å?é¡ï?\nä¾†æ?ï¼šC:\\Users\\GaryTzeng\\OneDrive - å¯Œè¿ª?¯è‚¡ä»½æ??å…¬?¸\\å·¥ä??‡ä»¶\\AntiGary\\GWS demo\\reference valve doc\\\n?®æ?ï¼šC:\\Users\\GaryTzeng\\OneDrive - å¯Œè¿ª?¯è‚¡ä»½æ??å…¬?¸\\å·¥ä??‡ä»¶\\AntiGary\\GWS demo\\organized\\`)">
+                    è«‹å? reference valve doc è³‡æ?å¤¾åŸ·è¡?valve-document-organizer ?ªå??†é?
+                    <span style="position: absolute; right: 15px; top: 15px; font-size: 0.8em; color: var(--accent);">é»æ?è¤‡è£½ ??</span>
+                </div>
+                <div class="code-block" style="position: relative; cursor: pointer; background: rgba(0,0,0,0.4); margin-top: 10px;" onclick="copyPrompt(`è«‹è??–æ­¤è³‡æ?å¤¾ç??€?‰å??®é?çµæ?ï¼šC:\\Users\\GaryTzeng\\OneDrive - å¯Œè¿ª?¯è‚¡ä»½æ??å…¬?¸\\å·¥ä??‡ä»¶\\AntiGary\\GWS demo\\organized\\BHMN\\\nä¸¦åœ¨ NotebookLM ä¸­å»ºç«‹å??‰ç?ç­†è??¬ä¸¦? å…¥è³‡æ?ï¼š\n1. ç­†è??¬å?ç¨±ï?KM - BHMN - [?¶ç?] - [å­ç?] \n2. ?¹æ¬¡?°å?æª”æ?`)">
+                    ?¹æ??†é?çµæ?ï¼Œåœ¨ NotebookLM ä¸­è‡ª?•å»ºç«‹å??‰ç?è¨˜æœ¬å¤§è…¦
+                    <span style="position: absolute; right: 15px; top: 15px; font-size: 0.8em; color: var(--accent);">é»æ?è¤‡è£½ ??</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Stage 2 -->
+        <div class="slide" id="slide-4">
+            <span class="slide-number">5 / 6</span>
+            <span class="tag">Stage 2</span>
+            <h2>ç¬¬ä??æ®µï¼šç?çµæ??•è¼¸?¥ï?ç§’å»ºè¿½è¹¤?±è¡¨</h2>
+            <p><strong>?‘æˆ°ï¼?/strong> äººå·¥å°‡å??†å ±?¹å–®ä¸Šç?è¦æ ¼?æ•¸?ã€é?é¡ä?ç­†ç? key ?¥è¿½è¹¤è¡¨ï¼Œæµªè²»æ??“ä?å®¹æ?è¼¸éŒ¯??br>
+               <strong>è§??ï¼?/strong> è®?AI ?ªå·±?Œç??‚ã€æ”¶?°ç? PDF ?±åƒ¹?®ï?ä¸¦ç«¯?°ç«¯å»ºç?è¡¨æ ¼??/p>
+            
+            <div class="grid-cards" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 20px;">
+                <div class="card" style="padding: 20px;">
+                    <div class="card-title">Before: ?›è‹¦?„æ?å·?key-in</div>
+                    <div class="card-desc" style="text-align: left; margin-top: 15px;">
+                        - ?‹å? PDF ?¾æ•¸??br>
+                        - ?‡æ???Excel è¤‡è£½è²¼ä?<br>
+                        - ?è??¸å??•æ?å­?br>
+                        <span style="color: var(--danger); font-weight: bold; display: block; margin-top: 10px;">?—æ?ï¼šç? 10-15 ?†é? / ä»?/span>
+                    </div>
+                </div>
+                <div class="card" style="padding: 20px; border-color: rgba(59, 130, 246, 0.4);">
+                    <div class="card-title">After: Antigravity ä¸€?µè???/div>
+                    <div class="card-desc" style="text-align: left; margin-top: 15px;">
+                        - AI ?´æ¥ç²¾æ?è§?? PDF æ¬„ä?<br>
+                        - ?ªå?å»ºç? Google è©¦ç?è¡?br>
+                        - ?®åƒ¹?å?è¨»ã€é?æ¬¡è‡ª?•å?é½?br>
+                        <span style="color: var(--success); font-weight: bold; display: block; margin-top: 10px;">?—æ?ï¼šä???1 ?†é?ï¼?00% çµæ???/span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                <span style="color: var(--accent); font-weight: bold; font-size: 0.9em;">?? ?¾å ´?ä??ç¤ºè©?(é»æ?è¤‡è£½)ï¼?/span>
+                <div class="code-block" style="position: relative; cursor: pointer; background: rgba(0,0,0,0.4);" onclick="copyPrompt(`è®€?–æ­¤ PDF æª”æ?ä¸¦å??±åƒ¹?®è¡¨?¼ä¸­?·å?ç´°é?ï¼š\nC:\\Users\\GaryTzeng\\OneDrive - å¯Œè¿ª?¯è‚¡ä»½æ??å…¬?¸\\å·¥ä??‡ä»¶\\AntiGary\\GWS demo\\demo quotation\\?±åƒ¹???°ä¸­?»å?.pdf\n?¶å?ï¼š\n1. å»ºç??°ç? Google è©¦ç?è¡¨\n2. å¡«å…¥è³‡æ?\n3. ?å‚³ URL`)">
+                    è®€?–å ±?¹å–® PDF ä¸¦è‡ª?•å¡«??Google è©¦ç?è¡?                    <span style="position: absolute; right: 15px; top: 15px; font-size: 0.8em; color: var(--accent);">é»æ?è¤‡è£½ ??</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Stage 3 (Smart Review) -->
+        <div class="slide" id="slide-5">
+            <span class="slide-number">6 / 6</span>
+            <span class="tag" style="background: linear-gradient(90deg, #10b981, #059669);">Stage 3 - ?é ­??/span>
+            <h2>ç¬¬ä??æ®µï¼šAI ?ºèƒ½å¯©æŸ¥????è·¨ç³»çµ±è??¼é˜²??/h2>
+            <p><strong>?‘æˆ°ï¼?/strong> ?¡è³¼ä¸»ç®¡?‰æ???»¥?Œä??€?‰æ?è¡“ç´°ç¯€ï¼Œè‹¥å» å??±åƒ¹?„æ?è³ªæ?è¦æ ¼ä¸ç¬¦æ¨™æ?ï¼Œå???¬¬ä¸€?‚é??¼ç¾??br>
+               <strong>è§??ï¼?/strong> è®?AI ?´å??å…©?æ®µ?„æ??œï??ªå??²è?äº¤å?å¯©æŸ¥?¼å‡ºè­¦å ±ï¼?/p>
+               
+            <div style="background: rgba(15, 23, 42, 0.8); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                <h3 style="margin-top:0; color:var(--text-main); font-size:1.1em;">å¯¦é?æ¸¬è©¦ï¼šåˆ»?å??’éŒ¯èª¤ç??Œæ¸¬è©¦å ±?¹å–®??/h3>
+                <div style="display: flex; gap: 20px;">
+                    <div style="flex:1;">
+                        <span style="color: var(--warning); font-size: 0.9em; font-weight:bold;">æ¨™æ?è¦æ ¼ (Knowledge Base)</span>
+                        <div class="code-block">
+                            [21000ç³»å?]<br>
+                            ?è³ªï¼šç¢³??ä¸é½?? ?æº« 250Â°C<br>
+                            é©…å?ï¼šSpring Diaphragm<br><br>
+                            [41000ç³»å?]<br>
+                            å°ºå¯¸ï¼šæ?é«˜è‡³ 24 ??br>
+                            ?è³ªï¼šç‰¹æ®Šå???å¦‚éˆ¦)?€?‡å?å» ç¢ºèª?br>
+                            é©…å?ï¼šPneumatic Spring Diaphragm
+                        </div>
+                    </div>
+                    <div style="flex:1;">
+                        <span style="color: var(--danger); font-size: 0.9em; font-weight:bold;">å» å??±åƒ¹??(Quotation)</span>
+                        <div class="code-block">
+                            [21000ç³»å?]<br>
+                            ?è³ªï¼?span style="color:#ef4444; border-bottom: 1px dotted red;">Cast Iron</span>, æº«ï?<span style="color:#ef4444; border-bottom: 1px dotted red;">350Â°C</span><br><br>
+                            [41000ç³»å?]<br>
+                            å°ºå¯¸ï¼?span style="color:#ef4444; border-bottom: 1px dotted red;">36" (è¶…å‡ºä¸Šé?)</span><br>
+                            ?è³ªï¼?span style="color:#f59e0b; border-bottom: 1px dotted orange;">Titanium (?€?Ÿå??¸å¯¦)</span><br>
+                            é©…å?ï¼?span style="color:#ef4444; border-bottom: 1px dotted red;">Hydraulic Actuator</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="danger-box" style="margin-top: 10px;">
+                <strong style="color: var(--danger);">?š¨ AI ?„ç?ç¶ ç??±å??ºç?ï¼?/strong> <br>
+                Antigravity å½™æ•´ NBLM ?å ±ï¼šã€?*21000ç³»å?**ï¼šæœ¬é«”æ?è³ªä½¿?¨é??µä?ç¬¦è?ç¯„ï?ä¸”æ?ä½œæº«åº?350Â°C è¶…å‡ºå¸¸è??åˆ¶(250Â°C)ï¼?*41000ç³»å?**ï¼šå ±??36\" å°ºå¯¸è¶…å‡ºæ¨™æ??€å¤§è???24\"ï¼Œä?æ¶²å?é©…å???Hydraulic)å±¬æ–¼?æ??ï??Œéˆ¦?ˆé??è³ª**å¿…é?ä¾è?å®šå??äº¤?Ÿå??¸å¯¦è«®è©¢**?‚ã€?br>
+                <span style="font-size: 0.9em; color: var(--text-muted); margin-top: 8px; display: inline-block;">?™å°±??AI å¦‚ä??ç‚º?¨ç?è²¼èº«å®ˆé??¡ï?å¤§å??ä??¡è³¼æ±ºç?é¢¨éšªï¼?/span>
+            </div>
+
+            <!-- Prompt Section for Live Demo -->
+            <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                <span style="color: var(--accent); font-weight: bold; font-size: 0.9em;">?? ?¾å ´?ä??ç¤ºè©?(é»æ?è¤‡è£½)</span>
+                <div class="code-block" style="position: relative; cursor: pointer; background: rgba(0,0,0,0.4);" onclick="copyPromptFromElement('prompt-stage3')">
+                    å°‡å ±?¹å–®è²¼çµ¦?¥è?åº«ï?ä¸¦è? AI ????²è?æ¨™æ?è¦ç?å¯©æ ¸??                    <span style="position: absolute; right: 15px; top: 15px; font-size: 0.8em; color: var(--accent);">é»æ?è¤‡è£½ ??</span>
+                </div>
+                <div id="prompt-stage3" style="display: none;">è«‹å¹«?‘å? nblm ç¢ºè??KM - BHMN - General Valve - Technical Specification?ï??™å ±?¹å–®?§å®¹?¯å¦?‰è?æ³¨æ??„åœ°?¹ï?
+
+# ?±åƒ¹??## å°ˆæ??ç¨±ï¼šå°ä¸­é›»å» é??å?ç´šå?æ¡?## ?¥æ?ï¼?026-03-24
+## ä¾›æ??†ï?æ¸¬è©¦å» å??‰é??¬å¸
+
+### ?…ç›® 01
+- **è¨­å?**ï¼šMasoneilan 21000 Series ?§åˆ¶??- **?¬é??è³ª**ï¼šCast Iron (?„éµ)
+- **?€é«˜æ?ä½œæº«åº?*ï¼?50Â°C
+- **å£“å?ç­‰ç?**ï¼šASME Class 300
+- **é©…å??¨å?å¼?*ï¼šSpring Diaphragm (å½ˆç°§?„è?å¼?
+- **å°ºå¯¸**ï¼?0"
+- **?¸é?**ï¼? ??- **?®åƒ¹**ï¼?150,000
+
+### ?…ç›® 02
+- **è¨­å?**ï¼šMasoneilan 41000 Series ?§åˆ¶??- **å°ºå¯¸**ï¼?6"
+- **?¬é??è³ª**ï¼šTitanium (?¦å???
+- **?€é«˜æ?ä½œæº«åº?*ï¼?00Â°C
+- **å£“å?ç­‰ç?**ï¼šASME Class 600
+- **é©…å??¨å?å¼?*ï¼šHydraulic Actuator (æ¶²å?é©…å???
+- **?¸é?**ï¼? ??- **?®åƒ¹**ï¼?3,000,000</div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Brainstorming HR -->
+        <div class="slide" id="slide-6">
+            <span class="slide-number">7 / 14</span>
+            <span class="tag" style="background: linear-gradient(90deg, #ec4899, #8b5cf6);">Brain Storming</span>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                <span style="font-size: 3em;">???ğ??/span>
+                <h2 style="margin: 0; font-size: 2em;">äººä? (HR) ?‰ç”¨?…å?</h2>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; margin-top: 30px;">
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #60a5fa; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(96, 165, 250, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">1</span> ?°äººè¦ç??‡å??®ç?ç­?/h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">?¡å·¥è©¢å??¹ä?è¨ˆç??ç”¢?‡è?å®šæ??±å¸³æµç?ï¼ŒAI ?ªå?å°æ??€?°ç??¡å·¥?‹å?çµ¦å‡ºç²¾æ?è§??ï¼Œå¤§å¹…æ?è¼?HR ?è??§å?ç­”è??”ã€?/p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #60a5fa; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(96, 165, 250, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">2</span> æµ·é?å±¥æ­·ç²¾æ?ç¯©é¸</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">?¯å…¥?ªè??‡è·ç¼ºæ?è¿°ï??‡æ•¸?ä»½å±¥æ­·ä¸€èµ·è? AI å¿«é€Ÿæ?è¼ƒæ?åºã€Œç?æ­·è?è­‰ç…§?€?©é?åº¦ã€ï?ä¸¦ç›´?¥æ??—æ??‹å€™é¸äººç??ªç¼ºé»ã€?/p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #60a5fa; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(96, 165, 250, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">3</span> ç¸¾æ??¢è??‡åŸ¹è¨“è?ç¨?/h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">?¹æ??¡å·¥?å»ä¸€å¹´ç??ƒè?ç´€?„è??¬å¸?¹è?è³‡æ?åº«ï??ªå?å¹«ä¸»ç®¡ç??å?å±¬ç??¢è??‡å…¥é»å¤§ç¶±è?ä¸‹ä?å­???·æ¶¯?¹è?è¨ˆç•«??/p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; font-size: 1.1em; font-weight: 500;">
+                <span style="display:inline-block; padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; color: #f8fafc;">??ä»¥çŸ¥è­˜åº«?ºåœ°?ºï?è³¦èƒ½?¨é??¨é??ç‚ºä¸‹å€‹ä?ä»?? AI ä¼æ¥­ ??/span>
+            </div>
+        </div>
+
+        <!-- Slide 8: Brainstorming Finance -->
+        <div class="slide" id="slide-7">
+            <span class="slide-number">8 / 14</span>
+            <span class="tag" style="background: linear-gradient(90deg, #ec4899, #8b5cf6);">Brain Storming</span>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                <span style="font-size: 3em;">?’°</span>
+                <h2 style="margin: 0; font-size: 2em;">è²¡æ? (Finance) ?‰ç”¨?…å?</h2>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; margin-top: 30px;">
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #fcd34d; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(252, 211, 77, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">1</span> å·®æ??®æ??‡å ±å¸³é˜²??/h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">å°‡è??œç?è«‹æ¬¾?®è??¼ç¥¨?‹çµ¦ AIï¼Œå?æ¯”ç¸½?¨ã€Œæ??°ç?å·®æ??±éŠ·?¿ç??ï??¬é??¾å‡ºè¶…æ”¯?–å??®å??¨ç•°å¸¸ç?è²»ç”¨ï¼Œé˜²æ­¢äººå·¥ä?å¼Šæ??æ???/p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #fcd34d; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(252, 211, 77, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">2</span> è²¡å ±çµç?ä¹‹è­¦è¨Šæ?å¯?/h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">å°‡æ??°å??ºç??„æ??Šè¡¨ä¸Ÿçµ¦ AIï¼Œç³»çµ±ç›´?¥è??»å¹´?Œæ?è¡¨å–®äº¤å?æ¯”å?ï¼Œç??»æ???YoY/MoM ?°å¸¸æ³¢å??„é??µè­¦è¨Šï??¢å‡ºçµ¦è²¡?™é•·?„å ±?Šè?ç¨¿ã€?/p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #fcd34d; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(252, 211, 77, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">3</span> è¡Œæ”¿?¡è³¼è²»ç”¨?²å?ç¨½æ ¸</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">è²·ä??‘ã€è¾¦?¬å®¤è¨­å?ï¼ŒAI ?ªå?ä¾ã€Œå??¨é??¡è³¼?é??‡è·ç´šç°½?¸è¡¨?å¯©?±ï??ªå‡º?Œæ­¤è«‹è³¼æ¡ˆé?é¡å·²?”é??¯ç¸½ç°½æ ¸?€æª»ï?è«‹é€€?é??¼ã€ï??œç??†å–®?¡è³¼æ¼æ???/p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; font-size: 1.1em; font-weight: 500;">
+                <span style="display:inline-block; padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; color: #f8fafc;">??ä»¥çŸ¥è­˜åº«?ºåœ°?ºï?è³¦èƒ½?¨é??¨é??ç‚ºä¸‹å€‹ä?ä»?? AI ä¼æ¥­ ??/span>
+            </div>
+        </div>
+
+        <!-- Slide 9: Brainstorming Sales -->
+        <div class="slide" id="slide-8">
+            <span class="slide-number">9 / 14</span>
+            <span class="tag" style="background: linear-gradient(90deg, #ec4899, #8b5cf6);">Brain Storming</span>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                <span style="font-size: 3em;">??</span>
+                <h2 style="margin: 0; font-size: 2em;">æ¥­å? (Sales) ?‰ç”¨?…å?</h2>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; margin-top: 30px;">
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #f472b6; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(244, 114, 182, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">1</span> å¤§å®¢?¶æ?è¨ªå?è¡åˆºç­†è?</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">?ºç™¼è¦‹å®¢?¶å?ï¼Œè?æ±?AI ?¬é??˜è?è©²å®¢?¶è?ä¸‰å¹´?„è³¼è²·ç¸½ç´€?„ã€æ?è¡“å®¢è¨´è?å°šæœªè§?±º?„æœªçµæ??…ç›®ï¼Œç??»æ??¡ä??¥è??¤ç?ç±Œç¢¼?‡ç?å¿Œè©±é¡Œã€?/p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #f472b6; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(244, 114, 182, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">2</span> å¤–å??¢å??®é?ä¸€?µåœ¨?°å?</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">?›æ‹¿?°å?å» å??”ç™¾?ç??±æ??°ç”¢?å??„ï?ä¸é?è¦å??­è‹¦è®€ï¼ŒAI ?´æ¥?ç??æ¥­?™èƒ½è¼•é??½æ??„ç?é«”ä¸­?‡ã€Œæ ¸å¿ƒä?å¤§è³£é»ã€è??Œç?ç«¯å®¢?¶å¸¸è¦?FAQ?ã€?/p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #f472b6; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(244, 114, 182, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">3</span> æ¨™æ??›æ?è¦æ ¼ç´…ç??åˆ¤</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">?¢å??¿å??–å¤§?‹å‚³?¢å??ç??›æ?è¦æ ¼?¸ï??´æ¥è«?AI ?²å ´?‘å‡º?Œå“ªäº›è??¼æ??‘ç¾?‰ç”¢?é?ä¸åˆ°?ï?å¤§å?ç¯€?ç¬¬ä¸€è¼ªè??¼å¯©?±ç?é¾å¤§?‚é??æœ¬??/p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; font-size: 1.1em; font-weight: 500;">
+                <span style="display:inline-block; padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; color: #f8fafc;">??ä»¥çŸ¥è­˜åº«?ºåœ°?ºï?è³¦èƒ½?¨é??¨é??ç‚ºä¸‹å€‹ä?ä»?? AI ä¼æ¥­ ??/span>
+            </div>
+        </div>
+
+        <!-- Slide 10: Brainstorming Quotation -->
+        <div class="slide" id="slide-9">
+            <span class="slide-number">10 / 14</span>
+            <span class="tag" style="background: linear-gradient(90deg, #ec4899, #8b5cf6);">Brain Storming</span>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                <span style="font-size: 3em;">??</span>
+                <h2 style="margin: 0; font-size: 2em;">?±åƒ¹ä¸­å? ?‰ç”¨?…å?</h2>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; margin-top: 30px;">
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5); border-color: rgba(56, 189, 248, 0.5);">
+                    <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(56, 189, 248, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">??/span> (å·²å?ç¤? å» ç?è¦æ ¼å¯©æŸ¥?²å?</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">è®?AI ?†æ?è¤‡é??„å ±?¹å–®ä¸¦è??Ÿå?è¦æ ¼?ªå?æ¯”å?ï¼Œç™¼?ºæ­£å¼å ±?¹å?ï¼Œå¿«?Ÿæª?ºå??Ÿç??ˆã€æ?è³ªå??‰æ?æº«åº¦ä¸Šé??„éŒ¯èª¤ã€?/p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(56, 189, 248, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">2</span> æ­·å²é¡ä¼¼å»ºæ?ä¹‹å??¹å???/h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">?å‡ºå¤§æ?å­å?ï¼ŒAI ?½å??¬é?ç¿»æ‰¾?å»é¡ä¼¼?¢æ¥­?è??¼é?ç½®ç?é¾å¤§?±åƒ¹åº«ï?çµ¦å‡º?¶æ?å°ˆæ??„ã€Œè??©å?åº¦ã€è??Œæ?çµ‚æ??©ã€ã€?/p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(56, 189, 248, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">3</span> ç¹é? BOM è¡¨ç¼ºæ¼æ™º?½æ???/h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">?¶å®¢?¶å‚³ä¾†é?äº‚ç?è¨­å?è¡¨å–®ï¼ŒAI æ´—é?ä¸€æ¬¡é¸?‹è??‡ï?ç«‹åˆ»?é?ï¼šã€Œé€™é??¥é?å°‘å¯«äº†æ?é«”ä?è³ªè?å£“å?ï¼Œç„¡æ³•ç²¾æº–å??¹ã€ã€?/p>
+                </div>
+                <div class="card" style="grid-column: 1 / -1; padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(56, 189, 248, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">4</span> (New) ?ºèƒ½?™è?ç·¨å»º?‡è·¨?†å??Ÿå?é«”ç³»å°æ?</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">å°‡ç??œç? Drawing ?–è¡¨äº¤çµ¦ AI ?†æ?ï¼Œè‡ª?•æ­¸ç´ç??ä?å¥—åš´è¬¹ç?<strong style="color: #38bdf8;">?§éƒ¨?™è?ç·¨ç¢¼ç³»çµ±</strong>?‚é€é?å¤§è…¦?„æ?å°èƒ½?›ï??´å¯?ªå?å°‡é??˜å…§??½?„ç”¢?ç·¨?Ÿï?<strong style="color: #38bdf8;">ç²¾æ?å°æ??³å??¨å?å¤§å?å» æ???/strong>ï¼Œå¾¹åº•æ?æ»…äºº?¡é?è¤‡å»ºæª”è?äººå·¥å°ç…§?„å·¨å¤§å??ºæ??—ã€?/p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; font-size: 1.1em; font-weight: 500;">
+                <span style="display:inline-block; padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; color: #f8fafc;">??ä»¥çŸ¥è­˜åº«?ºåœ°?ºï?è³¦èƒ½?¨é??¨é??ç‚ºä¸‹å€‹ä?ä»?? AI ä¼æ¥­ ??/span>
+            </div>
+        </div>
+
+        <!-- Slide 11: Brainstorming Tech Service -->
+        <div class="slide" id="slide-10">
+            <span class="slide-number">11 / 14</span>
+            <span class="tag" style="background: linear-gradient(90deg, #ec4899, #8b5cf6);">Brain Storming</span>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                <span style="font-size: 3em;">??ï¸?/span>
+                <h2 style="margin: 0; font-size: 2em;">?€è¡“æ????‰ç”¨?…å?</h2>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; margin-top: 30px;">
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5); border-color: rgba(16, 185, 129, 0.5);">
+                    <h3 style="color: #10b981; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(16, 185, 129, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">??/span> (?³åˆ»?´å?) ?°å¸¸æ¯”å??‹å??è?</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">å®¢æˆ¶ä¾†ä¿¡?±ä¿®?Œé–¥?€?¢ç?é«˜é »?‡å??‡å™ª?³ã€ï?ç¬¬ä?ç·šå®¢?ä??€ä¾è³´è³‡æ·±å·¥ç?å¸«ï?äº¤ç”± AI ?´æ¥æ¯”å? IEM ?…é??‹å?ï¼Œå¹¾ç§’ç”¢?Ÿå??«æ°£?•å?è¨ºæ–·?„å?æ¥­å??‡ã€?/p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #10b981; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(16, 185, 129, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">2</span> æ­²ä¿®?é˜²?§è€—æ?ä¸»å?å»ºè­°</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">å¤§å?æ­²ä¿®æº–å??Ÿï??ªè?è¼¸å…¥å¹¾ç?è¨ˆç•«æª¢ä¿®?„è?è¨­å??‹è??‡é?è½‰æ??¸ï?AI é¦¬ä?å°ç…§?‹å??‰å‡ºå°æ??„ã€Œå?å¸¶æ??—å??™å??…æ?ç´°ã€å??Œå?æª¢é?é»?SOP?ã€?/p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #10b981; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(16, 185, 129, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">3</span> æµæ°´å¸³å£è¿°æ—¥èªŒå?ç´šæ­£å¼å ±??/h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">çµæ??¾å ´ç¶­ä¿®?²æ?ä¸å ª?„å·¥ç¨‹å¸«ï¼Œåª?€?¨è??³æ?ç¢ç??–æ?æ¡ˆç??„ç•¶å¤©æ›´?›ä?ä»€éº¼é›¶ä»¶ï?AI ?ªå?å°‡å…¶?´å¯«?æ½¤é£¾æ?ç¬¦å??Ÿè?å» å·¥?­ç?é«˜ç?æª¢ä¿®?±å???/p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; font-size: 1.1em; font-weight: 500;">
+                <span style="display:inline-block; padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; color: #f8fafc;">??ä»¥çŸ¥è­˜åº«?ºåœ°?ºï?è³¦èƒ½?¨é??¨é??ç‚ºä¸‹å€‹ä?ä»?? AI ä¼æ¥­ ??/span>
+            </div>
+        </div>
+
+        <!-- Slide 12: Brainstorming Plant Ops -->
+        <div class="slide" id="slide-11">
+            <span class="slide-number">12 / 14</span>
+            <span class="tag" style="background: linear-gradient(90deg, #ec4899, #8b5cf6);">Brain Storming</span>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                <span style="font-size: 3em;">?­</span>
+                <h2 style="margin: 0; font-size: 2em;">å» å??˜é? (å» å?è¡Œæ”¿è¦ç?)</h2>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; margin-top: 30px;">
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #fb923c; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(251, 146, 60, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">1</span> ISO è¦ç??‡è¡¨?®ç??ç?ç­?/h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">?¡å·¥è©¢å??Œå»¢æ²¹æ¡¶?éº¼æ¸…é?ï¼Ÿã€æ??Œç‰¹è¦æ??·å€Ÿç”¨è¦å??ï?AI å¾ç™¾??ISO è¦ç?çµ¦å‡º?©å¥è©±ç?ç²¾æ?ç­”æ??‡å–®?šé€??ï¼Œå??¤å??™å?ç­”æ?ç¶“é???/p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #fb923c; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(251, 146, 60, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">2</span> è¨ªå®¢/?¿å??†é€²å??ˆè?å¿«ç¯©</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">å¤–å??†é€²å??½å·¥ï¼Œå?ç¹³äº¤?„ä??ªè??§è??‡ç??¸ä?çµ?AIï¼Œä?ç§’è‡ª?•æ??ºã€Œç¼ºå°‘å?å·¥é?æª¢è¡¨?æ??Œä??ªä??±å³å°‡é??Ÿã€ç??ˆè?æ­»è???/p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #fb923c; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(251, 146, 60, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">3</span> ?¹è??€?¨å‡º?Ÿè??¡é??è­¦</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">?ªå?è¿½è¹¤å» æˆ¿å·¥å…·åº«ï??¥è©²æ¸¬é??€?¨ä??±é??å??¡é?ï¼ŒAI å°‡è‡ª?•åœ¨ç³»çµ±æª”ä??°æ??®ç”³è«‹ï??Ÿç”¨?¾æ??ªé?äº¦æ??¼é€ä¿¡ä»¶æ??’æ­¸?„ã€?/p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; font-size: 1.1em; font-weight: 500;">
+                <span style="display:inline-block; padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; color: #f8fafc;">??ä»¥çŸ¥è­˜åº«?ºåœ°?ºï?è³¦èƒ½?¨é??¨é??ç‚ºä¸‹å€‹ä?ä»?? AI ä¼æ¥­ ??/span>
+            </div>
+        </div>
+
+        <!-- Slide 12.5: Brainstorming Plant Ops (Repair) -->
+        <div class="slide" id="slide-11-2">
+            <span class="slide-number"></span>
+            <span class="tag" style="background: linear-gradient(90deg, #ec4899, #8b5cf6);">Brain Storming</span>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                <span style="font-size: 3em;">?”§</span>
+                <h2 style="margin: 0; font-size: 2em;">å» å??˜é? (ç¶­ä¿®å°ˆæ??‡å???</h2>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; margin-top: 30px;">
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #fb923c; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(251, 146, 60, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">1</span> ç¶­ä¿®å·¥æ??‡æ??¬è??¯è­¦??/h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">å¾?ERP ?¯å…¥?„å?æ¡ˆå ±?¯ç??æœ¬?‡æ??¡å·¥?‚ï?AI ä¸»å?æ¯”è??è­¦ï¼šã€Œå?æ¡?C å·¥æ??‡å·®?…è²»å·²å??‰é?ç®—ç? 80%ï¼Œä??²åº¦?…æ?è§???¢ï?è«‹ä¸»ç®¡ä??¥ã€ã€?/p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #fb923c; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(251, 146, 60, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">2</span> ?·å?ç¶­ä¿®æ¡ˆç?æ­·å²?¿å??‡å?</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">?¥æ??é‘½?¹è?ç¶­ä¿®?‚ï?AI å¾é?å¾€?Šæ?èª¿é–±ç¶“é?ï¼šã€Œä?å¹´å?ä¿®é??Œæ¬¾ï¼Œå??¬çŸ½? å??‡å®¹?“é?æº«ç?è§??å¾Œä??¨æ”¹è£å…¨æ°Ÿå??è³ªï¼Œè??™æ??´æ??ã€?/p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #fb923c; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(251, 146, 60, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">3</span> çµæ??‡å®¢?¶é??¶å ±?Šè‡ª?•æ???/h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">å®Œå·¥æº–å?è«‹æ¬¾?ï?AI ?ªå?è¦†æ ¸?€?‰å??™æ??®ï??ºå?æ¸¬è©¦?±å??æ›´?›é›¶ä»¶æ??®ã€å‡ºå» å?æª¢å–®?¯å¦é½Šå…¨ä¸”æ•¸?å??¥ï?ç¢ºä??¾å??¾é??¶é??œã€?/p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; font-size: 1.1em; font-weight: 500;">
+                <span style="display:inline-block; padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; color: #f8fafc;">??ä»¥çŸ¥è­˜åº«?ºåœ°?ºï?è³¦èƒ½?¨é??¨é??ç‚ºä¸‹å€‹ä?ä»?? AI ä¼æ¥­ ??/span>
+            </div>
+        </div>
+
+        <!-- Slide 13: Brainstorming Legal -->
+        <div class="slide" id="slide-12">
+            <span class="slide-number">13 / 14</span>
+            <span class="tag" style="background: linear-gradient(90deg, #ec4899, #8b5cf6);">Brain Storming</span>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                <span style="font-size: 3em;">?–ï?</span>
+                <h2 style="margin: 0; font-size: 2em;">æ³•å????‰ç”¨?…å?</h2>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; margin-top: 30px;">
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #94a3b8; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(148, 163, 184, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">1</span> è·¨å?ç´„ã€Œé?é¢¨éšªæ¢æ¬¾?ç?ç·šæ???/h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">?¨æ?ä¸Ÿå…¥å®¢æˆ¶?³ä?å¯†å?éº»éº»??NDA ?–æ˜¯?¡è³¼?ˆæ?ç´„ï?AI ?¨å¹¾ç§’å…§å°ç…§?¬å¸?„ã€Œä?å¹³ç??ˆç?åº•ç?æ± ã€ï?ç«‹åˆ»?“ç?æ¡†æª?ºé?è¦ä?è³ å??¡ä??æ?ç®¡è?æ¬Šæ?æ´ã€?/p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #94a3b8; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(148, 163, 184, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">2</span> ç§’ç¿»?å??å¹´?•ç??­è­°?‡åˆ¤ä¾?/h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">?‡åˆ°å®¢æˆ¶?¡ç?è³´å¸³è§??ï¼Œç›´?¥è©¢??AI ?ºèƒ½?©ç?ï¼Œæ•¸ç§’å…§?–å‡º?¬å¸æ³•å??¨é?è¿‘å?å¹´å…§?‡åˆ°?„é›·?Œæ?å­åˆ¤æ±ºã€æ?å°è?è·¡è??½æ‹¿ä¾†å??ƒç?å­˜è?ä¿¡å‡½ç¯„æœ¬??/p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #94a3b8; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(148, 163, 184, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">3</span> ä¸­è‹±?ˆç?ä¿®æ”¹è»Œè·¡å°è­¯ä¸€?´æ€?/h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">?¶å??‹ä»£?†å?å¼·ç?è¦æ?å¢è??±æ??ˆç?è©å?ï¼ŒAI æ¥µé€Ÿå?æ¯”å??‘æ–¹ä¸»å?å»ºç½®?„ä¸­?‡æ??¬ï?ç¢ºä??™æ–¹?¨è?è¨€ç½®æ?å¾Œç?ç´°ç??‡å??¼ï?æ²’æ?å¯¦è³ª?é›¢?Ÿæœ¬å®šæ??„æ??–ã€?/p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; font-size: 1.1em; font-weight: 500;">
+                <span style="display:inline-block; padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; color: #f8fafc;">??ä»¥çŸ¥è­˜åº«?ºåœ°?ºï?è³¦èƒ½?¨é??¨é??ç‚ºä¸‹å€‹ä?ä»?? AI ä¼æ¥­ ??/span>
+            </div>
+        </div>
+
+        <!-- Slide 14: Brainstorming IT -->
+        <div class="slide" id="slide-13">
+            <span class="slide-number">14 / 14</span>
+            <span class="tag" style="background: linear-gradient(90deg, #ec4899, #8b5cf6);">Brain Storming</span>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                <span style="font-size: 3em;">?’»</span>
+                <h2 style="margin: 0; font-size: 2em;">IT è³‡è??˜é? ?‰ç”¨?…å?</h2>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; margin-top: 30px;">
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #c4b5fd; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(196, 181, 253, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">1</span> ç¬¬ä?ç·?Helpdesk ?–æ??ç??²ç?</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">?¶å¹¾?¾ä??¡å·¥?¡æ­¢å¢ƒä??»å ±ä¿®å?ç¢¼å¤±?ˆæ? VPN è¨­å?å¤±æ?ï¼ŒAI ?›è??§éƒ¨??Troubleshooting ?‡ä»¶ï¼Œè‡ª?•ç”¢?Ÿé?å¸¶æ?ç¨‹æ­¥é©Ÿç??æ?ï¼Œå¾¹åº•é˜»??80% ?ºç??é???/p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #c4b5fd; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(196, 181, 253, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">2</span> ä¼ºæ??¨è?ç¶²è·¯ Log ?¹å??“æ?</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">ç¶²è·¯?·ç??–ç³»çµ±å¡?“æ?ï¼ŒMIS ä¸ç”¨?ç”¨?‰çœ¼æ­»ç›¯å¹¾è¬è¡?Event Logsï¼Œç›´?¥å??°å¸¸ Log ä¸Ÿçµ¦ AIï¼Œä?ç§’å…§ç²¾æ?å®šä??¯é˜²?«ç??‹å??…é??¯é€??æ± æ»¿è¼‰ã€?/p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #c4b5fd; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(196, 181, 253, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">3</span> è³‡å?äº‹ä»¶ (Incident) ?‰å?å°å?</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">?Šå??‡åˆ°ä¼ºæ??¨å??»æ??–ç•°å¸¸å??…æ”»?Šï??¶ä?æ°???Œä??‚ï?AI ?ºèƒ½?©ç??‰å?ç´¢é©¥è³‡å??‹å?ï¼Œä?æ­¥ä?æ­¥é™ªä¼´è¼ª?¼äºº?¡é€²è??·ç¶²?’æŸ¥?å?å­˜æˆª?–è?é«˜å±¤?¯çµ¡?šå ±??/p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; font-size: 1.1em; font-weight: 500;">
+                <span style="display:inline-block; padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; color: #f8fafc;">??ä»¥çŸ¥è­˜åº«?ºåœ°?ºï?è³¦èƒ½?¨é??¨é??ç‚ºä¸‹å€‹ä?ä»?? AI ä¼æ¥­ ??/span>
+            </div>
+        </div>
+
+        <!-- Slide End: Data is King -->
+        <div class="slide" id="slide-data">
+            <span class="slide-number"></span>
+            <span class="tag" style="background: linear-gradient(90deg, #f59e0b, #ef4444);">Core Philosophy</span>
+            <h2>?€å¾Œç?å¿ å?ï¼šç©º?‰å¤§?¦æ˜¯æ²’æ??¨ç?</h2>
+            <p style="font-size: 1.3em; max-width: 800px; margin: 20px auto; color: var(--text-muted); line-height: 1.6;">
+                ä¸€??span style="color: #f8fafc;">æ²’æ??Œæ™¯?¥è?</span>??AIï¼Œå°±å¦‚å?è¶…å¼·?„å­¸?¸å¯¦ç¿’ç?ï¼?br><strong style="color: #f8fafc; font-size: 1.1em;">ç©ºæ??°æ??æ™ºï¼Œå»å°æ??‘ä?æ¥­ç?æ­·å²è»Œè·¡?‡å?æ¥­ç?è§’ã€Œä??¡æ??¥ã€ã€?/strong>
+            </p>
+            
+            <div style="display: flex; gap: 20px; max-width: 1100px; margin: 0 auto; margin-top: 30px; align-items: stretch;">
+                <div style="flex: 1; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 16px; padding: 30px; text-align: left;">
+                    <h3 style="color: #fbd38d; font-size: 1.5em; margin-top: 0; margin-bottom: 15px;">?? ?Ÿæ­£?„å„ª?¢ï?Domain Know-how</h3>
+                    <p style="font-size: 1.05em; line-height: 1.8; color: #f8fafc; margin-bottom: 0;">
+                        è®?AI ?¢ç?è³ªè??„ä??¯å??¨è?è¨€æ¨¡å?ï¼Œè€Œæ˜¯<strong style="color: #34d399;">?‘å€‘å?å±¬ç?æ­·å²è»Œè·¡?‡å?æ¥­çŸ¥è­?/strong>?‚æ??‰è‡ªå®?Dataï¼Œå¤§?¦æ°¸? ç„¡æ³•ç™¼?®æˆ°é¬¥å???br><br><span style="color: rgba(255,255,255,0.7); font-size: 0.9em;">?‹å?å»ºç½®ç§æ??¥è?åº«ï??¯æ??‘é???AI è½‰å??„ç¬¬ä¸€æ­¥ã€?/span>
+                    </p>
+                </div>
+                
+                <div style="flex: 1; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 16px; padding: 30px; text-align: left;">
+                    <h3 style="color: #93c5fd; font-size: 1.5em; margin-top: 0; margin-bottom: 15px;">?›¡ï¸?çµ•å??„é˜²ç·šï?GWS ä¼æ¥­??/h3>
+                    <p style="font-size: 1.05em; line-height: 1.8; color: #f8fafc; margin-bottom: 0;">
+                        æ­???ºé€™ä?æª”æ??¯å…¬?¸æ ¸å¿ƒå‘½?ˆï?<strong style="color: #fca5a5;">?‘å€‘ç?ä¸èƒ½?Šæ?å¯†ç•¶ä½œå?è²?AI ?„è?ç·´é??†ã€?/strong>?™ä??¯ç‚ºä½•æ??‘å??ˆå»ºç«‹åœ¨ <strong>Google Workspace Business</strong> ?„ä?æ¥­ç??¶æ?ä¸Šã€?br><br><span style="color: rgba(255,255,255,0.7); font-size: 0.9em;">ç¢ºä??¶æ•¸?šå?æµï?ä¼æ¥­è³‡ç”¢ä¸è¢«å» å??¿å»ç·´è ±??/span>
+                    </p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 50px; font-size: 1.5em; font-weight: bold; color: var(--accent);">
+                ?”¥ æ­¡è?ä¾†åˆ° Antigravity / GWS ä¼æ¥­ç´?AI è³¦èƒ½ä¸–ç? ?”¥
+            </div>
+        </div>
+
+    </div>
+
+    <div class="controls">
+        <button id="prevBtn" onclick="changeSlide(-1)" disabled>??ä¸Šä???/button>
+        <button id="nextBtn" onclick="changeSlide(1)">ä¸‹ä?????/button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        let slides = document.querySelectorAll('.slide');
+        let totalSlides = slides.length;
+
+        function updateSlide() {
+            slides.forEach((slide, index) => {
+                const numSpan = slide.querySelector('.slide-number');
+                if(numSpan) numSpan.innerText = `${index + 1} / ${totalSlides}`;
+                
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                } else {
+                    slide.classList.remove('active');
+                }
+            });
+            document.getElementById('prevBtn').disabled = currentSlide === 0;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+        }
+
+        function changeSlide(direction) {
+            currentSlide += direction;
+            if (currentSlide < 0) currentSlide = 0;
+            if (currentSlide >= totalSlides) currentSlide = totalSlides - 1;
+            updateSlide();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                if(currentSlide < totalSlides - 1) changeSlide(1);
+            } else if (e.key === 'ArrowLeft') {
+                if(currentSlide > 0) changeSlide(-1);
+            }
+        });
+
+        function copyPrompt(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("?ç¤ºè©å·²è¤‡è£½?°å‰ªè²¼ç°¿ï¼?);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        }
+
+        function copyPromptFromElement(elementId) {
+            const el = document.getElementById(elementId);
+            if(el) {
+                const text = el.innerText || el.textContent;
+                navigator.clipboard.writeText(text).then(() => {
+                    alert("?ç¤ºè©å·²è¤‡è£½?°å‰ªè²¼ç°¿ï¼?);
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                });
+            }
+        }
+
+        updateSlide();
+    </script>
+</body>
+</html>
+<!-- Build Hash Check -->

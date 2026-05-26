@@ -1,0 +1,14 @@
+{
+  "rewrites": [
+    { "source": "/vlms-hart", "destination": "/VLMS infra and furture plan/VLMS_HART_Signal_Extraction.html" },
+    { "source": "/vlms-clean", "destination": "/VLMS infra and furture plan/VLMS_Presentation_Clean.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=3600" }
+      ]
+    }
+  ]
+}

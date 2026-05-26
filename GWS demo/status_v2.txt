@@ -1,0 +1,14 @@
+﻿[
+  {
+    "id": "bd0075e6-82c6-4dbc-9c89-1c020bbb4f78",
+    "type": "infographic",
+    "status": "completed",
+    "custom_instructions": null
+  },
+  {
+    "id": "636ff81c-4066-4331-b4a9-3c1e5c69d06d",
+    "type": "infographic",
+    "status": "completed",
+    "custom_instructions": null
+  }
+]

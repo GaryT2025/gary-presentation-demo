@@ -1,0 +1,27 @@
+﻿                                                                           
+ Usage: nlm infographic create [OPTIONS] NOTEBOOK_ID                       
+                                                                           
+ Create an infographic from notebook sources.                              
+                                                                           
++- Arguments -------------------------------------------------------------+
+| *    notebook_id      TEXT  Notebook ID [required]                      |
++-------------------------------------------------------------------------+
++- Options ---------------------------------------------------------------+
+| --orientation  -o      TEXT  Orientation: landscape, portrait, square   |
+|                              [default: landscape]                       |
+| --detail       -d      TEXT  Detail level: concise, standard, detailed  |
+|                              [default: standard]                        |
+| --style                TEXT  Visual style: auto_select, sketch_note,    |
+|                              professional, bento_grid, editorial,       |
+|                              instructional, bricks, clay, anime,        |
+|                              kawaii, scientific                         |
+|                              [default: auto_select]                     |
+| --language             TEXT  BCP-47 language code (default:             |
+|                              NOTEBOOKLM_HL or en)                       |
+| --focus                TEXT  Optional focus topic                       |
+| --source-ids   -s      TEXT  Comma-separated source IDs                 |
+| --confirm      -y            Skip confirmation                          |
+| --profile      -p      TEXT  Profile to use                             |
+| --help                       Show this message and exit.                |
++-------------------------------------------------------------------------+
+

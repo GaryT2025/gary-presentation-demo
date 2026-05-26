@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <!-- ============================================================
+       CIL 工作獎金看板  v3  |  redesigned by Beauty
+       ============================================================ -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CIL FLUIDS CONTROL 工作獎金看板</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <style>
+    /* ============================================================
+       BENTO GRID TOKENS
+       ============================================================ */
+    :root {
+      --bg:          #09090b; /* zinc-950 */
+      --bg-panel:    #18181b; /* zinc-900 */
+      --bg-card:     #27272a; /* zinc-800 */
+      --bg-row-alt:  rgba(255,255,255,0.02);
+      --bg-hover:    rgba(255,255,255,0.06);
+
+      --border:      rgba(255,255,255,0.08);
+      --border-med:  rgba(255,255,255,0.12);
+      --border-hi:   rgba(255,255,255,0.2);
+
+      --mint:   #10b981; /* emerald-500 */
+      --gold:   #f59e0b; /* amber-500 */
+      --red:    #ef4444; /* red-500 */
+      --indigo: #6366f1; /* indigo-500 */
+
+      --text:   #f4f4f5; /* zinc-50 */
+      --text-2: #a1a1aa; /* zinc-400 */
+      --text-3: #71717a; /* zinc-500 */
+
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Noto Sans TC', sans-serif;
+
+      --ach-green:      rgba(16, 185, 129, 0.15);
+      --ach-green-text: #34d399; /* emerald-400 */
+      --ach-yellow:     rgba(245, 158, 11, 0.15);
+      --ach-yellow-text:#fbbf24; /* amber-400 */
+      --ach-red:        rgba(239, 68, 68, 0.15);
+      --ach-red-text:   #f87171; /* red-400 */
+
+      --panel-w: 420px;
+    }
+
+    /* ============================================================
+       RESET
+       ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 13px;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #71717a; }
+
+    /* ============================================================
+       LOADING OVERLAY
+       ============================================================ */
+    #loading-overlay {
+      position: fixed; inset: 0; z-index: 999;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: var(--bg); gap: 16px;
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--mint);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: .85rem; color: var(--text-3); letter-spacing: .06em; }
+
+    /* ============================================================
+       AUTH OVERLAY
+       ============================================================ */
+    #auth-overlay {
+      position: fixed; inset: 0; z-index: 990;
+      background: var(--bg); display: flex;
+      align-items: center; justify-content: center;
+    }
+    .auth-box {
+      background: var(--bg-panel); border: 1px solid var(--border);
+      border-radius: 20px; padding: 32px; width: 100%; max-width: 400px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+    .auth-logo { font-family: var(--mono); color: var(--text); font-size: 1.2rem; font-weight: 700; text-align: center; margin-bottom: 24px; letter-spacing: .05em; }
+    .auth-tabs { display: flex; gap: 8px; margin-bottom: 24px; background: rgba(255,255,255,0.03); padding: 4px; border-radius: 12px; }
+    .auth-tab { flex: 1; padding: 10px; text-align: center; border-radius: 8px; font-weight: 600; font-size: .9rem; color: var(--text-3); cursor: pointer; border: none; background: transparent; transition: all .2s; }
+    .auth-tab.active { background: var(--bg-card); color: var(--text); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    .auth-form { display: none; flex-direction: column; gap: 16px; }
+    .auth-form.active { display: flex; }
+    .auth-input { width: 100%; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; color: var(--text); font-size: .9rem; outline: none; transition: border-color .2s; box-sizing: border-box; }
+    .auth-input:focus { border-color: var(--mint); }
+    .auth-btn { background: var(--mint); color: #000; border: none; border-radius: 10px; padding: 14px; font-size: .95rem; font-weight: 700; cursor: pointer; transition: all .2s; }
+    .auth-btn:hover { background: #34d399; transform: translateY(-1px); }
+    .auth-msg { text-align: center; font-size: .85rem; color: var(--red); display: none; }
+    .auth-msg.success { color: var(--mint); display: block; }
+    .auth-logout { display: flex; align-items: center; gap: 6px; padding: 6px 14px; cursor: pointer; color: var(--text-2); font-size: .75rem; background: transparent; border: 1px solid transparent; border-radius: 8px; transition: all .2s; margin-left: 8px;}
+    .auth-logout:hover { color: var(--red); border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05); }
+
+    /* ============================================================
+       HEADER
+       ============================================================ */
+    #app { display: none; }
+
+    .header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(9, 9, 11, 0.85); /* backdrop-blur header */
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 60px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .header-logo {
+      font-family: var(--mono);
+      font-size: .85rem; font-weight: 700;
+      color: var(--text); letter-spacing: .05em;
+    }
+    .header-sep {
+      width: 1px; height: 20px;
+      background: var(--border-med);
+    }
+    .header-title {
+      font-size: .85rem; font-weight: 500;
+      color: var(--text-2);
+    }
+    .header-spacer { flex: 1; }
+    .header-user {
+      display: flex; align-items: center; gap: 10px;
+      font-size: .78rem; color: var(--text-2);
+    }
+    .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--mint);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .7rem; font-weight: 700; color: #fff;
+    }
+    .user-name { color: var(--text); font-weight: 500; }
+    .user-tag {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 6px; padding: 2px 8px;
+      font-size: .7rem; color: var(--text-2);
+    }
+    .btn-refresh {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 14px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text-2);
+      font-family: var(--sans); font-size: .75rem; font-weight: 500;
+      cursor: pointer; transition: all .2s;
+    }
+    .btn-refresh:hover { border-color: var(--text); color: var(--text); background: var(--bg-hover); }
+    .btn-refresh svg { width: 14px; height: 14px; }
+
+    /* ============================================================
+       BENTO GRID LAYOUT
+       ============================================================ */
+    .filter-bar {
+      padding: 24px 24px 0;
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .filter-label {
+      font-size: .75rem; color: var(--text-3);
+      font-weight: 600; letter-spacing: .05em;
+    }
+    .filter-select {
+      padding: 6px 32px 6px 12px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text); font-family: var(--sans); font-size: .8rem;
+      cursor: pointer; outline: none;
+      appearance: none; -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 10px center;
+      transition: border-color .2s;
+    }
+    .filter-select:hover, .filter-select:focus { border-color: var(--text-2); }
+    .filter-select option { background: #18181b; }
+    .filter-divider { width: 1px; height: 20px; background: var(--border); }
+
+    .body-wrap {
+      display: flex;
+      padding: 24px;
+      min-height: calc(100vh - 60px - 80px);
+      position: relative;
+    }
+
+    .content-col {
+      flex: 1; min-width: 0;
+      display: flex; flex-direction: column; gap: 24px;
+      transition: padding-right .3s cubic-bezier(.4,0,.2,1);
+    }
+    .content-col.panel-open {
+      padding-right: var(--panel-w);
+    }
+
+    /* BENTO BOX UTILITY */
+    .bento-box {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+
+    /* ============================================================
+       TEAM EXEC CARDS (Bento Grid Zone 1)
+       ============================================================ */
+    .exec-cards-area {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .exec-team-card {
+      padding: 24px;
+      padding-bottom: 0;
+      display: flex; flex-direction: column;
+      position: relative;
+      transition: transform .2s, box-shadow .2s;
+      overflow: hidden;
+    }
+    .exec-team-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .exec-team-card.cos { border-top: 4px solid var(--mint); background: linear-gradient(180deg, rgba(16,185,129,0.08) 0%, var(--bg-panel) 60%); }
+    .exec-team-card.cvs { border-top: 4px solid var(--red); background: linear-gradient(180deg, rgba(239,68,68,0.08) 0%, var(--bg-panel) 60%); }
+    .exec-team-card.sas { border-top: 4px solid var(--indigo); background: linear-gradient(180deg, rgba(99,102,241,0.08) 0%, var(--bg-panel) 60%); }
+
+    .exec-card-top {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px;
+    }
+    .bento-title {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .team-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+    }
+    .team-dot.cos { background: var(--mint); box-shadow: 0 0 10px rgba(16,185,129,0.5); }
+    .team-dot.cvs { background: var(--red); box-shadow: 0 0 10px rgba(239,68,68,0.5); }
+    .team-dot.sas { background: var(--indigo); box-shadow: 0 0 10px rgba(99,102,241,0.5); }
+    .team-name-title { letter-spacing: .02em; font-weight: 600; font-size: 1.1rem; }
+    
+    .exec-card-main {
+      display: flex; justify-content: flex-start; align-items: flex-end;
+      margin-bottom: 48px; gap: 12px;
+      z-index: 2;
+    }
+    .exec-card-left { flex: 1; }
+    .exec-card-total-label {
+      font-size: .8rem; color: var(--text-3); margin-bottom: 6px; font-weight: 600;
+    }
+    .exec-card-total {
+      font-family: var(--mono); font-size: 2.2rem; font-weight: 700;
+      line-height: 1; letter-spacing: -.02em; color: var(--text);
+    }
+
+    .exec-card-doughnut-wrap {
+      position: absolute;
+      top: 14px;
+      right: 50px;
+      width: 155px;
+      height: 155px;
+      display: flex; justify-content: center; align-items: center;
+      z-index: 1;
+    }
+    .exec-doughnut-pct {
+      position: absolute; display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-weight: 700; font-size: 1.25rem;
+      pointer-events: none;
+    }
+
+    .exec-card-breakdown {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+      padding: 16px 0 16px 0;
+      margin-top: auto; border-top: 1px dashed var(--border-hi);
+    }
+    .exec-card-metric {
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .exec-card-metric-lbl {
+      font-size: .7rem; color: var(--text-3);
+    }
+    .exec-card-metric-val {
+      font-family: var(--mono); font-size: .85rem; color: var(--text-2); font-weight: 500;
+    }
+
+    /* ============================================================
+       MAIN TABLE (Bento Zone 2)
+       ============================================================ */
+    .bento-section-heading {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(255,255,255,0.01);
+    }
+    .heading-title {
+      font-size: .95rem; font-weight: 600; color: var(--text); letter-spacing: .05em;
+    }
+    .heading-sub {
+      font-size: .75rem; color: var(--text-3);
+      background: var(--bg-card); padding: 4px 10px; border-radius: 12px;
+    }
+
+    .table-responsive { overflow-x: auto; }
+    .main-data-table {
+      width: 100%; border-collapse: separate; border-spacing: 0;
+    }
+    .main-data-table th {
+      background: rgba(24, 24, 27, 0.6); padding: 14px 20px;
+      font-size: .8rem; font-weight: 600; color: var(--text-3);
+      text-align: left; white-space: nowrap;
+      border-bottom: 1px solid var(--border-hi);
+      letter-spacing: .05em; text-transform: uppercase;
+    }
+    /* Align metrics to left to cluster them tighter with the name */
+    .main-data-table td {
+      padding: 16px 20px; font-size: .9rem;
+      border-bottom: 1px solid var(--border-light);
+      text-align: left; color: var(--text);
+      vertical-align: middle;
+    }
+    .main-data-table tbody tr {
+      transition: background .2s;
+    }
+    .main-data-table tbody tr:hover td { 
+      background: var(--bg-hover); cursor: pointer; 
+    }
+    .main-data-table tbody tr.active-row td { 
+      background: rgba(255,255,255,0.05); /* slightly highlighted */
+      box-shadow: inset 3px 0 0 var(--mint);
+    }
+
+    .user-profile {
+      display: flex; flex-direction: column; gap: 6px; text-align: left;
+    }
+    .name-cell { font-weight: 600; font-size: 1rem; letter-spacing: .02em; color: var(--text); }
+    .tags-row { display: flex; align-items: center; gap: 6px; }
+    
+    .bonus-cell { font-family: var(--mono); font-weight: 700; color: var(--gold); font-size: 1.15rem; }
+
+    .ach-pill {
+      display: inline-block; padding: 2px 8px; border-radius: 6px;
+      font-family: var(--mono); font-size: .75rem; font-weight: 600;
+    }
+
+    .team-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 6px;
+      font-size: .7rem; font-weight: 700;
+    }
+    .team-COS { background: rgba(16,185,129,.15); color: var(--mint); }
+    .team-CVS { background: rgba(239,68,68,.15);  color: var(--red); }
+    .team-SAS { background: rgba(99,102,241,.15); color: var(--indigo); }
+    .team-SSD { background: rgba(245,158,11,.15); color: var(--gold); }
+    
+    .role-tag {
+      font-size: .7rem; color: var(--text-2);
+      border: 1px solid var(--border); padding: 2px 8px; border-radius: 6px;
+    }
+    .empty-row td { text-align: center; padding: 40px; color: var(--text-3); }
+
+    /* ============================================================
+       SIDE PANEL
+       ============================================================ */
+    #side-panel {
+      position: fixed; top: 60px; right: 0;
+      width: var(--panel-w); height: calc(100vh - 60px);
+      background: rgba(24, 24, 27, 0.95);
+      backdrop-filter: blur(20px);
+      border-left: 1px solid var(--border);
+      box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+      z-index: 90; overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform .4s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex; flex-direction: column;
+    }
+    #side-panel.open { transform: translateX(0); }
+
+    .sp-header {
+      position: sticky; top: 0; z-index: 2;
+      background: inherit; border-bottom: 1px solid var(--border);
+      padding: 24px; display: flex; align-items: flex-start; gap: 12px;
+    }
+    .sp-close {
+      margin-left: auto; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; cursor: pointer; color: var(--text-3); padding: 6px;
+      transition: all .2s; height: 32px; width: 32px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .sp-close:hover { color: var(--text); background: var(--border-med); }
+    .sp-close svg { width: 16px; height: 16px; }
+
+    .sp-name { font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+    .sp-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    .sp-body { padding: 24px; display: flex; flex-direction: column; gap: 24px; flex: 1; }
+
+    .sp-bento-card {
+      background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+      border-radius: 16px; padding: 20px;
+    }
+
+    .sp-section-title {
+      font-size: .8rem; font-weight: 600; color: var(--text-2);
+      letter-spacing: .05em; margin-bottom: 16px; display: flex; align-items: center; gap: 6px;
+    }
+
+    .sp-info-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+    .sp-info-table th {
+      text-align: right; padding: 6px 8px;
+      font-size: .7rem; font-weight: 600; color: var(--text-3);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .sp-info-table td {
+      padding: 10px 8px; border-bottom: 1px solid var(--border-med);
+      color: var(--text); text-align: right; font-family: var(--mono);
+    }
+    
+    .sp-info-table tr:last-child td { border-bottom: none; }
+
+    .sp-wi-big { font-family: var(--mono); font-size: 2.2rem; font-weight: 700; margin-bottom: 16px; }
+
+    .sp-deduct-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+    .sp-deduct-table td { padding: 8px 0; border-bottom: 1px solid var(--border-med); color: var(--text-2); }
+    .sp-deduct-table td:last-child { text-align: right; font-family: var(--mono); }
+    .sp-deduct-table tr:last-child td { border-bottom: none; }
+
+    .deduct-val { font-family: var(--mono); font-size: .8rem; color: var(--red); font-weight: 600; }
+    .deduct-zero { color: var(--text-3); font-weight: 400; }
+
+    #panel-backdrop { display: none; position: fixed; inset: 0; z-index: 89; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); }
+    #panel-backdrop.visible { display: block; }
+
+    /* ============================================================
+       TOAST
+       ============================================================ */
+    #toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 998;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px 20px;
+      font-size: .85rem; color: var(--text); font-weight: 500;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      transform: translateY(20px); opacity: 0;
+      transition: all .3s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none; max-width: 280px;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1024px) {
+      .exec-cards-area { grid-template-columns: 1fr; }
+      :root { --panel-w: 360px; }
+      .content-col.panel-open { padding-right: 0; }
+    }
+    @media (max-width: 640px) {
+      .exec-card-total { font-size: 1.5rem; }
+      .header-title { display: none; }
+    }
+
+    /* ============================================================
+       ANIMATIONS
+       ============================================================ */
+    @keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: none; } }
+    .fade-in   { animation: fadeIn .4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+    .fade-in-2 { animation: fadeIn .4s .1s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  </style>
+</head>
+<body>
+
+<!-- Toast -->
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- Auth Overlay -->
+<div id="auth-overlay" style="display:none;">
+  <div class="auth-box fade-in">
+    <div class="auth-logo">CIL FLUIDS CONTROL</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">系統登入</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')">註冊帳號</button>
+    </div>
+    
+    <div id="form-login" class="auth-form active">
+       <input type="email" id="login-email" class="auth-input" placeholder="信箱 Email" />
+       <input type="password" id="login-password" class="auth-input" placeholder="密碼 Password" />
+       <button class="auth-btn" id="btn-login" onclick="doLogin()">登入</button>
+       <div class="auth-msg" id="login-msg"></div>
+    </div>
+    
+    <div id="form-register" class="auth-form">
+       <input type="email" id="reg-email" class="auth-input" placeholder="信箱 Email" />
+       <input type="text" id="reg-name" class="auth-input" placeholder="中文顯示名稱" />
+       <input type="password" id="reg-password" class="auth-input" placeholder="設定密碼" />
+       <button class="auth-btn" id="btn-reg" onclick="doRegister()">註冊送出</button>
+       <div class="auth-msg" id="reg-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text">載入資料中，請稍候…</div>
+</div>
+
+<!-- ============================================================
+     APP
+     ============================================================ -->
+<div id="app">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-logo">CIL FLUIDS CONTROL</div>
+    <div class="header-sep"></div>
+    <div class="header-title">工作獎金戰情中心</div>
+    <div class="header-spacer"></div>
+    <div class="header-user" id="header-user" style="display:none">
+      <div class="avatar" id="user-avatar">?</div>
+      <span class="user-name" id="user-name">—</span>
+      <span class="user-tag" id="user-tag">—</span>
+    </div>
+    <button class="btn-refresh" onclick="triggerLoadData()" title="重新整理" aria-label="重新整理">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.92-5.27l-2.07.67a8 8 0 1 0 1.62 5.06l1.37-.46z"/>
+      </svg>
+      重新整理
+    </button>
+    <button class="auth-logout" onclick="doLogout()" title="登出系統">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+        <polyline points="16 17 21 12 16 7"></polyline>
+        <line x1="21" y1="12" x2="9" y2="12"></line>
+      </svg>
+      登出
+    </button>
+  </header>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar fade-in">
+    <span class="filter-label">篩選區間</span>
+    <select class="filter-select" id="f-year" onchange="triggerLoadData()" aria-label="年度">
+      <option value="2024">2024 年</option>
+      <option value="2025">2025 年</option>
+      <option value="2026">2026 年</option>
+    </select>
+    <select class="filter-select" id="f-quarter" onchange="triggerLoadData()" aria-label="季度">
+      <option value="Q1">Q1</option>
+      <option value="Q2">Q2</option>
+      <option value="Q3">Q3</option>
+      <option value="Q4">Q4</option>
+    </select>
+    <div class="filter-divider"></div>
+    <select class="filter-select" id="f-team" onchange="applyTeamFilter()" aria-label="組別">
+      <option value="">全部組別</option>
+      <option value="COS">COS</option>
+      <option value="CVS">CVS</option>
+      <option value="SAS">SAS</option>
+      <option value="SSD">SSD</option>
+    </select>
+  </div>
+
+  <!-- BODY WRAP -->
+  <div class="body-wrap fade-in-2">
+    <div class="content-col" id="content-col">
+
+      <!-- ── ZONE 1: TEAM EXEC CARDS (Bento Grid) ── -->
+      <div class="exec-cards-area" id="exec-cards-area">
+        <!-- injected by renderExecCards() -->
+      </div>
+
+      <!-- ── ZONE 2: MAIN TABLE ── -->
+      <div class="bento-box" id="table-area">
+        <div class="bento-section-heading">
+          <div class="heading-title">綜合指標看板</div>
+          <div class="heading-sub" id="main-table-count"></div>
+        </div>
+        <div class="table-responsive">
+          <table class="main-data-table" id="main-table" aria-label="個人績效主表">
+            <thead>
+              <tr>
+                <th style="text-align:left;">人員</th>
+                <th>工作獎金指標</th>
+                <th>綜合達成率</th>
+                <th>激勵加成</th>
+                <th>工作指標</th>
+              </tr>
+            </thead>
+            <tbody id="main-tbody">
+              <tr class="empty-row"><td colspan="5">載入中…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /.content-col -->
+  </div><!-- /.body-wrap -->
+
+  <!-- ── SIDE PANEL ── -->
+  <div id="panel-backdrop" onclick="closePanel()" aria-hidden="true"></div>
+  <aside id="side-panel" role="complementary" aria-label="人員詳情" aria-hidden="true">
+    <div class="sp-header">
+      <div>
+        <div class="sp-name" id="sp-name">—</div>
+        <div class="sp-meta" id="sp-meta"></div>
+      </div>
+      <button class="sp-close" onclick="closePanel()" aria-label="關閉面板">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="sp-body" id="sp-body">
+      <!-- injected by openPanel() -->
+    </div>
+  </aside>
+
+</div><!-- /#app -->
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+/* ==========================================================
+   MOCK (browser preview without GAS environment)
+   ========================================================== */
+if (typeof google === 'undefined') {
+  window.google = {
+    script: {
+      run: (function() {
+        var MOCK_USER = {
+          email: 'gary@example.com',
+          display_name: 'Gary',
+          team: 'COS',
+          role: 'admin'
+        };
+        var MOCK_DATA = {
+          year_quarter: '2026-Q1',
+          team_exec: {
+            COS: { '完工': 918500,  '開發票': 8535743, total: 9454243 },
+            CVS: { '完工': 428700,  '開發票': 8697108, total: 9125808 },
+            SAS: { '完工': 779527,  '開發票': 6970705, total: 7750232 }
+          },
+          members: [
+            // COS
+            { name:'Jack Lin 林宗穆', team:'COS', role:'部門主管',
+              personal_credit:{'主辦':2015862,'協辦':0,'組長':0,leader:664614,'派工':641098,total:3321574},
+              personal_target_y:9800000, personal_target_q:2450000, team_target_q:18500000,
+              personal_achieve:1.356, team_achieve:0.511, overall_achieve:0.815,
+              incentive:0.8, deductions:{'報告':0,'加班':0,'調班':0,'回報':0.01,'異常':0,total_deduct:0.01}, work_index:0.99, bonus:0.646 },
+            { name:'Jimmy Lin 林其逸', team:'COS', role:'部門主管',
+              personal_credit:{'主辦':967091,'協辦':0,'組長':70830,leader:525684,'派工':217259,total:1780864},
+              personal_target_y:9800000, personal_target_q:2450000, team_target_q:18500000,
+              personal_achieve:0.727, team_achieve:0.511, overall_achieve:0.539,
+              incentive:0.6, deductions:{'報告':0.01,'加班':0,'調班':0,'回報':0,'異常':0,total_deduct:0.01}, work_index:0.99, bonus:0.320 },
+            { name:'Steven Yang 楊富程', team:'COS', role:'組長',
+              personal_credit:{'主辦':1081750,'協辦':0,'組長':321965,leader:0,'派工':277340,total:1681055},
+              personal_target_y:8000000, personal_target_q:2000000, team_target_q:18500000,
+              personal_achieve:0.841, team_achieve:0.511, overall_achieve:0.607,
+              incentive:0.6, deductions:{'報告':0,'加班':0.02,'調班':0,'回報':0,'異常':0,total_deduct:0.02}, work_index:0.98, bonus:0.357 },
+            { name:'Rex Weng 翁士翔', team:'COS', role:'組長',
+              personal_credit:{'主辦':628623,'協辦':21834,'組長':262842,leader:0,'派工':285936,total:1199235},
+              personal_target_y:8000000, personal_target_q:2000000, team_target_q:18500000,
+              personal_achieve:0.600, team_achieve:0.511, overall_achieve:0.462,
+              incentive:0.3, deductions:{'報告':0,'加班':0,'調班':0,'回報':0,'異常':0,total_deduct:0}, work_index:1.0, bonus:0.139 },
+            { name:'Wen Chen 陳政偉', team:'COS', role:'維護工程師',
+              personal_credit:{'主辦':936359,'協辦':6000,'組長':0,leader:0,'派工':212107,total:1154466},
+              personal_target_y:8000000, personal_target_q:2000000, team_target_q:18500000,
+              personal_achieve:0.577, team_achieve:0.511, overall_achieve:0.564,
+              incentive:0.6, deductions:{'報告':0,'加班':0,'調班':0,'回報':0,'異常':0,total_deduct:0}, work_index:1.0, bonus:0.338 },
+            { name:'Grover Chang 張琮勛', team:'COS', role:'維護工程師',
+              personal_credit:{'主辦':679348,'協辦':21834,'組長':0,leader:0,'派工':217972,total:919154},
+              personal_target_y:5700000, personal_target_q:1425000, team_target_q:18500000,
+              personal_achieve:0.645, team_achieve:0.511, overall_achieve:0.618,
+              incentive:0.6, deductions:{'報告':0,'加班':0,'調班':0,'回報':0,'異常':0,total_deduct:0}, work_index:1.0, bonus:0.371 },
+            { name:'Arthur Hsu 徐嵩', team:'COS', role:'組長',
+              personal_credit:{'主辦':458453,'協辦':32553,'組長':0,leader:0,'派工':187362,total:678368},
+              personal_target_y:8000000, personal_target_q:2000000, team_target_q:18500000,
+              personal_achieve:0.339, team_achieve:0.511, overall_achieve:0.306,
+              incentive:0.3, deductions:{'報告':0,'加班':0,'調班':0,'回報':0,'異常':0,total_deduct:0}, work_index:1.0, bonus:0.092 },
+            { name:'Dylan Chung 鍾佳霖', team:'COS', role:'維護工程師',
+              personal_credit:{'主辦':522332,'協辦':38271,'組長':0,leader:0,'派工':13900,total:574503},
+              personal_target_y:5700000, personal_target_q:1425000, team_target_q:18500000,
+              personal_achieve:0.403, team_achieve:0.511, overall_achieve:0.424,
+              incentive:0.3, deductions:{'報告':0,'加班':0,'調班':0,'回報':0,'異常':0,total_deduct:0}, work_index:1.0, bonus:0.127 },
+            // CVS
+            { name:'Nick Tseng 曾祇正', team:'CVS', role:'部門主管',
+              personal_credit:{'主辦':1255285,'協辦':52530,'組長':0,leader:818552,'派工':641098,total:2767465},
+              personal_target_y:9600000, personal_target_q:2400000, team_target_q:18500000,
+              personal_achieve:1.153, team_achieve:0.493, overall_achieve:0.692,
+              incentive:0.8, deductions:{'報告':0,'加班':0,'調班':0,'回報':0,'異常':0,total_deduct:0}, work_index:1.0, bonus:0.554 },
+            { name:'Ellis Lin 林達', team:'CVS', role:'部門主管',
+              personal_credit:{'主辦':1411047,'協辦':11775,'組長':307024,leader:160290,'派工':203310,total:2093446},
+              personal_target_y:9600000, personal_target_q:1775000, team_target_q:18500000,
+              personal_achieve:1.179, team_achieve:0.493, overall_achieve:0.699,
+              incentive:0.8, deductions:{'報告':0,'加班':0,'調班':0.02,'回報':0,'異常':0,total_deduct:0.02}, work_index:0.98, bonus:0.548 },
+            { name:'Evan Chen 陳恆君', team:'CVS', role:'組長',
+              personal_credit:{'主辦':1107165,'協辦':28447,'組長':182312,leader:0,'派工':207435,total:1525359},
+              personal_target_y:7100000, personal_target_q:1200000, team_target_q:18500000,
+              personal_achieve:1.271, team_achieve:0.493, overall_achieve:0.861,
+              incentive:1.0, deductions:{'報告':0,'加班':0,'調班':0,'回報':0,'異常':0,total_deduct:0}, work_index:1.0, bonus:0.861 },
+            { name:'Will Chen 陳維慶', team:'CVS', role:'組長',
+              personal_credit:{'主辦':1148689,'協辦':0,'組長':93387,leader:0,'派工':213080,total:1455156},
+              personal_target_y:7100000, personal_target_q:1775000, team_target_q:18500000,
+              personal_achieve:0.820, team_achieve:0.493, overall_achieve:0.591,
+              incentive:0.6, deductions:{'報告':0,'加班':0,'調班':0,'回報':0,'異常':0,total_deduct:0}, work_index:1.0, bonus:0.355 },
+            { name:'Karl Chen 陳盈互', team:'CVS', role:'部門主管',
+              personal_credit:{'主辦':565295,'協辦':68205,'組長':3375,leader:194363,'派工':175770,total:1007008},
+              personal_target_y:9600000, personal_target_q:2400000, team_target_q:18500000,
+              personal_achieve:0.420, team_achieve:0.493, overall_achieve:0.472,
+              incentive:0.3, deductions:{'報告':0,'加班':0,'調班':0,'回報':0,'異常':0,total_deduct:0}, work_index:1.0, bonus:0.142 },
+            { name:'Alben Huang 黃珈胤', team:'CVS', role:'維護工程師',
+              personal_credit:{'主辦':857035,'協辦':59850,'組長':0,leader:0,'派工':37125,total:954010},
+              personal_target_y:4800000, personal_target_q:1200000, team_target_q:18500000,
+              personal_achieve:0.795, team_achieve:0.493, overall_achieve:0.735,
+              incentive:0.8, deductions:{'報告':0,'加班':0,'調班':0,'回報':0,'異常':0,total_deduct:0}, work_index:1.0, bonus:0.588 },
+            { name:'Noah Tsai 蔡耀輝', team:'CVS', role:'維護工程師',
+              personal_credit:{'主辦':709971,'協辦':61840,'組長':0,leader:0,'派工':750,total:772561},
+              personal_target_y:4800000, personal_target_q:1200000, team_target_q:18500000,
+              personal_achieve:0.644, team_achieve:0.493, overall_achieve:0.614,
+              incentive:0.6, deductions:{'報告':0,'加班':0,'調班':0,'回報':0,'異常':0,total_deduct:0}, work_index:1.0, bonus:0.368 },
+            { name:'Andy Huang 黃騰霖', team:'CVS', role:'維護工程師',
+              personal_credit:{'主辦':389740,'協辦':101173,'組長':0,leader:0,'派工':645,total:491558},
+              personal_target_y:4800000, personal_target_q:1200000, team_target_q:18500000,
+              personal_achieve:0.410, team_achieve:0.493, overall_achieve:0.426,
+              incentive:0.3, deductions:{'報告':0,'加班':0,'調班':0,'回報':0,'異常':0,total_deduct:0}, work_index:1.0, bonus:0.128 },
+            { name:'Terry Shen 沈廷達', team:'CVS', role:'維護工程師',
+              personal_credit:{'主辦':363690,'協辦':60365,'組長':0,leader:0,'派工':6750,total:430805},
+              personal_target_y:4800000, personal_target_q:1200000, team_target_q:18500000,
+              personal_achieve:0.359, team_achieve:0.493, overall_achieve:0.386,
+              incentive:0.3, deductions:{'報告':0,'加班':0,'調班':0,'回報':0,'異常':0,total_deduct:0}, work_index:1.0, bonus:0.116 },
+            // SAS
+            { name:'Rock Lee 李宗郁', team:'SAS', role:'部門主管',
+              personal_credit:{'主辦':960347,'協辦':23220,'組長':0,leader:420372,'派工':314276,total:1718215},
+              personal_target_y:8500000, personal_target_q:2125000, team_target_q:9250000,
+              personal_achieve:0.809, team_achieve:0.838, overall_achieve:0.829,
+              incentive:0.8, deductions:{'報告':0,'加班':0,'調班':0,'回報':0.02,'異常':0,total_deduct:0.02}, work_index:0.98, bonus:0.651 },
+            { name:'Michael Tseng 曾柏堂', team:'SAS', role:'組長',
+              personal_credit:{'主辦':423095,'協辦':615654,'組長':0,leader:0,'派工':83549,total:1122297},
+              personal_target_y:7100000, personal_target_q:1775000, team_target_q:9250000,
+              personal_achieve:0.632, team_achieve:0.838, overall_achieve:0.546,
+              incentive:0.6, deductions:{'報告':0,'加班':0,'調班':0,'回報':0,'異常':0,total_deduct:0}, work_index:1.0, bonus:0.328 },
+            { name:'Patrick Lin 林祐詳', team:'SAS', role:'組長',
+              personal_credit:{'主辦':560122,'協辦':51174,'組長':207686,leader:0,'派工':138354,total:957336},
+              personal_target_y:7100000, personal_target_q:1775000, team_target_q:9250000,
+              personal_achieve:0.539, team_achieve:0.838, overall_achieve:0.491,
+              incentive:0.3, deductions:{'報告':0,'加班':0,'調班':0,'回報':0,'異常':0,total_deduct:0}, work_index:1.0, bonus:0.147 }
+          ]
+        };
+
+        var obj = {
+          _success: null, _fail: null,
+          withSuccessHandler: function(fn) { obj._success = fn; return obj; },
+          withFailureHandler: function(fn) { obj._fail = fn; return obj; },
+          getUserInfo: function() {
+            setTimeout(function() { obj._success && obj._success(MOCK_USER); }, 400);
+          },
+          getData: function() {
+            setTimeout(function() { obj._success && obj._success(MOCK_DATA); }, 600);
+          },
+          loginUser: function(email, pwd) {
+            setTimeout(function() { 
+              if (email === 'admin@test.com' && pwd === '123') obj._success && obj._success({success:true, user:MOCK_USER});
+              else obj._success && obj._success({error:'帳號或密碼錯誤 (MOCK)'});
+            }, 600);
+          },
+          registerUser: function(email, name, pwd) {
+            setTimeout(function() { obj._success && obj._success({success:true}); }, 600);
+          }
+        };
+        return obj;
+      })()
+    }
+  };
+}
+
+/* ==========================================================
+   AUTH LOGIC
+   ========================================================== */
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach(function(e) { e.classList.remove('active'); });
+  document.querySelectorAll('.auth-form').forEach(function(e) { e.classList.remove('active'); });
+  if (tab === 'login') {
+    document.querySelector('.auth-tab:nth-child(1)').classList.add('active');
+    document.getElementById('form-login').classList.add('active');
+  } else {
+    document.querySelector('.auth-tab:nth-child(2)').classList.add('active');
+    document.getElementById('form-register').classList.add('active');
+  }
+  document.getElementById('login-msg').style.display = 'none';
+  document.getElementById('reg-msg').style.display = 'none';
+}
+
+function doLogin() {
+  var email = document.getElementById('login-email').value;
+  var pwd   = document.getElementById('login-password').value;
+  var msg   = document.getElementById('login-msg');
+  var btn   = document.getElementById('btn-login');
+  
+  if (!email || !pwd) { 
+    msg.style.color = "var(--red)"; msg.textContent = "請輸入完整資料"; msg.style.display = 'block'; return; 
+  }
+  
+  btn.textContent = "登入中..."; btn.disabled = true;
+  google.script.run
+    .withSuccessHandler(function(res) {
+       if (res.error) {
+         msg.style.color = "var(--red)"; msg.textContent = res.error; msg.style.display = 'block';
+         btn.textContent = "登入"; btn.disabled = false;
+       } else {
+         localStorage.setItem('cil_email', email);
+         localStorage.setItem('cil_pwd', pwd);
+         document.getElementById('auth-overlay').style.display = 'none';
+         onUserLoaded(res.user);
+       }
+    })
+    .withFailureHandler(function(err) {
+       msg.style.color = "var(--red)"; msg.textContent = "伺服器錯誤: " + String(err); msg.style.display = 'block';
+       btn.textContent = "登入"; btn.disabled = false;
+    })
+    .loginUser(email, pwd);
+}
+
+function doRegister() {
+  var email = document.getElementById('reg-email').value;
+  var name  = document.getElementById('reg-name').value;
+  var pwd   = document.getElementById('reg-password').value;
+  var msg   = document.getElementById('reg-msg');
+  var btn   = document.getElementById('btn-reg');
+  
+  if (!email || !name || !pwd) { 
+    msg.style.color = "var(--red)"; msg.textContent = "請填寫完整資訊"; msg.style.display = 'block'; return; 
+  }
+  
+  btn.textContent = "送出中..."; btn.disabled = true;
+  google.script.run
+    .withSuccessHandler(function(res) {
+       if (res.error) {
+         msg.style.color = "var(--red)"; msg.textContent = res.error; msg.style.display = 'block';
+         btn.textContent = "註冊送出"; btn.disabled = false;
+       } else {
+         msg.classList.add('success');
+         msg.textContent = "註冊成功！請等待管理員審核開通。";
+         msg.style.display = 'block';
+         btn.textContent = "註冊送出"; btn.disabled = false;
+         
+         setTimeout(function() {
+           switchAuthTab('login');
+           document.getElementById('login-email').value = email;
+           document.getElementById('login-password').value = pwd;
+           msg.classList.remove('success');
+           msg.style.display = 'none';
+         }, 3000);
+       }
+    })
+    .withFailureHandler(function(err) {
+       msg.style.color = "var(--red)"; msg.textContent = "伺服器錯誤: " + String(err); msg.style.display = 'block';
+       btn.textContent = "註冊送出"; btn.disabled = false;
+    })
+    .registerUser(email, name, pwd);
+}
+
+function doLogout() {
+  localStorage.removeItem('cil_email');
+  localStorage.removeItem('cil_pwd');
+  location.reload();
+}
+
+/* ==========================================================
+   STATE
+   ========================================================== */
+var S = {
+  user: null,
+  data: null,
+  execDoughnutCharts: [],
+  panelCreditChart: null,
+  activeMemberIndex: -1
+};
+
+/* ==========================================================
+   INIT
+   ========================================================== */
+(function init() {
+  hideLoading();
+  document.getElementById('app').style.display = 'none';
+  const storedEmail = localStorage.getItem('cil_email');
+  const storedPwd   = localStorage.getItem('cil_pwd');
+  
+  if (storedEmail && storedPwd) {
+    document.getElementById('auth-overlay').style.display = 'none';
+    setLoading(true);
+    google.script.run
+      .withSuccessHandler(function(user) {
+        if (user.error) {
+          localStorage.removeItem('cil_email');
+          localStorage.removeItem('cil_pwd');
+          hideLoading();
+          document.getElementById('auth-overlay').style.display = 'flex';
+          toast(user.error);
+        } else {
+          onUserLoaded(user);
+        }
+      })
+      .withFailureHandler(function(e) {
+        hideLoading();
+        document.getElementById('auth-overlay').style.display = 'flex';
+        toast('連線失敗');
+      })
+      .getUserInfo(storedEmail, storedPwd);
+  } else {
+    document.getElementById('auth-overlay').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  }
+})();
+
+function onUserLoaded(user) {
+  if (user && user.error) {
+    document.getElementById('loading-overlay').innerHTML =
+      '<div style="color:#f87171;padding:40px;text-align:center">' + esc(user.error) + '</div>';
+    return;
+  }
+  S.user = user;
+
+  var initials = (user.display_name || '?').charAt(0).toUpperCase();
+  $('user-avatar').textContent = initials;
+  $('user-name').textContent   = user.display_name || user.email;
+  $('user-tag').textContent    = (user.team || '') + ' · ' + (user.role || '');
+  $('header-user').style.display = 'flex';
+
+  (function setCurrentPeriod() {
+    var now  = new Date();
+    var year = String(now.getFullYear());
+    var q    = 'Q' + (Math.floor(now.getMonth() / 3) + 1);
+    var yearSel = $('f-year');
+    var qSel    = $('f-quarter');
+    var hasYear = false;
+    for (var i = 0; i < yearSel.options.length; i++) {
+      if (yearSel.options[i].value === year) { hasYear = true; break; }
+    }
+    if (!hasYear) {
+      var opt = document.createElement('option');
+      opt.value = year; opt.textContent = year + ' 年';
+      yearSel.appendChild(opt);
+    }
+    yearSel.value = year;
+    qSel.value    = q;
+  })();
+
+  document.getElementById('app').style.display = 'block';
+  hideLoading();
+  triggerLoadData();
+}
+
+/* ==========================================================
+   LOAD DATA
+   ========================================================== */
+function triggerLoadData() {
+  var year    = $('f-year').value;
+  var quarter = $('f-quarter').value;
+  var email   = localStorage.getItem('cil_email') || '';
+  var pwd     = localStorage.getItem('cil_pwd') || '';
+
+  setLoading(true);
+
+  google.script.run
+    .withSuccessHandler(onDataLoaded)
+    .withFailureHandler(function(e) {
+      setLoading(false);
+      toast('資料讀取失敗：' + (e.message || e));
+    })
+    .getData({ year: year, quarter: quarter, email: email, password: pwd });
+}
+
+function onDataLoaded(data) {
+  setLoading(false);
+  if (data && data.error) { toast('錯誤：' + data.error); return; }
+  S.data = data;
+
+  var members = data.members || [];
+  var te      = data.team_exec || {};
+
+  renderExecCards(te, data.year_quarter, members);
+  applyTeamFilter();
+
+  if (S.activeMemberIndex >= 0 && members[S.activeMemberIndex]) {
+    renderPanelContent(members[S.activeMemberIndex]);
+  }
+}
+
+function applyTeamFilter() {
+  if (!S.data) return;
+  var teamFilter = $('f-team').value;
+  var members = S.data.members || [];
+  var filtered = teamFilter
+    ? members.filter(function(m) { return m.team === teamFilter; })
+    : members.slice();
+    
+  filtered.sort(function(a, b) {
+    var bBonus = parseFloat(b.bonus || 0);
+    var aBonus = parseFloat(a.bonus || 0);
+    var bAch   = parseFloat(b.overall_achieve || 0);
+    var aAch   = parseFloat(a.overall_achieve || 0);
+
+    if (bBonus !== aBonus) return bBonus - aBonus;
+    return bAch - aAch;
+  });
+
+  renderMainTable(filtered);
+}
+
+/* ==========================================================
+   ZONE 1: TEAM EXEC CARDS
+   ========================================================== */
+function renderExecCards(te, period, members) {
+  S.execDoughnutCharts.forEach(function(ch) { if (ch) ch.destroy(); });
+  S.execDoughnutCharts = [];
+
+  var area = $('exec-cards-area');
+  var teams = [
+    { key: 'COS', cls: 'cos' },
+    { key: 'CVS', cls: 'cvs' },
+    { key: 'SAS', cls: 'sas' }
+  ];
+
+  var teamTargetMap = {};
+  if (members) {
+    members.forEach(function(m) {
+      if (m.team && m.team_target_q && !teamTargetMap[m.team]) {
+        teamTargetMap[m.team] = m.team_target_q;
+      }
+    });
+  }
+
+  var teamColors = { 'COS': '#10b981', 'CVS': '#ef4444', 'SAS': '#6366f1' };
+
+  var html = teams.map(function(t) {
+    var d       = (te && te[t.key]) ? te[t.key] : { '完工': 0, '開發票': 0, total: 0 };
+    var teamTotal = (d.total || 0) / 10000;
+    var tgtQ    = teamTargetMap[t.key] || 0;
+    var rate    = (tgtQ > 0) ? (d.total / tgtQ) : 0;
+    var chartAchStr = (rate * 100).toFixed(0) + '%';
+    var canvasId = 'exec-doughnut-' + t.key;
+    var strokeColor = teamColors[t.key] || '#f4f4f5';
+
+    return '<div class="exec-team-card ' + t.cls + ' bento-box">' +
+      '<div class="exec-card-top ' + t.cls + '">' +
+        '<div class="bento-title">' +
+          '<span class="team-dot ' + t.cls + '"></span>' +
+          '<span class="team-name-title">' + t.key + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="exec-card-main">' +
+        '<div class="exec-card-left">' +
+          '<div class="exec-card-total-label">總金額</div>' +
+          '<div class="exec-card-total">' + teamTotal.toFixed(1) + ' 萬</div>' +
+        '</div>' +
+        '<div class="exec-card-doughnut-wrap">' +
+          '<canvas id="' + canvasId + '"></canvas>' +
+          '<div class="exec-doughnut-pct" style="color:' + strokeColor + '">' + chartAchStr + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="exec-card-breakdown">' +
+        '<div class="exec-card-metric">' +
+          '<span class="exec-card-metric-lbl">完工</span>' +
+          '<span class="exec-card-metric-val">' + fmtM(d['完工']) + '</span>' +
+        '</div>' +
+        '<div class="exec-card-metric">' +
+          '<span class="exec-card-metric-lbl">開發票</span>' +
+          '<span class="exec-card-metric-val">' + fmtM(d['開發票']) + '</span>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  area.innerHTML = html;
+
+  var teamColors = { 'COS': '#10b981', 'CVS': '#ef4444', 'SAS': '#6366f1' };
+
+  teams.forEach(function(t) {
+    var d    = (te && te[t.key]) ? te[t.key] : { total: 0 };
+    var tot  = d.total || 0;
+    var tgtQ = teamTargetMap[t.key] || 0;
+    var done = (tgtQ > 0) ? Math.min(tot / tgtQ, 1) : 0;
+    var remaining = Math.max(0, 1 - done);
+    var clr = teamColors[t.key] || '#f4f4f5';
+
+    var canvasEl = document.getElementById('exec-doughnut-' + t.key);
+    if (!canvasEl) return;
+
+    var ch = new Chart(canvasEl.getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        datasets: [{
+          data: [done, remaining],
+          backgroundColor: [clr, 'rgba(255,255,255,0.06)'],
+          borderWidth: 0,
+          hoverOffset: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '70%',
+        animation: { duration: 400 },
+        plugins: {
+          legend: { display: false },
+          tooltip: { enabled: false }
+        }
+      }
+    });
+    S.execDoughnutCharts.push(ch);
+  });
+}
+
+/* ==========================================================
+   ZONE 2: MAIN TABLE
+   ========================================================== */
+function renderMainTable(members) {
+  $('main-table-count').textContent = members.length ? members.length + ' 人' : '';
+  var tbody = $('main-tbody');
+  if (!members.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="9">無資料</td></tr>';
+    return;
+  }
+
+  var allMembers = (S.data && S.data.members) ? S.data.members : members;
+
+  var rows = members.map(function(m) {
+    var origIdx = allMembers.indexOf(m);
+    return '<tr onclick="openPanel(' + origIdx + ')" data-idx="' + origIdx + '">' +
+      '<td style="text-align:left;">' + 
+        '<div class="user-profile">' +
+          '<div class="name-cell">' + esc(m.name) + '</div>' + 
+          '<div class="tags-row">' + teamBadge(m.team) + '<span class="role-tag">' + esc(m.role || '—') + '</span></div>' +
+        '</div>' + 
+      '</td>' +
+      '<td>' + bonusCell(m.bonus) + '</td>' +
+      '<td>' + achPill(m.overall_achieve) + '</td>' +
+      '<td>' + incentiveCell(m.incentive) + '</td>' +
+      '<td>' + achPill(m.work_index) + '</td>' +
+    '</tr>';
+  });
+
+  tbody.innerHTML = rows.join('');
+}
+
+/* ==========================================================
+   SIDE PANEL
+   ========================================================== */
+function openPanel(idx) {
+  var members = (S.data && S.data.members) ? S.data.members : [];
+  var m = members[idx];
+  if (!m) return;
+
+  S.activeMemberIndex = idx;
+
+  document.querySelectorAll('#main-tbody tr').forEach(function(tr) {
+    tr.classList.remove('active-row');
+  });
+  var activeRow = document.querySelector('#main-tbody tr[data-idx="' + idx + '"]');
+  if (activeRow) activeRow.classList.add('active-row');
+
+  $('sp-name').textContent = m.name;
+  renderPanelContent(m);
+
+  $('side-panel').classList.add('open');
+  $('side-panel').setAttribute('aria-hidden', 'false');
+  $('content-col').classList.add('panel-open');
+  $('panel-backdrop').classList.add('visible');
+}
+
+function renderPanelContent(m) {
+  var pc = m.personal_credit || {};
+  var d  = m.deductions      || {};
+
+  $('sp-meta').innerHTML =
+    teamBadge(m.team) +
+    '&nbsp;<span class="role-tag">' + esc(m.role || '—') + '</span>';
+
+  var teamExecTotal = 0;
+  if (S.data && S.data.team_exec && m.team) {
+    var te = S.data.team_exec[m.team];
+    if (te) teamExecTotal = te.total || 0;
+  }
+
+  var wiColor = getPerfTierColor(m.work_index || 0).text;
+
+  var bodyHtml =
+    '<div class="sp-bento-card">' +
+      '<div class="sp-section-title">🎯 個人季度目標</div>' +
+      '<table class="sp-info-table">' +
+        '<thead><tr><th>目標</th><th>執行金額</th><th>達成率</th></tr></thead>' +
+        '<tbody><tr>' +
+          '<td>' + fmtN(m.personal_target_q || 0) + '</td>' +
+          '<td style="color:var(--gold)">' + fmtN(pc.total || 0) + '</td>' +
+          '<td>' + achPill(m.personal_achieve) + '</td>' +
+        '</tr></tbody>' +
+      '</table>' +
+    '</div>' +
+    '<div class="sp-bento-card">' +
+      '<div class="sp-section-title">🤝 團隊季度目標</div>' +
+      '<table class="sp-info-table">' +
+        '<thead><tr><th>目標</th><th>執行金額</th><th>達成率</th></tr></thead>' +
+        '<tbody><tr>' +
+          '<td>' + fmtN(m.team_target_q || 0) + '</td>' +
+          '<td style="color:var(--gold)">' + fmtN(teamExecTotal) + '</td>' +
+          '<td>' + achPill(m.team_achieve) + '</td>' +
+        '</tr></tbody>' +
+      '</table>' +
+    '</div>' +
+    '<div class="sp-bento-card">' +
+      '<div class="sp-section-title">📊 個人執行金額細項</div>' +
+      '<div style="position:relative;height:160px"><canvas id="panel-credit-chart"></canvas></div>' +
+    '</div>' +
+    '<div class="sp-bento-card">' +
+      '<div class="sp-section-title">⚠️ 工作指標與異常</div>' +
+      '<div class="sp-wi-big" style="color:' + wiColor + '">' + fmtPct(m.work_index) + '</div>' +
+      '<table class="sp-deduct-table">' +
+        spDeductRow('報告未繳/延遲', d['報告'], false) +
+        spDeductRow('加班未如實申報', d['加班'], false) +
+        spDeductRow('調班未如實申報', d['調班'], false) +
+        spDeductRow('未按時回報',     d['回報'], false) +
+        spDeductRow('重大異常計分',   d['異常'], true) +
+      '</table>' +
+    '</div>';
+
+  $('sp-body').innerHTML = bodyHtml;
+
+  if (S.panelCreditChart) { S.panelCreditChart.destroy(); S.panelCreditChart = null; }
+  var ctx = document.getElementById('panel-credit-chart');
+  if (ctx) {
+    S.panelCreditChart = new Chart(ctx.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: ['主辦', '協辦', '組長', 'Leader', '派工'],
+        datasets: [{
+          data: [pc['主辦'] || 0, pc['協辦'] || 0, pc['組長'] || 0, pc.leader || 0, pc['派工'] || 0],
+          backgroundColor: 'rgba(16,185,129,0.75)',
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#6b8cad', font: { size: 10 } } },
+          y: { grid: { color: 'rgba(255,255,255,.05)' }, ticks: { color: '#3d5a72', font: { size: 9 } }, beginAtZero: true }
+        }
+      }
+    });
+  }
+}
+
+function spDeductRow(label, val, isScore) {
+  var v = Number(val) || 0;
+  var display = v === 0
+    ? '<span class="deduct-zero">-0%</span>'
+    : isScore
+      ? '<span class="deduct-val">±' + v.toFixed(2) + '</span>'
+      : '<span class="deduct-val">-' + fmtPct(v) + '</span>';
+  return '<tr><td>' + esc(label) + '</td><td>' + display + '</td></tr>';
+}
+
+function closePanel() {
+  S.activeMemberIndex = -1;
+  $('side-panel').classList.remove('open');
+  $('side-panel').setAttribute('aria-hidden', 'true');
+  $('content-col').classList.remove('panel-open');
+  $('panel-backdrop').classList.remove('visible');
+  document.querySelectorAll('#main-tbody tr').forEach(function(tr) { tr.classList.remove('active-row'); });
+  if (S.panelCreditChart) { S.panelCreditChart.destroy(); S.panelCreditChart = null; }
+}
+
+/* ==========================================================
+   HELPERS
+   ========================================================== */
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s || '').replace(/[&<>"']/g, function(c) { return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]; }); }
+function fmtN(n) { return (Number(n) || 0).toLocaleString('zh-TW', { maximumFractionDigits: 0 }); }
+function fmtM(n) { n = Number(n) || 0; if (n >= 1e8) return (n / 1e8).toFixed(2) + ' 億'; if (n >= 1e4) return (n / 1e4).toFixed(1) + ' 萬'; return n.toLocaleString('zh-TW', { maximumFractionDigits: 0 }); }
+function fmtPct(v) { return ((Number(v) || 0) * 100).toFixed(1) + '%'; }
+function fmtIdx(v) { return (Number(v) || 0).toFixed(2); }
+
+function getPerfTierColor(num) {
+  if (num >= 1.2) return {bg: 'rgba(52,211,153,.25)', text: '#34d399'}; /* 綠色高亮 */
+  if (num >= 1.0) return {bg: 'rgba(16,185,129,.15)', text: '#10b981'}; /* 綠色 */
+  if (num >= 0.8) return {bg: 'rgba(251,191,36,.15)', text: '#fbbf24'}; /* 琥珀黃 */
+  if (num >= 0.6) return {bg: 'rgba(96,165,250,.15)', text: '#60a5fa'}; /* 藍色 */
+  return {bg: 'rgba(100,116,139,.15)', text: '#64748b'}; /* 深泥灰 */
+}
+
+function achPill(v) {
+  var n = Number(v) || 0;
+  var c = getPerfTierColor(n);
+  return '<span class="ach-pill" style="background:' + c.bg + '; color:' + c.text + ';">' + fmtPct(n) + '</span>';
+}
+
+function incentiveCell(v) {
+  var n = Number(v) || 0;
+  var c = getPerfTierColor(n);
+  return '<span class="ach-pill" style="background:' + c.bg + '; color:' + c.text + ';">' + (n * 100).toFixed(0) + '%</span>';
+}
+
+function bonusCell(v) {
+  var n = Number(v) || 0;
+  var c = getPerfTierColor(n);
+  return '<span class="ach-pill" style="background:' + c.bg + '; color:' + c.text + ';">' + n.toFixed(2) + '</span>';
+}
+
+function deductCell(v, isScore) {
+  v = Number(v) || 0;
+  if (v === 0) return '<span class="deduct-val deduct-zero">—</span>';
+  if (isScore)  return '<span class="deduct-val">' + v.toFixed(2) + '</span>';
+  return '<span class="deduct-val">-' + fmtPct(v) + '</span>';
+}
+
+function teamBadge(team) {
+  if (!team) return '—';
+  return '<span class="team-badge team-' + esc(team) + '">' + esc(team) + '</span>';
+}
+
+/* Loading states */
+function hideLoading() {
+  var ol = $('loading-overlay');
+  ol.style.opacity = '0';
+  ol.style.transition = 'opacity .35s';
+  setTimeout(function() { ol.style.display = 'none'; }, 360);
+}
+
+function setLoading(on) {
+  var el = $('main-tbody');
+  if (on && el) {
+    el.innerHTML = '<tr class="empty-row"><td colspan="5">載入中…</td></tr>';
+  }
+}
+
+/* Toast */
+var _toastTimer = null;
+function toast(msg) {
+  var el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function() { el.classList.remove('show'); }, 3000);
+}
+</script>
+
+<!-- signed: Beauty | 2026-04-20 11:30:00 UTC | task-20260420-cil-dashboard-v3-patch -->
+</body>
+</html>

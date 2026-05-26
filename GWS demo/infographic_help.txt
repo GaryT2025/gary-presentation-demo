@@ -1,0 +1,12 @@
+﻿                                                                           
+ Usage: nlm infographic [OPTIONS] COMMAND [ARGS]...                        
+                                                                           
+ Create infographics                                                       
+                                                                           
++- Options ---------------------------------------------------------------+
+| --help          Show this message and exit.                             |
++-------------------------------------------------------------------------+
++- Commands --------------------------------------------------------------+
+| create  Create an infographic from notebook sources.                    |
++-------------------------------------------------------------------------+
+

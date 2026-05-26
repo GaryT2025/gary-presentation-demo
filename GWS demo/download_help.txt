@@ -1,0 +1,20 @@
+﻿                                                                           
+ Usage: nlm download [OPTIONS] COMMAND [ARGS]...                           
+                                                                           
+ Download artifacts (audio, video, etc)                                    
+                                                                           
++- Options ---------------------------------------------------------------+
+| --help          Show this message and exit.                             |
++-------------------------------------------------------------------------+
++- Commands --------------------------------------------------------------+
+| audio        Download Audio Overview.                                   |
+| video        Download Video Overview.                                   |
+| slide-deck   Download Slide Deck (PDF or PPTX).                         |
+| infographic  Download Infographic (PNG).                                |
+| report       Download Report (Markdown).                                |
+| mind-map     Download Mind Map (JSON).                                  |
+| data-table   Download Data Table (CSV).                                 |
+| quiz         Download Quiz.                                             |
+| flashcards   Download Flashcards.                                       |
++-------------------------------------------------------------------------+
+

@@ -1,0 +1,16 @@
+﻿                                                                           
+ Usage: nlm download infographic [OPTIONS] NOTEBOOK_ID                     
+                                                                           
+ Download Infographic (PNG).                                               
+                                                                           
++- Arguments -------------------------------------------------------------+
+| *    notebook_id      TEXT  Notebook ID [required]                      |
++-------------------------------------------------------------------------+
++- Options ---------------------------------------------------------------+
+| --output       -o      TEXT  Output path (default:                      |
+|                              ./{notebook_id}_infographic.png)           |
+| --id                   TEXT  Specific artifact ID                       |
+| --no-progress                Disable download progress bar              |
+| --help                       Show this message and exit.                |
++-------------------------------------------------------------------------+
+

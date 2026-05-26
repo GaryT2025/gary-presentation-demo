@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py
+*.pyc
+
+# Large assets/materials (upload separately if needed)
+material/
+
+# Temp/backup files
+*backup*
+*Full*
+*.md
+
+# OS
+.DS_Store
+Thumbs.db

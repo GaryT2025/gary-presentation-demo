@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antigravity 企業 AI 解決方案展示</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --accent: #3b82f6;
+            --bg-body: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        .presentation-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slide {
+            position: absolute;
+            width: 90%;
+            max-height: 85vh;
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 60px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+            overflow-y: auto;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+            z-index: 10;
+        }
+
+        .slide-number {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            background: rgba(255,255,255,0.1);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: var(--accent);
+            letter-spacing: 1px;
+        }
+
+        .tag {
+            display: inline-block;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 3.2em;
+            line-height: 1.2;
+            margin-top: 0;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #ffffff, #94a3b8);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 2em;
+            margin-top: 0;
+            margin-bottom: 25px;
+            color: #f1f5f9;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 15px;
+        }
+
+        p {
+            font-size: 1.2em;
+            line-height: 1.7;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.3);
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+
+        .card-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .card-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #f8fafc;
+            margin-bottom: 10px;
+        }
+
+        .card-desc {
+            font-size: 0.95em;
+            color: var(--text-muted);
+        }
+
+        .flow-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 16px;
+            margin: 30px 0;
+            border: 1px dashed rgba(255,255,255,0.1);
+        }
+
+        .flow-step {
+            text-align: center;
+            flex: 1;
+        }
+
+        .flow-arrow {
+            color: var(--accent);
+            font-size: 2em;
+            opacity: 0.6;
+        }
+
+        .highlight-box {
+            background: linear-gradient(to right, rgba(16, 185, 129, 0.1), transparent);
+            border-left: 4px solid var(--success);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin-top: 30px;
+            font-size: 1.1em;
+        }
+        
+        .danger-box {
+            background: linear-gradient(to right, rgba(239, 68, 68, 0.1), transparent);
+            border-left: 4px solid var(--danger);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin-top: 30px;
+            font-size: 1.1em;
+        }
+
+        /* Controls */
+        .controls {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 100;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px 24px;
+            font-size: 1.1em;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-family: inherit;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: scale(1.05);
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .code-block {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            color: #e2e8f0;
+            margin: 10px 0;
+            border: 1px solid #1e293b;
+            text-align: left;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="presentation-container">
+        
+        <!-- Slide 1: Cover -->
+        <div class="slide active" id="slide-0">
+            <span class="slide-number">1 / 6</span>
+            <div style="text-align: center; margin-top: 40px;">
+                <span class="tag">AI Transformation</span>
+                <h1>Antigravity<br><span style="color: var(--accent); font-size: 0.6em;">企業級 AI 指揮官解決方案</span></h1>
+                <p style="font-size: 1.5em; max-width: 800px; margin: 30px auto;">讓 AI 成為您的超級大腦與 24 小時無休的貼身幕僚</p>
+                <div class="grid-cards">
+                    <div class="card">
+                        <span class="card-icon">🧠</span>
+                        <div class="card-title">知識汲取</div>
+                        <div class="card-desc">秒速梳理海量歷史文件與規格</div>
+                    </div>
+                    <div class="card">
+                        <span class="card-icon">⚡</span>
+                        <div class="card-title">自動作業</div>
+                        <div class="card-desc">徹底告別繁瑣的手工資料輸入</div>
+                    </div>
+                    <div class="card">
+                        <span class="card-icon">🛡️</span>
+                        <div class="card-title">防呆審查</div>
+                        <div class="card-desc">主動把關、攔截人為疏漏與異常</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2: What is Antigravity -->
+        <div class="slide" id="slide-1">
+            <span class="slide-number">2 / 6</span>
+            <span class="tag">Concept</span>
+            <h2>什麼是 Antigravity？</h2>
+            <p>Antigravity 不是一個被動的「聊天對話框」，而是一位具備**「調度權」**的 AI 中心指揮官。</p>
+            <p>透過建立標準作業流程 (SOP/Skills)，它能自動串接我們平常用的各種工具（例如：Google Drive、試算表、NotebookLM 知識庫），把人的腦力從「整理資料」解放出來，專注於「決策」。</p>
+            
+            <div class="flow-container">
+                <div class="flow-step">
+                    <span class="card-icon">👤</span>
+                    <strong style="color:white; font-size:1.1em;">您 (經理人)</strong><br>
+                    <span style="font-size:0.9em; color:var(--text-muted)">發出指令</span>
+                </div>
+                <div class="flow-arrow">➡️</div>
+                <div class="flow-step" style="transform: scale(1.1);">
+                    <span class="card-icon">🤖</span>
+                    <strong style="color:var(--accent); font-size:1.2em;">Antigravity</strong><br>
+                    <span style="font-size:0.9em; color:var(--text-muted)">依據 SOP 進行調度</span>
+                </div>
+                <div class="flow-arrow">➡️</div>
+                <div class="flow-step">
+                    <span class="card-icon">⚙️</span>
+                    <strong style="color:white; font-size:1.1em;">MCP 生態系</strong><br>
+                    <span style="font-size:0.9em; color:var(--text-muted)">串接 NotebookLM、Google</span>
+                </div>
+            </div>
+            <div class="highlight-box">
+                <strong style="color: #10b981;">💡 效益：</strong>您不需要懂程式碼，只要給出清晰的業務邏輯，AI 就能自動完成跨系統的操作。
+            </div>
+        </div>
+
+        <!-- Slide 2.5: Demystifying MCP (Text) -->
+        <div class="slide" id="slide-mcp-1">
+            <span class="slide-number"></span>
+            <span class="tag" style="background: linear-gradient(90deg, #38bdf8, #8b5cf6);">Tech Concept</span>
+            <h2>科普一下：什麼是 MCP？</h2>
+            <p>剛剛我們提到了 MCP 生態系，這聽起來很技術，但其實概念非常簡單。你完全可以把它想像成**「軟體界的 Type-C 轉接線」**。</p>
+            
+            <div style="display: flex; gap: 20px; align-items: stretch; margin-top: 30px; max-width: 1000px; margin-left: auto; margin-right: auto;">
+                <div class="card" style="flex: 1; text-align: left; padding: 30px; border-color: rgba(239, 68, 68, 0.4);">
+                    <h3 style="color: #ef4444; margin-top: 0; font-size: 1.3em;">以前的 API (各種專屬充電線)</h3>
+                    <p style="color: var(--text-muted); font-size: 1.05em; line-height: 1.8; margin-bottom: 0;">以前 AI 要接 Google Drive、接 ERP、接財務庫，工程師必須為每個系統開發「專屬的連接線 API」。這就像你家的抽屜躺著凌亂的 Micro-USB、Lightning 等舊線材，買新設備就要買新線，極度耗時且難以擴充維護。</p>
+                </div>
+                
+                <div style="flex: 0; display: flex; align-items: center; font-size: 2.5em; color: var(--accent);">
+                    🆚
+                </div>
+                
+                <div class="card" style="flex: 1; text-align: left; padding: 30px; border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.05);">
+                    <h3 style="color: #10b981; margin-top: 0; font-size: 1.3em;">現在的 MCP (Type-C 萬用快充線)</h3>
+                    <p style="color: var(--text-muted); font-size: 1.05em; line-height: 1.8; margin-bottom: 0;">MCP (Model Context Protocol) 是一個全球統一的開源標準接頭。現在，只要給 AI 大腦配備這條「萬用 Type-C」，無論是筆記本還是資料庫，一插上去瞬間就能讀懂你的數據，完全不需重新客製化！</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2.6: Demystifying MCP (Visual 1) -->
+        <div class="slide" id="slide-mcp-2">
+            <span class="slide-number"></span>
+            <span class="tag" style="background: linear-gradient(90deg, #38bdf8, #8b5cf6);">AI Generated</span>
+            <h2>NBLM 產出的 MCP 資訊圖表 (標準版)</h2>
+            <p style="font-size: 1.1em; max-width: 800px; margin: 10px auto 30px auto; color: var(--text-muted);">
+                這張圖是由 NotebookLM 根據前一頁的文字，花費 30 秒自動排版渲染出的專業簡報素材。
+            </p>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <img src="mcp_concept.png" alt="MCP Diagram Standard" style="max-width: 900px; width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            </div>
+        </div>
+
+        <!-- Slide 2.7: Demystifying MCP (Visual 2 - Simple) -->
+        <div class="slide" id="slide-mcp-3">
+            <span class="slide-number"></span>
+            <span class="tag" style="background: linear-gradient(90deg, #38bdf8, #8b5cf6);">AI Generated</span>
+            <h2>NBLM 產出的 MCP 資訊圖表 (給非技術人員)</h2>
+            <p style="font-size: 1.1em; max-width: 800px; margin: 10px auto 30px auto; color: var(--text-muted);">
+                如果主管覺得剛才的圖太複雜，我們再次請 AI 重新繪製一張**「七成圖、三成文」**的極簡版對比圖。
+            </p>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <img src="mcp_concept_v2.png" alt="MCP Diagram Simple" style="max-width: 900px; width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px; font-size: 1.1em; color: #f8fafc; background: rgba(59, 130, 246, 0.1); padding: 15px; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.3); max-width: 800px; margin-left: auto; margin-right: auto;">
+                <strong>💡 結論：</strong>MCP 讓 Antigravity 可以像隨身碟一樣，一插即用，無縫汲取各種私有系統與知識庫！
+            </div>
+        </div>
+
+        <!-- Slide 3: The Demo Flow -->
+        <div class="slide" id="slide-2">
+            <span class="slide-number">3 / 6</span>
+            <span class="tag">Agenda</span>
+            <h2>我們今天 Demo 什麼？</h2>
+            <p>為了讓大家有感體會 AI 如何改變工作流程，我們設計了循序漸進的三個階段展示：</p>
+            
+            <div class="card" style="text-align: left; padding: 25px; margin-bottom: 20px; display: flex; align-items: center; gap: 20px;">
+                <div style="background: rgba(59, 130, 246, 0.2); padding: 15px; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 1.5em; font-weight: bold; color: var(--accent);">1</div>
+                <div>
+                    <div class="card-title" style="margin-bottom: 5px;">知識大腦建置 (整理歸納)</div>
+                    <div class="card-desc">將一團亂的原始 PDF 文件交給 AI 分類，並自動串聯 NotebookLM 變成可供詢問的知識庫。</div>
+                </div>
+            </div>
+            
+            <div class="card" style="text-align: left; padding: 25px; margin-bottom: 20px; display: flex; align-items: center; gap: 20px;">
+                <div style="background: rgba(59, 130, 246, 0.2); padding: 15px; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 1.5em; font-weight: bold; color: var(--accent);">2</div>
+                <div>
+                    <div class="card-title" style="margin-bottom: 5px;">自動化資料處理 (免除手登)</div>
+                    <div class="card-desc">不需人工鍵入，AI 直接讀取掃描報價單的表格，轉換為 Google 試算表追蹤表。</div>
+                </div>
+            </div>
+            
+            <div class="card" style="text-align: left; padding: 25px; display: flex; align-items: center; gap: 20px; border-color: rgba(16, 185, 129, 0.4);">
+                <div style="background: rgba(16, 185, 129, 0.2); padding: 15px; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 1.5em; font-weight: bold; color: var(--success);">3</div>
+                <div>
+                    <div class="card-title" style="margin-bottom: 5px; color: var(--success);">AI 智能審查把關 (高階應用)</div>
+                    <div class="card-desc">結合階段一的「標準規格知識」與階段二的「報價單」，讓 AI 直接幫您揪出廠商報價的不合理之處！</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Stage 1 -->
+        <div class="slide" id="slide-3">
+            <span class="slide-number">4 / 6</span>
+            <span class="tag">Stage 1</span>
+            <h2>第一階段：把雜亂檔案變成「即問即答知識庫」</h2>
+            <p><strong>挑戰：</strong> 每次都要在龐大的資料夾中尋找特定型號的舊版技術規格書。<br>
+               <strong>解法：</strong> 自動化分類，並讓 NotebookLM 成為專屬大腦。</p>
+            
+            <div class="flow-container">
+                <div class="flow-step">
+                    <span class="card-icon">📂</span>
+                    <strong style="color:white;">雜亂的 BHMN 文件</strong>
+                </div>
+                <div class="flow-arrow">➡️</div>
+                <div class="flow-step">
+                    <span class="card-icon">⚡</span>
+                    <strong style="color:var(--accent);">自動分類歸放</strong>
+                </div>
+                <div class="flow-arrow">➡️</div>
+                <div class="flow-step">
+                    <span class="card-icon">🧠</span>
+                    <strong style="color:white;">NLM 知識庫建立</strong>
+                </div>
+            </div>
+            <p style="text-align: center; color: white;">接下來您可以直接對 AI 提問：<em>「比較所有閥門型號的操作溫度範圍？」</em>，瞬間獲得解答。</p>
+
+            <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                <span style="color: var(--accent); font-weight: bold; font-size: 0.9em;">📋 現場操作提示詞 (點擊複製)：</span>
+                <div class="code-block" style="position: relative; cursor: pointer; background: rgba(0,0,0,0.4);" onclick="copyPrompt(`請調用 valve-document-organizer 技能，將此資料夾中的所有 PDF 檔案進行自動化分類：\n來源：C:\\Users\\GaryTzeng\\OneDrive - 富迪斯股份有限公司\\工作文件\\AntiGary\\GWS demo\\reference valve doc\\\n目標：C:\\Users\\GaryTzeng\\OneDrive - 富迪斯股份有限公司\\工作文件\\AntiGary\\GWS demo\\organized\\`)">
+                    請對 reference valve doc 資料夾執行 valve-document-organizer 自動分類
+                    <span style="position: absolute; right: 15px; top: 15px; font-size: 0.8em; color: var(--accent);">點擊複製 📋</span>
+                </div>
+                <div class="code-block" style="position: relative; cursor: pointer; background: rgba(0,0,0,0.4); margin-top: 10px;" onclick="copyPrompt(`請讀取此資料夾的所有子目錄結構：C:\\Users\\GaryTzeng\\OneDrive - 富迪斯股份有限公司\\工作文件\\AntiGary\\GWS demo\\organized\\BHMN\\\n並在 NotebookLM 中建立對應的筆記本並加入資料：\n1. 筆記本名稱：KM - BHMN - [父級] - [子級] \n2. 批次新增檔案`)">
+                    根據分類結果，在 NotebookLM 中自動建立對應筆記本大腦
+                    <span style="position: absolute; right: 15px; top: 15px; font-size: 0.8em; color: var(--accent);">點擊複製 📋</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Stage 2 -->
+        <div class="slide" id="slide-4">
+            <span class="slide-number">5 / 6</span>
+            <span class="tag">Stage 2</span>
+            <h2>第二階段：終結手動輸入，秒建追蹤報表</h2>
+            <p><strong>挑戰：</strong> 人工將廠商報價單上的規格、數量、金額一筆筆 key 入追蹤表，浪費時間且容易輸錯。<br>
+               <strong>解法：</strong> 讓 AI 自己「看懂」收到的 PDF 報價單，並端到端建立表格。</p>
+            
+            <div class="grid-cards" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 20px;">
+                <div class="card" style="padding: 20px;">
+                    <div class="card-title">Before: 痛苦的手工 key-in</div>
+                    <div class="card-desc" style="text-align: left; margin-top: 15px;">
+                        - 開啟 PDF 找數據<br>
+                        - 切換至 Excel 複製貼上<br>
+                        - 反覆核對怕漏字<br>
+                        <span style="color: var(--danger); font-weight: bold; display: block; margin-top: 10px;">耗時：約 10-15 分鐘 / 份</span>
+                    </div>
+                </div>
+                <div class="card" style="padding: 20px; border-color: rgba(59, 130, 246, 0.4);">
+                    <div class="card-title">After: Antigravity 一鍵轉化</div>
+                    <div class="card-desc" style="text-align: left; margin-top: 15px;">
+                        - AI 直接精準解析 PDF 欄位<br>
+                        - 自動建立 Google 試算表<br>
+                        - 單價、備註、項次自動對齊<br>
+                        <span style="color: var(--success); font-weight: bold; display: block; margin-top: 10px;">耗時：不到 1 分鐘，100% 結構化</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                <span style="color: var(--accent); font-weight: bold; font-size: 0.9em;">📋 現場操作提示詞 (點擊複製)：</span>
+                <div class="code-block" style="position: relative; cursor: pointer; background: rgba(0,0,0,0.4);" onclick="copyPrompt(`讀取此 PDF 檔案並從報價單表格中擷取細項：\nC:\\Users\\GaryTzeng\\OneDrive - 富迪斯股份有限公司\\工作文件\\AntiGary\\GWS demo\\demo quotation\\報價單 台中電廠.pdf\n然後：\n1. 建立新的 Google 試算表\n2. 填入資料\n3. 回傳 URL`)">
+                    讀取報價單 PDF 並自動填入 Google 試算表
+                    <span style="position: absolute; right: 15px; top: 15px; font-size: 0.8em; color: var(--accent);">點擊複製 📋</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Stage 3 (Smart Review) -->
+        <div class="slide" id="slide-5">
+            <span class="slide-number">6 / 6</span>
+            <span class="tag" style="background: linear-gradient(90deg, #10b981, #059669);">Stage 3 - 重頭戲</span>
+            <h2>第三階段：AI 智能審查員 — 跨系統規格防呆</h2>
+            <p><strong>挑戰：</strong> 採購主管有時難以背下所有技術細節，若廠商報價的材質或規格不符標準，很難第一時間發現。<br>
+               <strong>解法：</strong> 讓 AI 整合前兩階段的成果，自動進行交叉審查發出警報！</p>
+               
+            <div style="background: rgba(15, 23, 42, 0.8); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                <h3 style="margin-top:0; color:var(--text-main); font-size:1.1em;">實際測試：刻意安排錯誤的「測試報價單」</h3>
+                <div style="display: flex; gap: 20px;">
+                    <div style="flex:1;">
+                        <span style="color: var(--warning); font-size: 0.9em; font-weight:bold;">標準規格 (Knowledge Base)</span>
+                        <div class="code-block">
+                            [21000系列]<br>
+                            材質：碳鋼/不鏽鋼, 限溫 250°C<br>
+                            驅動：Spring Diaphragm<br><br>
+                            [41000系列]<br>
+                            尺寸：最高至 24 吋<br>
+                            材質：特殊合金(如鈦)需與原廠確認<br>
+                            驅動：Pneumatic Spring Diaphragm
+                        </div>
+                    </div>
+                    <div style="flex:1;">
+                        <span style="color: var(--danger); font-size: 0.9em; font-weight:bold;">廠商報價單 (Quotation)</span>
+                        <div class="code-block">
+                            [21000系列]<br>
+                            材質：<span style="color:#ef4444; border-bottom: 1px dotted red;">Cast Iron</span>, 溫：<span style="color:#ef4444; border-bottom: 1px dotted red;">350°C</span><br><br>
+                            [41000系列]<br>
+                            尺寸：<span style="color:#ef4444; border-bottom: 1px dotted red;">36" (超出上限)</span><br>
+                            材質：<span style="color:#f59e0b; border-bottom: 1px dotted orange;">Titanium (需原廠核實)</span><br>
+                            驅動：<span style="color:#ef4444; border-bottom: 1px dotted red;">Hydraulic Actuator</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="danger-box" style="margin-top: 10px;">
+                <strong style="color: var(--danger);">🚨 AI 的紅綠燈報告出爐：</strong> <br>
+                Antigravity 彙整 NBLM 回報：「**21000系列**：本體材質使用鑄鐵不符規範，且操作溫度 350°C 超出常規限制(250°C)；**41000系列**：報價 36\" 尺寸超出標準最大規格 24\"，且液壓驅動器(Hydraulic)屬於非標配，而鈦合金材質**必須依規定先送交原廠核實諮詢**。」<br>
+                <span style="font-size: 0.9em; color: var(--text-muted); margin-top: 8px; display: inline-block;">這就是 AI 如何成為您的貼身守門員，大幅降低採購決策風險！</span>
+            </div>
+
+            <!-- Prompt Section for Live Demo -->
+            <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                <span style="color: var(--accent); font-weight: bold; font-size: 0.9em;">📋 現場操作提示詞 (點擊複製)</span>
+                <div class="code-block" style="position: relative; cursor: pointer; background: rgba(0,0,0,0.4);" onclick="copyPromptFromElement('prompt-stage3')">
+                    將報價單貼給知識庫，並請 AI 連動進行標準規範審核。
+                    <span style="position: absolute; right: 15px; top: 15px; font-size: 0.8em; color: var(--accent);">點擊複製 📋</span>
+                </div>
+                <div id="prompt-stage3" style="display: none;">請幫我向 nblm 確認『KM - BHMN - General Valve - Technical Specification』，這報價單內容是否有要注意的地方？
+
+# 報價單
+## 專案名稱：台中電廠鍋爐升級專案
+## 日期：2026-03-24
+## 供應商：測試廠商有限公司
+
+### 項目 01
+- **設備**：Masoneilan 21000 Series 控制閥
+- **本體材質**：Cast Iron (鑄鐵)
+- **最高操作溫度**：350°C
+- **壓力等級**：ASME Class 300
+- **驅動器型式**：Spring Diaphragm (彈簧薄膜式)
+- **尺寸**：10"
+- **數量**：2 台
+- **單價**：$150,000
+
+### 項目 02
+- **設備**：Masoneilan 41000 Series 控制閥
+- **尺寸**：36"
+- **本體材質**：Titanium (鈦合金)
+- **最高操作溫度**：300°C
+- **壓力等級**：ASME Class 600
+- **驅動器型式**：Hydraulic Actuator (液壓驅動器)
+- **數量**：1 台
+- **單價**：$3,000,000</div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Brainstorming HR -->
+        <div class="slide" id="slide-6">
+            <span class="slide-number">7 / 14</span>
+            <span class="tag" style="background: linear-gradient(90deg, #ec4899, #8b5cf6);">Brain Storming</span>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                <span style="font-size: 3em;">🧑‍💼</span>
+                <h2 style="margin: 0; font-size: 2em;">人事 (HR) 應用情境</h2>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; margin-top: 30px;">
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #60a5fa; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(96, 165, 250, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">1</span> 新人規章與假單秒答</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">員工詢問特休計算、產假規定或報帳流程，AI 自動對比最新版員工手冊給出精準解答，大幅減輕 HR 重複性問答負擔。</p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #60a5fa; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(96, 165, 250, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">2</span> 海量履歷精準篩選</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">匯入薪資與職缺描述，與數十份履歷一起讓 AI 快速比較排序「經歷與證照最適配度」，並直接條列每個候選人的優缺點。</p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #60a5fa; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(96, 165, 250, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">3</span> 績效面談與培訓草稿</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">根據員工過去一年的考評紀錄與公司培訓資源庫，自動幫主管生成專屬的面談切入點大綱與下一季的職涯培訓計畫。</p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; font-size: 1.1em; font-weight: 500;">
+                <span style="display:inline-block; padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; color: #f8fafc;">— 以知識庫為地基，賦能全體部門成為下個世代的 AI 企業 —</span>
+            </div>
+        </div>
+
+        <!-- Slide 8: Brainstorming Finance -->
+        <div class="slide" id="slide-7">
+            <span class="slide-number">8 / 14</span>
+            <span class="tag" style="background: linear-gradient(90deg, #ec4899, #8b5cf6);">Brain Storming</span>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                <span style="font-size: 3em;">💰</span>
+                <h2 style="margin: 0; font-size: 2em;">財會 (Finance) 應用情境</h2>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; margin-top: 30px;">
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #fcd34d; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(252, 211, 77, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">1</span> 差旅單據與報帳防呆</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">將複雜的請款單與發票拋給 AI，對比總部「最新的差旅報銷政策」，瞬間找出超支或名目完全異常的費用，防止人工作弊或疏漏。</p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #fcd34d; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(252, 211, 77, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">2</span> 財報結算之警訊洞察</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">將最新剛出爐的損益表丟給 AI，系統直接與去年同期表單交叉比對，立刻提煉 YoY/MoM 異常波動的關鍵警訊，產出給財務長的報告草稿。</p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #fcd34d; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(252, 211, 77, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">3</span> 行政採購費用防呆稽核</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">買五金、辦公室設備，AI 自動依「各部門採購限額與職級簽核表」審閱，揪出「此請購案金額已達需副總簽核門檻，請退回重發」，杜絕拆單採購漏洞。</p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; font-size: 1.1em; font-weight: 500;">
+                <span style="display:inline-block; padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; color: #f8fafc;">— 以知識庫為地基，賦能全體部門成為下個世代的 AI 企業 —</span>
+            </div>
+        </div>
+
+        <!-- Slide 9: Brainstorming Sales -->
+        <div class="slide" id="slide-8">
+            <span class="slide-number">9 / 14</span>
+            <span class="tag" style="background: linear-gradient(90deg, #ec4899, #8b5cf6);">Brain Storming</span>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                <span style="font-size: 3em;">🤝</span>
+                <h2 style="margin: 0; font-size: 2em;">業務 (Sales) 應用情境</h2>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; margin-top: 30px;">
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #f472b6; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(244, 114, 182, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">1</span> 大客戶拜訪前衝刺筆記</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">出發見客戶前，要求 AI 瞬間摘要該客戶近三年的購買總紀錄、技術客訴與尚未解決的未結案項目，立刻掌握今日談判的籌碼與禁忌話題。</p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #f472b6; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(244, 114, 182, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">2</span> 外商產品目錄一鍵在地化</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">剛拿到原廠厚達百頁的英文新產品型錄，不需要從頭苦讀，AI 直接提煉成業務能輕鬆聽懂的繁體中文「核心三大賣點」與「終端客戶常見 FAQ」。</p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #f472b6; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(244, 114, 182, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">3</span> 標案招標規格紅線初判</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">面對政府或大型傳產厚重的招標規格書，直接請 AI 進場挑出「哪些規格我們現有產品達不到」，大幅節省第一輪規格審閱的龐大時間成本。</p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; font-size: 1.1em; font-weight: 500;">
+                <span style="display:inline-block; padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; color: #f8fafc;">— 以知識庫為地基，賦能全體部門成為下個世代的 AI 企業 —</span>
+            </div>
+        </div>
+
+        <!-- Slide 10: Brainstorming Quotation -->
+        <div class="slide" id="slide-9">
+            <span class="slide-number">10 / 14</span>
+            <span class="tag" style="background: linear-gradient(90deg, #ec4899, #8b5cf6);">Brain Storming</span>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                <span style="font-size: 3em;">📋</span>
+                <h2 style="margin: 0; font-size: 2em;">報價中心 應用情境</h2>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; margin-top: 30px;">
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5); border-color: rgba(56, 189, 248, 0.5);">
+                    <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(56, 189, 248, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">★</span> (已展示) 廠牌規格審查防呆</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">讓 AI 分析複雜的報價單並與原廠規格自動比對，發出正式報價前，快速揪出型號組合、材質對應或溫度上限的錯誤。</p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(56, 189, 248, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">2</span> 歷史類似建案之底價回查</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">送出大案子前，AI 能夠瞬間翻找過去類似產業、規格配置的龐大報價庫，給出當時專案的「讓利幅度」與「最終毛利」。</p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(56, 189, 248, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">3</span> 繁雜 BOM 表缺漏智能提醒</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">當客戶傳來雜亂的設備表單，AI 洗過一次選型規則，立刻提醒：「這顆閥門少寫了流體介質與壓力，無法精準定價」。</p>
+                </div>
+                <div class="card" style="grid-column: 1 / -1; padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(56, 189, 248, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">4</span> (New) 智能料號編建與跨集團原廠體系對應</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">將繁雜的 Drawing 圖表交給 AI 分析，自動歸納生成一套嚴謹的<strong style="color: #38bdf8;">內部料號編碼系統</strong>。透過大腦的比對能力，更可自動將集團內散落的產品編號，<strong style="color: #38bdf8;">精準對應至外部各大原廠料號</strong>，徹底消滅人員重複建檔與人工對照的巨大心智損耗。</p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; font-size: 1.1em; font-weight: 500;">
+                <span style="display:inline-block; padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; color: #f8fafc;">— 以知識庫為地基，賦能全體部門成為下個世代的 AI 企業 —</span>
+            </div>
+        </div>
+
+        <!-- Slide 11: Brainstorming Tech Service -->
+        <div class="slide" id="slide-10">
+            <span class="slide-number">11 / 14</span>
+            <span class="tag" style="background: linear-gradient(90deg, #ec4899, #8b5cf6);">Brain Storming</span>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                <span style="font-size: 3em;">🛠️</span>
+                <h2 style="margin: 0; font-size: 2em;">技術服務 應用情境</h2>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; margin-top: 30px;">
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5); border-color: rgba(16, 185, 129, 0.5);">
+                    <h3 style="color: #10b981; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(16, 185, 129, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">★</span> (即刻擴充) 異常比對手冊回覆</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">客戶來信報修「閥門產生高頻震動與噪音」，第一線客服不需依賴資深工程師，交由 AI 直接比對 IEM 故障手冊，幾秒產生包含氣動力診斷的專業回文。</p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #10b981; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(16, 185, 129, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">2</span> 歲修預防性耗材主動建議</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">大廠歲修準備期，只要輸入幾組計畫檢修的舊設備型號與運轉時數，AI 馬上對照手冊拉出對應的「必帶消耗品備品包明細」及「安檢重點 SOP」。</p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #10b981; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(16, 185, 129, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">3</span> 流水帳口述日誌升級正式報告</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">結束現場維修疲憊不堪的工程師，只需用語音或碎片化文案紀錄當天更換了什麼零件，AI 自動將其擴寫、潤飾成符合原裝廠工班的高級檢修報告。</p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; font-size: 1.1em; font-weight: 500;">
+                <span style="display:inline-block; padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; color: #f8fafc;">— 以知識庫為地基，賦能全體部門成為下個世代的 AI 企業 —</span>
+            </div>
+        </div>
+
+        <!-- Slide 12: Brainstorming Plant Ops -->
+        <div class="slide" id="slide-11">
+            <span class="slide-number">12 / 14</span>
+            <span class="tag" style="background: linear-gradient(90deg, #ec4899, #8b5cf6);">Brain Storming</span>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                <span style="font-size: 3em;">🏭</span>
+                <h2 style="margin: 0; font-size: 2em;">廠務團隊 (廠區行政規範)</h2>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; margin-top: 30px;">
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #fb923c; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(251, 146, 60, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">1</span> ISO 規範與表單秒問秒答</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">員工詢問「廢油桶怎麼清運？」或「特規機具借用規定」，AI 從百頁 ISO 規章給出兩句話的精準答案與單據連結，免除廠務回答月經題。</p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #fb923c; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(251, 146, 60, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">2</span> 訪客/承包商進廠合規快篩</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">外包商進廠施工，將繳交的保險證照與切結書丟給 AI，三秒自動挑出「缺少勞工體檢表」或「保險下週即將過期」等合規死角。</p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #fb923c; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(251, 146, 60, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">3</span> 特規儀器出借與校驗預警</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">自動追蹤廠房工具庫，若該測量儀器下週需送廠校驗，AI 將自動在系統檔下新排單申請；借用逾期未還亦會發送信件提醒歸還。</p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; font-size: 1.1em; font-weight: 500;">
+                <span style="display:inline-block; padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; color: #f8fafc;">— 以知識庫為地基，賦能全體部門成為下個世代的 AI 企業 —</span>
+            </div>
+        </div>
+
+        <!-- Slide 12.5: Brainstorming Plant Ops (Repair) -->
+        <div class="slide" id="slide-11-2">
+            <span class="slide-number"></span>
+            <span class="tag" style="background: linear-gradient(90deg, #ec4899, #8b5cf6);">Brain Storming</span>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                <span style="font-size: 3em;">🔧</span>
+                <h2 style="margin: 0; font-size: 2em;">廠務團隊 (維修專案與外包)</h2>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; margin-top: 30px;">
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #fb923c; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(251, 146, 60, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">1</span> 維修工時與成本超支警報</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">從 ERP 匯入各專案報支的成本與打卡工時，AI 主動比較預警：「專案 C 工時與差旅費已吃掉預算的 80%，但進度僅拆解完畢，請主管介入」。</p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #fb923c; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(251, 146, 60, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">2</span> 雷同維修案的歷史避坑指南</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">接手刁鑽特規維修時，AI 從過往舊案調閱經驗：「三年前修過同款，原本矽膠墊片容易高溫熔解，後來全改裝全氟化材質，請留意更換」。</p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #fb923c; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(251, 146, 60, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">3</span> 結案與客戶驗收報告自動打包</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">完工準備請款前，AI 自動覆核所有必備清單：出廠測試報告、更換零件清單、出廠品檢單是否齊全且數量對接，確保百分百驗收過關。</p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; font-size: 1.1em; font-weight: 500;">
+                <span style="display:inline-block; padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; color: #f8fafc;">— 以知識庫為地基，賦能全體部門成為下個世代的 AI 企業 —</span>
+            </div>
+        </div>
+
+        <!-- Slide 13: Brainstorming Legal -->
+        <div class="slide" id="slide-12">
+            <span class="slide-number">13 / 14</span>
+            <span class="tag" style="background: linear-gradient(90deg, #ec4899, #8b5cf6);">Brain Storming</span>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                <span style="font-size: 3em;">⚖️</span>
+                <h2 style="margin: 0; font-size: 2em;">法務部 應用情境</h2>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; margin-top: 30px;">
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #94a3b8; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(148, 163, 184, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">1</span> 跨合約「高風險條款」紅線掃描</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">隨手丟入客戶傳來密密麻麻的 NDA 或是採購授權約，AI 在幾秒內對照公司的「不平等合約底線池」，立刻打紅框揪出違規之賠償無上限或管轄權漏洞。</p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #94a3b8; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(148, 163, 184, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">2</span> 秒翻過往十年違約爭議與判例</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">遇到客戶無理賴帳解約，直接詢問 AI 智能助理，數秒內挖出公司法務部門近十年內遇到的雷同案子判決、應對軌跡與能拿來參考的存證信函範本。</p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #94a3b8; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(148, 163, 184, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">3</span> 中英合約修改軌跡對譯一致性</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">當外國代理商強烈要求增補英文合約詞彙，AI 極速反比對我方主導建置的中文母本，確保雙方在語言置換後的細節與字眼，沒有實質偏離原本定案的意圖。</p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; font-size: 1.1em; font-weight: 500;">
+                <span style="display:inline-block; padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; color: #f8fafc;">— 以知識庫為地基，賦能全體部門成為下個世代的 AI 企業 —</span>
+            </div>
+        </div>
+
+        <!-- Slide 14: Brainstorming IT -->
+        <div class="slide" id="slide-13">
+            <span class="slide-number">14 / 14</span>
+            <span class="tag" style="background: linear-gradient(90deg, #ec4899, #8b5cf6);">Brain Storming</span>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                <span style="font-size: 3em;">💻</span>
+                <h2 style="margin: 0; font-size: 2em;">IT 資訊團隊 應用情境</h2>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; margin-top: 30px;">
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #c4b5fd; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(196, 181, 253, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">1</span> 第一線 Helpdesk 圖文問答防線</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">當幾百位員工無止境來電報修密碼失效或 VPN 設定失敗，AI 掛載內部的 Troubleshooting 文件，自動產生附帶流程步驟的回應，徹底阻擋 80% 基礎問題。</p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #c4b5fd; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(196, 181, 253, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">2</span> 伺服器與網路 Log 根因抓漏</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">網路斷線或系統卡頓時，MIS 不用再用肉眼死盯幾萬行 Event Logs，直接將異常 Log 丟給 AI，三秒內精準定位是防火牆擋封包還是連線池滿載。</p>
+                </div>
+                <div class="card" style="padding: 25px; text-align: left; background: rgba(30, 41, 59, 0.5);">
+                    <h3 style="color: #c4b5fd; margin-top: 0; font-size: 1.15em; display: flex; align-items: center; gap: 10px;"><span style="background: rgba(196, 181, 253, 0.2); padding: 4px 10px; border-radius: 8px; font-size: 0.85em;">3</span> 資安事件 (Incident) 應對導引</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95em; line-height: 1.6; margin-bottom: 0;">半夜遇到伺服器受阻擋或異常封包攻擊，當下氣氛慌亂時，AI 智能助理按圖索驥資安手冊，一步一步陪伴輪值人員進行斷網排查、封存截圖與高層聯絡通報。</p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; font-size: 1.1em; font-weight: 500;">
+                <span style="display:inline-block; padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; color: #f8fafc;">— 以知識庫為地基，賦能全體部門成為下個世代的 AI 企業 —</span>
+            </div>
+        </div>
+
+        <!-- Slide End: Data is King -->
+        <div class="slide" id="slide-data">
+            <span class="slide-number"></span>
+            <span class="tag" style="background: linear-gradient(90deg, #f59e0b, #ef4444);">Core Philosophy</span>
+            <h2>最後的忠告：空有大腦是沒有用的</h2>
+            <p style="font-size: 1.3em; max-width: 800px; margin: 20px auto; color: var(--text-muted); line-height: 1.6;">
+                一個<span style="color: #f8fafc;">沒有背景知識</span>的 AI，就如同超強的學霸實習生：<br><strong style="color: #f8fafc; font-size: 1.1em;">空有聰明才智，卻對我們企業的歷史軌跡與商業眉角「一無所知」。</strong>
+            </p>
+            
+            <div style="display: flex; gap: 20px; max-width: 1100px; margin: 0 auto; margin-top: 30px; align-items: stretch;">
+                <div style="flex: 1; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 16px; padding: 30px; text-align: left;">
+                    <h3 style="color: #fbd38d; font-size: 1.5em; margin-top: 0; margin-bottom: 15px;">💎 真正的優勢：Domain Know-how</h3>
+                    <p style="font-size: 1.05em; line-height: 1.8; color: #f8fafc; margin-bottom: 0;">
+                        讓 AI 產生質變的不是外部語言模型，而是<strong style="color: #34d399;">我們專屬的歷史軌跡與專業知識</strong>。沒有自家 Data，大腦永遠無法發揮戰鬥力。<br><br><span style="color: rgba(255,255,255,0.7); font-size: 0.9em;">開始建置私有知識庫，是我們邁向 AI 轉型的第一步。</span>
+                    </p>
+                </div>
+                
+                <div style="flex: 1; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 16px; padding: 30px; text-align: left;">
+                    <h3 style="color: #93c5fd; font-size: 1.5em; margin-top: 0; margin-bottom: 15px;">🛡️ 絕對的防線：GWS 企業版</h3>
+                    <p style="font-size: 1.05em; line-height: 1.8; color: #f8fafc; margin-bottom: 0;">
+                        正因為這些檔案是公司核心命脈，<strong style="color: #fca5a5;">我們絕不能把機密當作免費 AI 的訓練養分。</strong>這也是為何我們必須建立在 <strong>Google Workspace Business</strong> 的企業級架構上。<br><br><span style="color: rgba(255,255,255,0.7); font-size: 0.9em;">確保零數據外流，企業資產不被廠商拿去練蠱。</span>
+                    </p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 50px; font-size: 1.5em; font-weight: bold; color: var(--accent);">
+                🔥 歡迎來到 Antigravity / GWS 企業級 AI 賦能世界 🔥
+            </div>
+        </div>
+
+    </div>
+
+    <div class="controls">
+        <button id="prevBtn" onclick="changeSlide(-1)" disabled>← 上一頁</button>
+        <button id="nextBtn" onclick="changeSlide(1)">下一頁 →</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        let slides = document.querySelectorAll('.slide');
+        let totalSlides = slides.length;
+
+        function updateSlide() {
+            slides.forEach((slide, index) => {
+                const numSpan = slide.querySelector('.slide-number');
+                if(numSpan) numSpan.innerText = `${index + 1} / ${totalSlides}`;
+                
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                } else {
+                    slide.classList.remove('active');
+                }
+            });
+            document.getElementById('prevBtn').disabled = currentSlide === 0;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+        }
+
+        function changeSlide(direction) {
+            currentSlide += direction;
+            if (currentSlide < 0) currentSlide = 0;
+            if (currentSlide >= totalSlides) currentSlide = totalSlides - 1;
+            updateSlide();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                if(currentSlide < totalSlides - 1) changeSlide(1);
+            } else if (e.key === 'ArrowLeft') {
+                if(currentSlide > 0) changeSlide(-1);
+            }
+        });
+
+        function copyPrompt(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("提示詞已複製到剪貼簿！");
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        }
+
+        function copyPromptFromElement(elementId) {
+            const el = document.getElementById(elementId);
+            if(el) {
+                const text = el.innerText || el.textContent;
+                navigator.clipboard.writeText(text).then(() => {
+                    alert("提示詞已複製到剪貼簿！");
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                });
+            }
+        }
+
+        updateSlide();
+    </script>
+</body>
+</html>

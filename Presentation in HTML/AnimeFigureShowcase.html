@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ETHEREAL - Premium Anime Showcase Board</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&amp;family=Inter:wght@400;500;600&amp;family=Space_Grotesk:wght@400;500;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: linear-gradient(135deg, rgba(28, 27, 27, 0.4) 0%, rgba(14, 14, 14, 0.6) 100%);
+            backdrop-filter: blur(20px);
+        }
+        .neon-glow-cyan {
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
+        }
+        .neon-glow-purple {
+            box-shadow: 0 0 20px rgba(235, 178, 255, 0.15);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* Magnifier Effect Styles */
+        .magnifier-container {
+            position: relative;
+            cursor: crosshair;
+        }
+        .magnifier-glass {
+            position: absolute;
+            border: 1px solid #3b494b;
+            border-radius: 50%;
+            cursor: none;
+            width: 150px;
+            height: 150px;
+            display: none;
+            pointer-events: none;
+            background-repeat: no-repeat;
+            z-index: 100;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+        .magnifier-container:hover .magnifier-glass {
+            display: block;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-surface": "#e5e2e1",
+                        "on-primary": "#00363a",
+                        "on-tertiary": "#313030",
+                        "secondary-fixed-dim": "#ebb2ff",
+                        "surface-container": "#201f1f",
+                        "secondary": "#ebb2ff",
+                        "on-secondary-container": "#fff6fc",
+                        "surface-variant": "#353534",
+                        "primary-fixed": "#7df4ff",
+                        "on-background": "#e5e2e1",
+                        "primary-fixed-dim": "#00dbe9",
+                        "on-primary-container": "#006970",
+                        "outline-variant": "#3b494b",
+                        "surface-container-lowest": "#0e0e0e",
+                        "surface-container-highest": "#353534",
+                        "tertiary-container": "#dcd9d8",
+                        "primary-container": "#00f0ff",
+                        "surface": "#131313",
+                        "surface-dim": "#131313",
+                        "tertiary": "#f8f5f5",
+                        "secondary-fixed": "#f8d8ff",
+                        "surface-tint": "#00dbe9",
+                        "inverse-primary": "#006970",
+                        "on-primary-fixed-variant": "#004f54",
+                        "surface-container-high": "#2a2a2a",
+                        "inverse-surface": "#e5e2e1",
+                        "on-tertiary-fixed-variant": "#474746",
+                        "background": "#131313",
+                        "error-container": "#93000a",
+                        "inverse-on-surface": "#313030",
+                        "on-secondary-fixed-variant": "#74009f",
+                        "on-error": "#690005",
+                        "secondary-container": "#b600f8",
+                        "surface-container-low": "#1c1b1b",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary": "#520072",
+                        "on-secondary-fixed": "#320047",
+                        "on-tertiary-container": "#5f5e5e",
+                        "outline": "#849495",
+                        "error": "#ffb4ab",
+                        "primary": "#dbfcff",
+                        "on-surface-variant": "#b9cacb",
+                        "tertiary-fixed-dim": "#c8c6c5",
+                        "surface-bright": "#3a3939",
+                        "tertiary-fixed": "#e5e2e1",
+                        "on-primary-fixed": "#002022",
+                        "on-tertiary-fixed": "#1c1b1b"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Inter"],
+                        "label": ["Space Grotesk"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-container-lowest text-on-surface font-body selection:bg-primary-container selection:text-on-primary">
+<!-- Global Layout Shell: Horizontal Board -->
+<div class="flex overflow-x-auto h-screen w-screen bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] bg-fixed p-12 gap-16 items-start">
+<!-- SECTION 1: DESIGN SYSTEM TOKENS -->
+<section class="flex-none w-[450px] space-y-10">
+<header class="mb-12">
+<span class="font-label text-primary-fixed-dim tracking-[0.2em] text-xs uppercase">Identity Protocol</span>
+<h1 class="font-headline text-5xl font-extrabold tracking-tighter text-primary mt-2">DESIGN SYSTEM</h1>
+</header>
+<div class="space-y-8">
+<!-- Color Palette -->
+<div>
+<h3 class="font-label text-on-surface-variant text-sm mb-4">COLOR PALETTE</h3>
+<div class="grid grid-cols-2 gap-2">
+<div class="h-16 bg-surface-container-lowest rounded-xl flex items-end p-2 border border-outline-variant/10">
+<span class="text-[10px] font-label opacity-60 uppercase">Obsidian #0E0E0E</span>
+</div>
+<div class="h-16 bg-primary-container rounded-xl flex items-end p-2">
+<span class="text-[10px] font-label text-on-primary uppercase">Neon Cyan #00F0FF</span>
+</div>
+<div class="h-16 bg-secondary-container rounded-xl flex items-end p-2">
+<span class="text-[10px] font-label text-secondary-fixed uppercase">Violet Pulsar #B600F8</span>
+</div>
+<div class="h-16 bg-surface-container-highest rounded-xl flex items-end p-2">
+<span class="text-[10px] font-label uppercase">Graphite #353534</span>
+</div>
+</div>
+</div>
+<!-- Typography -->
+<div>
+<h3 class="font-label text-on-surface-variant text-sm mb-4">TYPOGRAPHY</h3>
+<div class="space-y-4">
+<p class="font-headline text-4xl font-bold tracking-tight">Plus Jakarta Sans</p>
+<p class="font-body text-lg opacity-80">Inter Body Text: Optimized for contrast.</p>
+<p class="font-label text-sm tracking-widest text-primary-fixed-dim uppercase">Space Grotesk: Technical Specs</p>
+</div>
+</div>
+<!-- Component Samples -->
+<div class="space-y-4">
+<h3 class="font-label text-on-surface-variant text-sm mb-4">BUTTON SYSTEMS</h3>
+<div class="flex flex-wrap gap-4">
+<button class="px-8 py-3 bg-primary-container text-on-primary font-bold rounded-xl neon-glow-cyan hover:scale-105 transition-transform duration-300">
+                            PRIMARY CTA
+                        </button>
+<button class="px-8 py-3 border-2 border-secondary text-secondary font-bold rounded-xl hover:bg-secondary/10 transition-colors">
+                            SECONDARY
+                        </button>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 2: HOME LOOKBOOK -->
+<section class="flex-none w-[1200px] bg-surface-container-low rounded-[2.5rem] overflow-hidden shadow-2xl relative border border-white/5">
+<!-- TopAppBar Mock -->
+<div class="flex justify-between items-center px-10 h-20 bg-surface/40 backdrop-blur-xl sticky top-0 z-50">
+<div class="font-headline font-extrabold text-2xl tracking-tighter text-primary">ETHEREAL</div>
+<div class="flex gap-12 font-label text-xs tracking-widest text-on-surface-variant uppercase">
+<span class="text-primary border-b border-primary pb-1">Gallery</span>
+<span class="hover:text-on-surface cursor-pointer transition-colors">Vault</span>
+<span class="hover:text-on-surface cursor-pointer transition-colors">Drops</span>
+</div>
+<div class="flex gap-6 items-center">
+<span class="material-symbols-outlined text-on-surface-variant">search</span>
+<div class="w-10 h-10 rounded-full bg-gradient-to-tr from-primary-container to-secondary-container p-[2px]">
+<img class="w-full h-full rounded-full object-cover" data-alt="Cyberpunk style character portrait with neon lighting and high tech visor" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC25kq5pWLyLSf9xEoH-ymlyJ2GlFWeHHtu6eNsXIk5KaGNI71pSbmAGvacK9HCrvLE9QA8-2UXmUF2Q2C9FDaJLU2jzdyIzVy2HoGLtq8qq7venorDF7mqEK9dDVYYtelmXkNEjHwB-40eYr0Ym0Qx318Bvw8Bp0Oou_gPsqzCJsSwy7soUh9u-wzJezvzDLWopax8cwg8qum7SAk4_ymKxN7LoMK5oqKNO4J75_Do6xxnQqPHcDg_IXpUqJ-XODJGkjGx-Nt_ZEU"/>
+</div>
+</div>
+</div>
+<div class="p-10 space-y-12">
+<!-- Hero Banner -->
+<div class="relative h-[500px] rounded-[2rem] overflow-hidden group">
+<img class="w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-1000" data-alt="Highly detailed anime figurine of a swordswoman standing on a crystal base, dramatic lighting, obsidian background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZNKIjwDmc8NjBbV99Qov4l5WNzIXYFe1Xj7azE2ceuZBnYndyrFGPZOgvPcXVzIyEIiieYr0Z84uWyP13U4wpoNvwPsZNOcxzG6wE8A5gRXiAduo1xlzZbDyTfs6-i8TAql8C81pppehU7ZxyBZLsaBn8f37QkzKZU6a8Y-3z_AOeonE4Oo95fhLFXly8F3Df7IBC8Qq6TLUoo1dTnrihFzCYO3G4tKCmapVPnhYBhW5Fu2w4E4n8Dcy-403V6SEzbdgxNIC_gpU"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-transparent"></div>
+<div class="absolute bottom-12 left-12 max-w-xl">
+<span class="font-label text-primary-fixed-dim tracking-[0.4em] text-sm uppercase block mb-4">Limited Edition 1/7 Scale</span>
+<h2 class="font-headline text-7xl font-extrabold text-on-surface leading-none mb-6">TSUKUYOMI <br/><span class="text-secondary-fixed-dim">NIGHTFALL</span></h2>
+<button class="bg-primary-container text-on-primary px-10 py-4 rounded-xl font-headline font-bold text-lg hover:shadow-[0_0_30px_#00f0ff80] transition-all">DISCOVER PIECE</button>
+</div>
+</div>
+<!-- Bento Grid Categories -->
+<div class="grid grid-cols-4 grid-rows-2 gap-6 h-[450px]">
+<div class="col-span-2 row-span-2 bg-surface-container-high rounded-3xl p-8 relative overflow-hidden group">
+<div class="z-10 relative">
+<h3 class="font-headline text-3xl font-bold mb-2">PRE-ORDERS</h3>
+<p class="font-body text-on-surface-variant text-sm">Secure the future of your vault.</p>
+</div>
+<img class="absolute bottom-0 right-0 w-64 translate-y-10 group-hover:translate-y-0 transition-transform duration-500 opacity-60" data-alt="Dynamic shot of multiple boxed anime figures in a futuristic store layout" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBh152Z88aSKWypQTo0taqs14fHy8rcExy1J0D4xWspO6z_iv8ZUTS_YTVk7zD9Rl0ui5uxgvea798lRC48rb2IJBS2wuF4A543l9woWUfWdO8Qv5kwVb1YBJ5YWTlHijgYVshnLjf80nKaLFgXya9sGyjARhs5lcV4mADLEn1nwKMe5YfuDZ6FnnZhztfXWUbnzYojiHIwE3JZxLO5ZTYg9LZk9e-gvrn_GWZwqaAHcq_vgXcIXbznhRG3_7anopQX3lx5LDSumrc"/>
+<div class="absolute inset-0 bg-gradient-to-br from-primary-container/10 to-transparent"></div>
+</div>
+<div class="col-span-2 bg-secondary-container/20 rounded-3xl p-8 flex items-center justify-between border border-secondary/10 hover:border-secondary/40 transition-colors cursor-pointer">
+<div>
+<h3 class="font-headline text-2xl font-bold">NENDOROID</h3>
+<span class="font-label text-xs uppercase tracking-widest text-secondary-fixed-dim">Miniature Series</span>
+</div>
+<span class="material-symbols-outlined text-4xl text-secondary">toys</span>
+</div>
+<div class="bg-surface-container-highest rounded-3xl p-8 flex flex-col justify-end group cursor-pointer overflow-hidden relative">
+<div class="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-4xl">verified</span>
+</div>
+<h3 class="font-headline text-xl font-bold">PVC/ABS</h3>
+<p class="text-xs font-label text-on-surface-variant uppercase">Standard</p>
+</div>
+<div class="bg-primary-container/10 rounded-3xl p-8 flex flex-col justify-end group cursor-pointer border border-primary/5 hover:border-primary/30 transition-colors">
+<h3 class="font-headline text-xl font-bold">SCALE FIGURES</h3>
+<p class="text-xs font-label text-on-surface-variant uppercase">Artistic Grade</p>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 3: COLLECTION LISTING -->
+<section class="flex-none w-[1100px] space-y-8">
+<div class="flex justify-between items-end">
+<div>
+<h2 class="font-headline text-4xl font-bold tracking-tight">VAULT SELECTIONS</h2>
+<p class="font-body text-on-surface-variant">142 artifacts discovered</p>
+</div>
+<div class="flex gap-4">
+<div class="bg-surface-container-high px-6 py-2 rounded-full border border-outline-variant/30 flex items-center gap-2">
+<span class="font-label text-xs uppercase tracking-widest">Sort: Popular</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-8">
+<!-- Product Card 1 -->
+<div class="glass-card rounded-[2rem] p-6 border border-white/5 group hover:border-primary/20 transition-all duration-500">
+<div class="relative h-72 rounded-2xl overflow-hidden mb-6">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="Cyberpunk female character figure with glowing blue highlights and tech-wear aesthetics" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrrWS7rYB5I5K82CN537jfHh0W12LZzlE0raamWbS8HXGRX1DRxKoGpIZMEMNkr1tJOLi38FtJMsppy27zvb6FokSrdLuZUJctxFwCv8BX2cCdy8k0aWvmDMQELaI1YDq5yx1xZjKpJJ4c4b56y2Ti95sQdxLCnOg730MPR8N3L4avT5HyubiOvzlFi9EdbgiKH7YVvUgmPvXbalD5kV3VVdpth7zP6UwLw3xJJVy-CAJmc_kixHEHuelzZGHfRZun72pvWv-Qm8Y"/>
+<div class="absolute top-4 right-4 bg-primary-container text-on-primary font-label text-[10px] font-bold px-3 py-1 rounded-full uppercase">Pre-Order</div>
+</div>
+<div class="space-y-2">
+<span class="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">KOTOBUKIYA</span>
+<h3 class="font-headline text-xl font-bold group-hover:text-primary transition-colors">Neo Tokyo: 01 Prototype</h3>
+<div class="flex justify-between items-center pt-4">
+<span class="font-headline text-2xl font-bold">$189.00</span>
+<button class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center hover:bg-primary-container hover:text-on-primary transition-all">
+<span class="material-symbols-outlined text-xl">shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Product Card 2 -->
+<div class="glass-card rounded-[2rem] p-6 border border-white/5 group hover:border-secondary/20 transition-all duration-500">
+<div class="relative h-72 rounded-2xl overflow-hidden mb-6">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="Anime figure of a warrior priestess with elaborate white and red garments, soft cinematic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFWCqYKvy8aS5-ReAKlSmIi8zjN5fSCgiu1AtkArj3CXva4_oEKkB8DhboUF3pnx7T34Mj3JVS77KG2jAimpUusnVV3BQKfO_LdzynJam0BZLR4oMFMTvHmg0l_BdKb2rW51aBgwR3MZVK2XpNoe7p_enw7tTvF1pPmsy-55v9rTX5Sa4nT0uRnKL1IdlJUaO1q44yYSLD9glkLecVr7XvFvjyfW4v4bOLS6lcM5gfSsWTOTtw5PkfbZMzuRsCWIjBlrb7iAYCwWI"/>
+</div>
+<div class="space-y-2">
+<span class="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">GOOD SMILE COMPANY</span>
+<h3 class="font-headline text-xl font-bold group-hover:text-secondary transition-colors">Re:Zero Rem Crystal Dress</h3>
+<div class="flex justify-between items-center pt-4">
+<span class="font-headline text-2xl font-bold">$345.50</span>
+<button class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center hover:bg-secondary-container hover:text-on-secondary-container transition-all">
+<span class="material-symbols-outlined text-xl">shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Product Card 3 -->
+<div class="glass-card rounded-[2rem] p-6 border border-white/5 group hover:border-primary/20 transition-all duration-500">
+<div class="relative h-72 rounded-2xl overflow-hidden mb-6">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="Action pose anime figure of a dark knight with translucent purple flame effects" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYyjFACNLt3dfWIJWsGhaYeDng0v1-VmzTbJcDjgHj5NgEcIiGyVuYHvwCEibBuwFwsTuQwbo4xDyrWv6oMQIHfskRR0SIfyQ6-qmmr6-s0g7QRYJDHplgV0Nr1PvjGpLvXFQhcK3lBxYd47ksmC0AwBoh9WvNh1ZUMVzHNb4hlbRs4E4rdfT6qfoac15FehT3npN_feVXruQ3gERe08dLL_lqADcDXqejDF8XRhUHdvRYxo7iBX_hhOWqExvuCSUT3lcDWSjEb1E"/>
+</div>
+<div class="space-y-2">
+<span class="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">ALTER</span>
+<h3 class="font-headline text-xl font-bold group-hover:text-primary transition-colors">Fate/Grand Order: Jalter</h3>
+<div class="flex justify-between items-center pt-4">
+<span class="font-headline text-2xl font-bold">$220.00</span>
+<button class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center hover:bg-primary-container hover:text-on-primary transition-all">
+<span class="material-symbols-outlined text-xl">shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 4: PRODUCT DETAILS (WITH MAGNIFIER) -->
+<section class="flex-none w-[1100px] bg-surface rounded-[3rem] p-12 border border-outline-variant/10 relative overflow-hidden">
+<div class="flex gap-16 relative z-10">
+<!-- Magnifier Image Area -->
+<div class="w-1/2">
+<div class="magnifier-container rounded-3xl overflow-hidden shadow-2xl border border-white/5">
+<img class="w-full aspect-[4/5] object-cover" data-alt="Close-up detailed shot of an anime character figure's face with intricate paint work and reflective eyes" id="main-image" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8t8M9peg0VNAT6BhpcPJ0I7nJOts7YwBtsjSlbAymZIP_lsmtb-Cev0y296n_gItyUMmSUgd6CFJOc02U9sUHnl4v8QumAyKOzQ-23y-aUL1C-7xncTQ2ZelbUyn7YmoDc-dyxXZUrUhWE92xn1e35sdEH__WCSCLQN6kxb0rW8OrQ5LE5w37zj2UMPi2iZUDDWT6e0f-ryEx2VPKgGx4z52fYVGiclfkQYb8qfLeWnrBf_MfV6x6cbvQFi2MeKPnfkoLuKTGDK0"/>
+<div class="magnifier-glass" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCYFKezc8t3MBJOv_S8KUTJKJEnAx_yPka9h5urWlI2wjEldV2T_Bwy-ncnfwM-DCck5HrW6cDx3mUJnWwDhgAxx-SHZUXwqqiAiET3dLpUcYMyn3I3ldQOArNO9tJtD3nOAVYYtCfL2CregkmKx1C3ahA4cqVL4AmlNch4VZRqy7ZMOIG98iC_K4gZZCgoka86IK1NfJZ-X5X1fo6juVhrkDFAgUOlTSYpVuUqonUy86VKbrCxkZ0Z6_zvCMt8A__jM3603_FA_ik'); background-size: 800% 800%;"></div>
+</div>
+<div class="flex gap-4 mt-6">
+<div class="w-20 h-20 rounded-xl overflow-hidden border border-primary-container">
+<img class="w-full h-full object-cover" data-alt="Alternative view of character figure" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDoPt2yVCQ2hgxFMsOOnXUDBZg3eNTpUUWTRRxPR_Tlg7LY-0eM_7nqyg7YOl9Kzats4yDSLs2-U_sS8SvYUmkshCAivQ1i9psYbrdE7Nknv_PQjxZl1WCoeadeK1TyEnwl5lWkqDslrj21F7axTQQURJdpy0TcwRpetBEjbC4JE6R-l33tEEScz5yiA2UWrNFuxuvdi5cnYGW0KrBmQw144NCSn0SVLiECoXwPHtXo99iKLPm2ewuVnZQ5g5wBrIjRNpjt5jn0BWw"/>
+</div>
+<div class="w-20 h-20 rounded-xl overflow-hidden border border-white/5 opacity-50">
+<img class="w-full h-full object-cover" data-alt="Side profile view of figure" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDo99aWnHDmFL5Jndt0A8yyLSKSdwpsOqHv5G-cD08wJ5x4cgc7NMz78BA1Z9WII7V5TxXHglrpnH8VRdawCziOaoOFX-o83IpmqR5kK33ZrA4vqwI2NLmH_qFt6eFSWNvQWjtxkOur0dzlLbJuq7TqQrTqJVtahH0akl8MOcVzEGUADGqYVoVSrt3SsuCGBUrhCrKGT6M_b-sTvhGQDyAfDrSV2JOeikK9AcWUJONUOcRMUr2WbI6oR1aTdVIiUrFyJ2xhQBIqRA8"/>
+</div>
+<div class="w-20 h-20 rounded-xl overflow-hidden border border-white/5 opacity-50">
+<img class="w-full h-full object-cover" data-alt="Packaging box art for figure" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6v4RONeeBAtFDZgzXdoPS_Bd9jb8gDuudNaNm-iBgfZXGjlubxEusm50wWsta4w906GBQ5FxT877F0tIKpKHtYPJNMYRgmqaAt3hHNwTUpOcNbuyqw_22CKpPaGfoobE51AHiWI9bUIZ-IeOgRf5ly9_tSzlZhXjcD7hJkdlucls1FYFnmOgLa47pMfipCxqaQ5RfwnVFmRPuMARGq6oLH9oKKDG8YMDSPi3QDI816HzTHpngOevbUVWF6OEdcZph4Gfc5IUJHmA"/>
+</div>
+</div>
+</div>
+<!-- Product Info -->
+<div class="w-1/2 space-y-8">
+<div>
+<div class="flex items-center gap-3 mb-4">
+<span class="bg-secondary/10 text-secondary-fixed-dim font-label text-[10px] px-3 py-1 rounded-full border border-secondary/20 uppercase tracking-widest">AUTHENTIC LICENSED</span>
+</div>
+<h1 class="font-headline text-5xl font-extrabold tracking-tight mb-2">PROJECT: EVE</h1>
+<p class="font-label text-on-surface-variant tracking-widest text-sm uppercase">1/7 SCALE COMPLETE FIGURE BY ALPHA×OMEGA</p>
+</div>
+<div class="flex items-baseline gap-4">
+<span class="font-headline text-4xl font-bold">$298.00</span>
+<span class="font-label text-on-surface-variant line-through">$345.00</span>
+</div>
+<div class="space-y-6">
+<h4 class="font-label text-xs font-bold text-on-surface-variant uppercase tracking-widest">Specifications</h4>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-low p-4 rounded-xl border border-white/5">
+<p class="text-[10px] font-label text-on-surface-variant uppercase opacity-60 mb-1">Height</p>
+<p class="font-body font-semibold">Approx. 255mm</p>
+</div>
+<div class="bg-surface-container-low p-4 rounded-xl border border-white/5">
+<p class="text-[10px] font-label text-on-surface-variant uppercase opacity-60 mb-1">Material</p>
+<p class="font-body font-semibold">PVC, ABS, POM</p>
+</div>
+<div class="bg-surface-container-low p-4 rounded-xl border border-white/5">
+<p class="text-[10px] font-label text-on-surface-variant uppercase opacity-60 mb-1">Sculptor</p>
+<p class="font-body font-semibold">Hasegawa (Alter)</p>
+</div>
+<div class="bg-surface-container-low p-4 rounded-xl border border-white/5">
+<p class="text-[10px] font-label text-on-surface-variant uppercase opacity-60 mb-1">Release</p>
+<p class="font-body font-semibold">August 2024</p>
+</div>
+</div>
+</div>
+<div class="pt-8 flex gap-4">
+<button class="flex-1 h-14 bg-primary-container text-on-primary font-headline font-bold rounded-xl hover:shadow-[0_0_20px_#00f0ff50] transition-all flex items-center justify-center gap-3">
+<span class="material-symbols-outlined">add_shopping_cart</span>
+                            SECURE ORDER
+                        </button>
+<button class="w-14 h-14 border border-outline-variant rounded-xl flex items-center justify-center hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">favorite</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Decorative Glow Background -->
+<div class="absolute -top-24 -right-24 w-96 h-96 bg-primary-container/10 blur-[120px] rounded-full pointer-events-none"></div>
+<div class="absolute -bottom-24 -left-24 w-96 h-96 bg-secondary-container/10 blur-[120px] rounded-full pointer-events-none"></div>
+</section>
+<!-- SECTION 5: MINI CART SIDEBAR -->
+<section class="flex-none w-[400px] h-[850px] bg-surface-container-highest/60 backdrop-blur-3xl rounded-[3rem] border border-white/10 flex flex-col p-8 sticky top-12">
+<div class="flex justify-between items-center mb-10">
+<h3 class="font-headline text-2xl font-bold">MY VAULT</h3>
+<span class="font-label text-xs bg-primary-container text-on-primary px-3 py-1 rounded-full">3 ITEMS</span>
+</div>
+<div class="flex-1 space-y-6 overflow-y-auto hide-scrollbar">
+<!-- Cart Item 1 -->
+<div class="flex gap-4 group">
+<div class="w-20 h-20 rounded-xl overflow-hidden bg-surface-container flex-none">
+<img class="w-full h-full object-cover" data-alt="Miniature of Neo Tokyo prototype figure" src="https://lh3.googleusercontent.com/aida-public/AB6AXuClMlFTboPdZRhI2ytN6IiOB5ITw5lmYhrM5xwI5O1xLPQS2RuqBkxjMdzquQl63rp-NZ7BDQ2drTizuH_ciwB7cXXDIsw6Z9o8qh_T4uNMpVUGXwERX_oAmpU6E9z0By9NlHp-bLB0ZFBq4O29BoiKdAiDpEEGs9tyVldXScQY4zk8YMLPTX5kZfYvL7r2tyJPxtnEHegjnesU6LPEavMIwnicw4Kh8L3yqnYOUdObuz5dthUUnjYLZfDD-FbcEq0PiLG5JiJRDuI"/>
+</div>
+<div class="flex-1 space-y-1">
+<h4 class="font-body font-bold text-sm leading-tight line-clamp-1">Neo Tokyo: 01 Prototype</h4>
+<p class="font-label text-[10px] text-on-surface-variant uppercase">1/7 Scale Figure</p>
+<div class="flex justify-between items-center">
+<span class="font-body font-bold text-primary-fixed-dim text-sm">$189.00</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-on-surface-variant hover:text-primary cursor-pointer">remove</span>
+<span class="text-xs font-label">1</span>
+<span class="material-symbols-outlined text-xs text-on-surface-variant hover:text-primary cursor-pointer">add</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Cart Item 2 -->
+<div class="flex gap-4 group">
+<div class="w-20 h-20 rounded-xl overflow-hidden bg-surface-container flex-none">
+<img class="w-full h-full object-cover" data-alt="Miniature of Re:Zero Rem figure" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLZ3AoCws-hCGzuUebiBEzrqK64j02F-tarL7U5r92-Mwa4cO_Er37G3sRMdICW2YPvywaBKwl-TUIgf6iy2Jh_iLWSzElHjhuGZNyDzqM-9MOkfTSkX5qmXW38UoG5KzHyC2eDOxPV6zNqCEiy137j5GtA9e6sytaxxpyefIoAoMbPx9NUx9HpsZ4IPN95WEy4NV6J-Ut1RZOX-gW0pCR9C-O-ZHGBt_im2PsFzrUXBuC0o6TTmqAj5aA43nAum6HzfJ63Nznzgk"/>
+</div>
+<div class="flex-1 space-y-1">
+<h4 class="font-body font-bold text-sm leading-tight line-clamp-1">Re:Zero Rem Crystal Dress</h4>
+<p class="font-label text-[10px] text-on-surface-variant uppercase">Scale Figure</p>
+<div class="flex justify-between items-center">
+<span class="font-body font-bold text-primary-fixed-dim text-sm">$345.50</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-on-surface-variant hover:text-primary cursor-pointer">remove</span>
+<span class="text-xs font-label">1</span>
+<span class="material-symbols-outlined text-xs text-on-surface-variant hover:text-primary cursor-pointer">add</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Cart Item 3 -->
+<div class="flex gap-4 group">
+<div class="w-20 h-20 rounded-xl overflow-hidden bg-surface-container flex-none">
+<img class="w-full h-full object-cover" data-alt="Miniature of Jalter figure" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzBRjibcDV2AvnxF03IPwfaRVjNVVUqzRnAwS9Lcz-OFS7Q3hXCFNG-oEJjiI-PasQP_nmkqLULwTWNyivUE6cKJ9EQaa67EmPbVxlp0V0SPt5ljrW1eX8cbhqtKtwt8ygoPkdNef8r0ybRMEj4CL5SP234OKQpiDPEX_YtxvWAINpltPyE614jniH8LFrMeBZz0jiNskUHJZHulAqzMqY3x50grfya2fmoF-fODoet4YAf2Dme8wPiSjWR2Guui_pX4OzDHz0WMM"/>
+</div>
+<div class="flex-1 space-y-1">
+<h4 class="font-body font-bold text-sm leading-tight line-clamp-1">Fate/Grand Order: Jalter</h4>
+<p class="font-label text-[10px] text-on-surface-variant uppercase">PVC/ABS</p>
+<div class="flex justify-between items-center">
+<span class="font-body font-bold text-primary-fixed-dim text-sm">$220.00</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-on-surface-variant hover:text-primary cursor-pointer">remove</span>
+<span class="text-xs font-label">1</span>
+<span class="material-symbols-outlined text-xs text-on-surface-variant hover:text-primary cursor-pointer">add</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-8 pt-8 border-t border-white/5 space-y-6">
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-label text-on-surface-variant uppercase">
+<span>Subtotal</span>
+<span>$754.50</span>
+</div>
+<div class="flex justify-between text-xs font-label text-on-surface-variant uppercase">
+<span>Shipping (Intl)</span>
+<span>$45.00</span>
+</div>
+<div class="flex justify-between font-headline text-2xl font-bold text-on-surface pt-2">
+<span>Total</span>
+<span class="text-primary">$799.50</span>
+</div>
+</div>
+<button class="w-full py-4 bg-primary-container text-on-primary font-headline font-extrabold rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-transform flex items-center justify-center gap-3 shadow-[0_15px_40px_rgba(0,240,255,0.2)]">
+                    INITIATE CHECKOUT
+                    <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</section>
+</div>
+<!-- Magnifier Logic Simulation script -->
+<script>
+        const container = document.querySelector('.magnifier-container');
+        const glass = document.querySelector('.magnifier-glass');
+        const img = document.getElementById('main-image');
+
+        container.addEventListener('mousemove', (e) => {
+            const rect = container.getBoundingClientRect();
+            const x = e.pageX - rect.left - window.scrollX;
+            const y = e.pageY - rect.top - window.scrollY;
+
+            glass.style.left = (x - glass.offsetWidth / 2) + "px";
+            glass.style.top = (y - glass.offsetHeight / 2) + "px";
+
+            const zoom = 2; // Fixed zoom ratio for CSS background-size
+            const posX = (x / img.offsetWidth) * 100;
+            const posY = (y / img.offsetHeight) * 100;
+            
+            glass.style.backgroundPosition = `${posX}% ${posY}%`;
+        });
+    </script>
+</body></html>

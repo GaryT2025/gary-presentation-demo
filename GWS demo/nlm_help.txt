@@ -1,0 +1,67 @@
+﻿                                                                           
+ Usage: nlm [OPTIONS] COMMAND [ARGS]...                                    
+                                                                           
+ NotebookLM Tools - Unified CLI for Google NotebookLM                      
+                                                                           
++- Options ---------------------------------------------------------------+
+| --version             -v        Show version and exit                   |
+| --ai                            Output AI-friendly documentation for    |
+|                                 this CLI                                |
+| --debug                         Enable debug logging (shows raw API     |
+|                                 responses)                              |
+| --install-completion            Install completion for the current      |
+|                                 shell.                                  |
+| --show-completion               Show completion for the current shell,  |
+|                                 to copy it or customize the             |
+|                                 installation.                           |
+| --help                          Show this message and exit.             |
++-------------------------------------------------------------------------+
++- Commands --------------------------------------------------------------+
+| login        Authentication and profile management                      |
+| notebook     Manage notebooks                                           |
+| note         Manage notes                                               |
+| source       Manage sources                                             |
+| chat         Configure chat settings                                    |
+| studio       Manage studio artifacts                                    |
+| research     Research and discover sources                              |
+| alias        Manage ID aliases                                          |
+| config       Manage configuration                                       |
+| download     Download artifacts (audio, video, etc)                     |
+| share        Manage notebook sharing                                    |
+| export       Export artifacts to Google Docs/Sheets                     |
+| skill        Install skills for AI tools                                |
+| setup        Configure MCP server for AI tools                          |
+| doctor       Diagnose installation and configuration                    |
+| batch        Batch operations across notebooks                          |
+| cross        Cross-notebook queries                                     |
+| pipeline     Run multi-step pipelines                                   |
+| tag          Manage notebook tags                                       |
+| audio        Create audio overviews                                     |
+| report       Create reports                                             |
+| quiz         Create quizzes                                             |
+| flashcards   Create flashcards                                          |
+| mindmap      Create and manage mind maps                                |
+| slides       Create slide decks                                         |
+| infographic  Create infographics                                        |
+| video        Create video overviews                                     |
+| data-table   Create data tables                                         |
+| create       Create resources (notebooks, audio, video, etc)            |
+| list         List resources (notebooks, sources, artifacts)             |
+| get          Get details about resources                                |
+| delete       Delete resources (notebooks, sources, artifacts)           |
+| add          Add resources (sources to notebooks)                       |
+| rename       Rename resources                                           |
+| status       Check status of resources                                  |
+| describe     Get AI-generated descriptions and summaries                |
+| query        Chat with notebook sources                                 |
+| sync         Sync resources (Drive sources)                             |
+| content      Get raw content from sources                               |
+| stale        List stale resources that need syncing                     |
+| configure    Configure settings                                         |
+| set          Set values (aliases, config)                               |
+| show         Show information                                           |
+| install      Install resources (skills)                                 |
+| uninstall    Uninstall resources (skills)                               |
+| update       Update resources (skills)                                  |
++-------------------------------------------------------------------------+
+
