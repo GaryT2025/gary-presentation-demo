@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/fci-2026-midyear", "destination": "/07_Mid_Year_Review/FCI_2026_Mid-Year_Review.html" },
     { "source": "/vlms-hart", "destination": "/VLMS infra and furture plan/VLMS_HART_Signal_Extraction.html" },
     { "source": "/vlms-clean", "destination": "/VLMS infra and furture plan/VLMS_Presentation_Clean.html" }
   ],
