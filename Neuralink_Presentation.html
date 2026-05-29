@@ -48,13 +48,14 @@
         }
 
         .reveal h2 {
-            font-size: 2.6em;
+            font-size: 3.2em !important;
             background: -webkit-linear-gradient(45deg, var(--primary), #a78bfa, var(--accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             text-shadow: 0px 10px 30px rgba(0,0,0,0.6);
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             letter-spacing: -1px;
+            line-height: 1.25;
         }
 
         .reveal h3 {
@@ -83,9 +84,9 @@
         
         .split-layout {
             display: grid;
-            grid-template-columns: 38% 57%;
-            gap: 5%;
-            align-items: center;
+            grid-template-columns: 28% 68%;
+            gap: 4%;
+            align-items: stretch;
         }
 
         .graphic-container {
@@ -97,14 +98,15 @@
             background: rgba(0,0,0,0.25);
             border-radius: 24px;
             border: 1px solid rgba(255,255,255,0.03);
-            padding: 30px;
+            padding: 25px;
             position: relative;
             overflow: hidden;
+            box-sizing: border-box;
         }
 
         .graphic-icon {
             font-size: 5.5rem;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             filter: drop-shadow(0 0 25px var(--accent-glow));
             animation: floatIcon 4s infinite ease-in-out;
         }
@@ -114,203 +116,177 @@
             50% { transform: translateY(-12px); }
         }
 
-        .reveal ul { list-style: none; padding: 0; margin: 0; }
-        .reveal li {
-            font-size: 1.25em;
-            line-height: 1.5;
-            margin-bottom: 18px;
-            position: relative;
-            padding-left: 32px;
-            color: #cbd5e1;
+        .graphic-container h4 {
+            font-size: 2.2em !important;
+            line-height: 1.3 !important;
+            margin-top: 10px !important;
+            text-align: center;
+            font-weight: 800;
         }
-        .reveal li::before {
+
+        .graphic-container p {
+            font-size: 1.6em !important;
+            line-height: 1.4 !important;
+            margin-top: 10px !important;
+            text-align: center;
+        }
+
+        /* Default list items size inside cards scaled up to 2.3em */
+        .glass-card ul {
+            list-style: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        
+        .glass-card ul li {
+            font-size: 2.3em !important;
+            line-height: 1.4 !important;
+            margin-bottom: 25px !important;
+            position: relative;
+            padding-left: 1.3em !important;
+            color: #cbd5e1 !important;
+        }
+
+        .glass-card ul li::before {
             content: "◆";
             color: var(--primary);
             position: absolute;
             left: 0;
             top: 2px;
-            font-size: 1.1em;
+            font-size: 1.0em;
             text-shadow: 0 0 10px var(--primary);
         }
 
         .highlight-badge {
             display: inline-block;
             background: linear-gradient(90deg, var(--secondary), var(--accent));
-            padding: 5px 14px;
-            border-radius: 6px;
-            font-size: 1em;
-            font-weight: 700;
-            color: white;
-            margin-right: 8px;
-            margin-bottom: 8px;
-            box-shadow: 0 0 15px rgba(155, 81, 224, 0.4);
+            padding: 6px 16px !important;
+            border-radius: 8px !important;
+            font-size: 0.9em !important; /* relative to parent li's 2.3em */
+            font-weight: 800 !important;
+            color: white !important;
+            margin-right: 12px !important;
+            margin-bottom: 10px !important;
+            box-shadow: 0 0 15px rgba(155, 81, 224, 0.4) !important;
         }
 
         .detail-text {
             display: block;
-            font-size: 0.95em;
-            color: #94a3b8;
-            margin-top: 6px;
-            line-height: 1.45;
+            font-size: 1.0em !important; /* match parent size */
+            color: #f1f5f9 !important; /* highly readable white */
+            margin-top: 10px !important;
+            line-height: 1.45 !important;
         }
 
-        .flow-diagram-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 25px;
-            padding: 20px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .flow-box {
-            background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
-            border: 1px solid var(--secondary);
-            padding: 18px;
-            border-radius: 12px;
-            text-align: center;
-            flex: 1;
-            margin: 0 8px;
-            font-weight: 600;
-            font-size: 1.05em;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        .flow-arrow {
-            color: var(--primary);
-            font-size: 1.8em;
-            text-shadow: 0 0 10px var(--primary);
-            font-weight: bold;
-        }
-
-        /* Pulse brain signal simulation */
-        .pulse-node {
-            width: 16px;
-            height: 16px;
-            background-color: var(--primary);
-            border-radius: 50%;
-            position: absolute;
-            box-shadow: 0 0 20px var(--primary);
-        }
-        .pulse-ring {
-            border: 3px solid var(--primary);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            position: absolute;
-            animation: pulseRing 2s infinite ease-out;
-            opacity: 0;
-        }
-        @keyframes pulseRing {
-            0% { transform: scale(0.3); opacity: 0.8; }
-            100% { transform: scale(1.8); opacity: 0; }
-        }
-
-        /* New Comparison & Timeline Styles */
+        /* BCI comparison styles */
         .compare-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 25px;
+            gap: 15px;
             margin-top: 10px;
             width: 100%;
         }
+        
         .compare-card {
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 20px;
-            padding: 25px;
+            padding: 20px;
             transition: all 0.3s ease;
             box-sizing: border-box;
         }
+        
         .compare-card:hover {
             border-color: var(--primary);
             background: rgba(0, 242, 254, 0.03);
             transform: translateY(-5px);
             box-shadow: 0 15px 30px rgba(0, 242, 254, 0.1);
         }
+        
         .compare-title {
-            font-size: 2.8em !important;
+            font-size: 2.4em !important;
             font-weight: 800;
             margin-bottom: 15px;
             text-align: center;
             padding-bottom: 10px;
             border-bottom: 2px dashed rgba(255,255,255,0.15);
         }
+        
         .compare-card ul {
             list-style: none !important;
             padding: 0 !important;
             margin: 0 !important;
         }
+        
         .compare-card ul li {
-            font-size: 2.5em !important;
-            margin-bottom: 25px !important;
-            padding-left: 1.2em !important;
+            font-size: 2.1em !important; /* adjusted to look stunning in 3 columns */
+            margin-bottom: 20px !important;
+            padding-left: 1.1em !important;
             color: #cbd5e1 !important;
-            line-height: 1.45 !important;
+            line-height: 1.4 !important;
             position: relative;
         }
+        
         .compare-card ul li span:first-child {
             position: absolute;
             left: 0;
             top: 0;
             text-shadow: 0 0 15px currentColor;
         }
+
+        .compare-grid .compare-card:nth-child(1) ul li span { color: var(--primary); }
+        .compare-grid .compare-card:nth-child(2) ul li span { color: #c084fc; }
+        .compare-grid .compare-card:nth-child(3) ul li span { color: var(--accent); }
         
-        .timeline-container {
+        /* 2x2 Bento Timeline styles */
+        .timeline-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 25px;
             margin-top: 15px;
             width: 100%;
-            position: relative;
+            box-sizing: border-box;
         }
+        
         .timeline-step {
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 18px;
-            padding: 25px;
+            padding: 25px 30px !important;
             text-align: left;
             position: relative;
             box-sizing: border-box;
             transition: all 0.3s ease;
         }
+        
         .timeline-step:hover {
             border-color: var(--accent);
             background: rgba(255, 0, 127, 0.02);
             transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 0, 127, 0.1);
         }
-        .timeline-step::after {
-            content: "➔";
-            position: absolute;
-            right: -15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--primary);
-            font-size: 2.5em;
-            opacity: 0.6;
-            z-index: 10;
-        }
-        .timeline-step:last-child::after {
-            display: none;
-        }
+        
         .timeline-time {
-            font-size: 2.8em !important;
+            font-size: 2.5em !important;
             font-weight: 800;
             color: var(--primary) !important;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             display: block;
             text-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
         }
+        
         .timeline-step h4 {
-            font-size: 2.8em !important;
+            font-size: 2.3em !important;
             margin: 10px 0 !important;
             font-weight: 700;
             color: #f8fafc;
         }
+        
         .timeline-step p {
-            font-size: 2.5em !important;
+            font-size: 2.0em !important;
             color: #cbd5e1 !important;
-            line-height: 1.4 !important;
+            line-height: 1.45 !important;
             margin: 0 !important;
         }
     </style>
@@ -322,19 +298,19 @@
 
             <!-- 1. 首頁 Title -->
             <section>
-                <div class="graphic-container" style="display: inline-flex; width: auto; margin-bottom: 25px; padding: 15px 35px; border-radius: 50px;">
+                <div class="graphic-container" style="display: inline-flex; width: auto; margin-bottom: 25px; padding: 25px 45px; border-radius: 50px;">
                     <div style="position: relative; display: flex; align-items: center; justify-content: center;">
-                        <span style="font-size: 3rem;">🧠</span>
+                        <span style="font-size: 5rem;">🧠</span>
                         <div class="pulse-node"></div>
                         <div class="pulse-ring"></div>
                     </div>
                 </div>
                 <h2>大腦與電腦的數位橋樑</h2>
-                <h4 style="color: #94a3b8; font-weight: 300; font-size: 1.35em; margin-bottom: 35px;">
+                <h4 style="color: #94a3b8; font-weight: 300; font-size: 2.2em !important; margin-bottom: 45px !important;">
                     三分鐘看懂 Neuralink 腦機介面與人體奇蹟科普
                 </h4>
-                <div class="glass-card" style="display: inline-block; padding: 15px 40px; text-align: center; border-radius: 50px;">
-                    <span style="font-size: 1.1em; color: var(--primary); font-weight: 600; letter-spacing: 2px;">
+                <div class="glass-card" style="display: inline-block; padding: 25px 60px; text-align: center; border-radius: 50px;">
+                    <span style="font-size: 1.8em; color: var(--primary); font-weight: 600; letter-spacing: 2px;">
                         無需醫學背景 ✦ 癱瘓復健 ✦ 數位意念控制 ✦ 未來科技
                     </span>
                 </div>
@@ -346,18 +322,18 @@
                 <div class="split-layout">
                     <div class="graphic-container">
                         <div class="graphic-icon">🔌</div>
-                        <h4 style="color: var(--accent); margin: 0; font-size: 1.4em; text-align: center;">人體原本是台有線電腦</h4>
+                        <h4 style="color: var(--accent); margin: 0;">人體原本是台有線電腦</h4>
                     </div>
                     <div class="glass-card">
                         <ul>
                             <li><span class="highlight-badge">完美比喻</span>
-                                <span class="detail-text">大腦是一台**「超級電腦」**，手腳是**「終端螢幕/音響」**，而脊髓神經則是一條**「實體光纖電纜」**。</span>
+                                <span class="detail-text">大腦是一台<b>「超級電腦」</b>，手腳是<b>「終端螢幕/音響」</b>，而脊髓神經則是一條<b>「實體光纖電纜」</b>。</span>
                             </li>
                             <li><span class="highlight-badge">癱瘓的真相</span>
-                                <span class="detail-text">當高位脊髓受損（如 C4/C5），大腦與肌肉都完好無損，但**中間的電纜斷了**，訊號無法傳遞。</span>
+                                <span class="detail-text">當高位脊髓受損（如 C4/C5），大腦與肌肉都完好無損，但<b>中間的電纜斷了</b>，訊號無法傳遞。</span>
                             </li>
                             <li><span class="highlight-badge">Neuralink 的做法</span>
-                                <span class="detail-text">直接在大腦裝一個**「Wi-Fi 分享器」**！跳過斷掉的電纜，用無線電波把大腦的指令傳給電腦、甚至是患者自己的手腳。</span>
+                                <span class="detail-text">直接在大腦裝一個<b>「Wi-Fi 分享器」</b>！跳過斷掉的電纜，用無線電波把大腦的指令傳給電腦、甚至是患者自己的手腳。</span>
                             </li>
                         </ul>
                     </div>
@@ -370,8 +346,8 @@
                 <div class="split-layout">
                     <div class="graphic-container" style="background: rgba(15, 23, 42, 0.4);">
                         <div class="graphic-icon">🪙</div>
-                        <h4 style="color: var(--primary); margin: 0; font-size: 1.4em;">N1 植入物</h4>
-                        <p style="font-size: 0.9em; color: #94a3b8; margin-top: 10px; text-align: center;">大小如同一枚 50 元硬幣</p>
+                        <h4 style="color: var(--primary); margin: 0;">N1 植入物</h4>
+                        <p style="color: #94a3b8;">大小如同一枚 50 元硬幣</p>
                     </div>
                     <div class="glass-card">
                         <ul>
@@ -395,7 +371,7 @@
                 <div class="split-layout">
                     <div class="graphic-container">
                         <div class="graphic-icon">👾</div>
-                        <h4 style="color: #60a5fa; margin: 0; font-size: 1.4em;">用腦波打電動與設計</h4>
+                        <h4 style="color: #60a5fa; margin: 0;">用腦波打電動與設計</h4>
                     </div>
                     <div class="glass-card">
                         <ul>
@@ -413,38 +389,38 @@
                 </div>
             </section>
 
-                        <!-- 5. 世界三大 BCI 與神經復健流派比較 -->
+            <!-- 5. 世界三大 BCI 與神經復健流派比較 -->
             <section>
                 <h3>🌐 世界三大 BCI 與神經復健流派深度對決</h3>
                 <div class="compare-grid">
                     <!-- 美國 Neuralink -->
                     <div class="compare-card">
                         <div class="compare-title" style="color: var(--primary);">🇺🇸 美國 Neuralink</div>
-                        <ul style="font-size: 1.05em; margin: 0; padding: 0;">
-                            <li style="font-size: 1.05em; margin-bottom: 12px; padding-left: 20px; color: #cbd5e1; line-height: 1.45;"><span style="color: var(--primary); margin-right: 5px;">◆</span><b>核心技術</b>：侵入式大腦皮層 N1 晶片（1024 柔性電極）</li>
-                            <li style="font-size: 1.05em; margin-bottom: 12px; padding-left: 20px; color: #cbd5e1; line-height: 1.45;"><span style="color: var(--primary); margin-right: 5px;">◆</span><b>主攻方向</b>：高頻寬大腦訊號解碼，完美意念操控電腦/滑鼠/遊戲</li>
-                            <li style="font-size: 1.05em; margin-bottom: 12px; padding-left: 20px; color: #cbd5e1; line-height: 1.45;"><span style="color: var(--primary); margin-right: 5px;">◆</span><b>最大優勢</b>：頻寬極高、全無線傳輸、自動化手術機器人縫合</li>
-                            <li style="font-size: 1.05em; margin-bottom: 12px; padding-left: 20px; color: #cbd5e1; line-height: 1.45;"><span style="color: var(--primary); margin-right: 5px;">◆</span><b>目前局限</b>：需侵入開顱手術，長期生物相容性仍待驗證</li>
+                        <ul>
+                            <li><span>◆</span><b>核心技術</b>：侵入式大腦皮層 N1 晶片（1024 柔性電極）</li>
+                            <li><span>◆</span><b>主攻方向</b>：高頻寬大腦訊號解碼，完美意念操控電腦/滑鼠/遊戲</li>
+                            <li><span>◆</span><b>最大優勢</b>：頻寬極高、全無線傳輸、自動化手術機器人縫合</li>
+                            <li><span>◆</span><b>目前局限</b>：需侵入開顱手術，長期生物相容性仍待驗證</li>
                         </ul>
                     </div>
                     <!-- 瑞士 EPFL -->
                     <div class="compare-card" style="border-color: var(--secondary);">
                         <div class="compare-title" style="color: #c084fc;">🇨🇭 瑞士 EPFL 團隊</div>
-                        <ul style="font-size: 1.05em; margin: 0; padding: 0;">
-                            <li style="font-size: 1.05em; margin-bottom: 12px; padding-left: 20px; color: #cbd5e1; line-height: 1.45;"><span style="color: #c084fc; margin-right: 5px;">◆</span><b>核心技術</b>：大腦解碼器 + 脊髓電刺激器（腦脊髓雙向橋樑）</li>
-                            <li style="font-size: 1.05em; margin-bottom: 12px; padding-left: 20px; color: #cbd5e1; line-height: 1.45;"><span style="color: #c084fc; margin-right: 5px;">◆</span><b>主攻方向</b>：大腦意念即時解碼，精準電刺激脊髓，恢復自主行走</li>
-                            <li style="font-size: 1.05em; margin-bottom: 12px; padding-left: 20px; color: #cbd5e1; line-height: 1.45;"><span style="color: #c084fc; margin-right: 5px;">◆</span><b>最大優勢</b>：打通大腦與四肢的實體橋樑，促成神經可塑性自癒</li>
-                            <li style="font-size: 1.05em; margin-bottom: 12px; padding-left: 20px; color: #cbd5e1; line-height: 1.45;"><span style="color: #c084fc; margin-right: 5px;">◆</span><b>目前局限</b>：需要同時做大腦與脊髓兩項大手術，精細度比美國低</li>
+                        <ul>
+                            <li><span>◆</span><b>核心技術</b>：大腦解碼器 + 脊髓電刺激器（腦脊髓雙向橋樑）</li>
+                            <li><span>◆</span><b>主攻方向</b>：大腦意念即時解碼，精準電刺激脊髓，恢復自主行走</li>
+                            <li><span>◆</span><b>最大優勢</b>：打通大腦與四肢的實體橋樑，促成神經可塑性自癒</li>
+                            <li><span>◆</span><b>目前局限</b>：需要同時做大腦與脊髓兩項大手術，精細度比美國低</li>
                         </ul>
                     </div>
                     <!-- 台灣花蓮慈濟 -->
                     <div class="compare-card" style="border-color: var(--accent);">
                         <div class="compare-title" style="color: var(--accent);">🇹🇼 台灣 花蓮慈濟</div>
-                        <ul style="font-size: 1.05em; margin: 0; padding: 0;">
-                            <li style="font-size: 1.05em; margin-bottom: 12px; padding-left: 20px; color: #cbd5e1; line-height: 1.45;"><span style="color: var(--accent); margin-right: 5px;">◆</span><b>核心技術</b>：脊髓電刺激器 (SCS) + 自體幹細胞再生 + 中西醫合療</li>
-                            <li style="font-size: 1.05em; margin-bottom: 12px; padding-left: 20px; color: #cbd5e1; line-height: 1.45;"><span style="color: var(--accent); margin-right: 5px;">◆</span><b>主攻方向</b>：被動持續電刺激活化脊髓神經迴路，激發肌肉與肌力重建</li>
-                            <li style="font-size: 1.05em; margin-bottom: 12px; padding-left: 20px; color: #cbd5e1; line-height: 1.45;"><span style="color: var(--accent); margin-right: 5px;">◆</span><b>最大優勢</b>：免開顱安全性極高、自體幹細胞修復，顯著緩解張力疼痛</li>
-                            <li style="font-size: 1.05em; margin-bottom: 12px; padding-left: 20px; color: #cbd5e1; line-height: 1.45;"><span style="color: var(--accent); margin-right: 5px;">◆</span><b>目前局限</b>：<b>無大腦端解碼晶片</b>，無法透過意念控制外部數位設備</li>
+                        <ul>
+                            <li><span>◆</span><b>核心技術</b>：脊髓電刺激器 (SCS) + 自體幹細胞再生 + 中西醫合療</li>
+                            <li><span>◆</span><b>主攻方向</b>：被動持續電刺激活化脊髓神經迴路，激發肌肉與肌力重建</li>
+                            <li><span>◆</span><b>最大優勢</b>：免開顱安全性極高、自體幹細胞修復，顯著緩解張力疼痛</li>
+                            <li><span>◆</span><b>目前局限</b>：<b>無大腦端解碼晶片</b>，無法透過意念控制外部數位設備</li>
                         </ul>
                     </div>
                 </div>
@@ -456,7 +432,7 @@
                 <div class="split-layout">
                     <div class="graphic-container">
                         <div class="graphic-icon">🏆</div>
-                        <h4 style="color: #34d399; margin: 0; font-size: 1.4em;">讓肉體跨出第一步</h4>
+                        <h4 style="color: #34d399; margin: 0;">讓肉體跨出第一步</h4>
                     </div>
                     <div class="glass-card">
                         <ul>
@@ -464,7 +440,7 @@
                                 <span class="detail-text">下肢完全癱瘓十餘年。研究團隊在腦部裝晶片，並在脊髓下方裝電刺激器。當他大腦「想」往前走，電刺激器立即刺激腿部肌肉收縮。</span>
                             </li>
                             <li><span class="highlight-badge">神蹟般的「神經可塑性」</span>
-                                <span class="detail-text">最令人震撼的發現：經過一年多的閉環訓練後，**即使把儀器關掉，他依然能靠柺杖走幾步**！證實大腦重新長出神經纖維繞過了損害區。</span>
+                                <span class="detail-text">最令人震撼的發現：經過一年多的閉環訓練後，<b>即使把儀器關掉，他依然能靠柺杖走幾步</b>！證實大腦重新長出神經纖維繞過了損害區。</span>
                             </li>
                         </ul>
                     </div>
@@ -477,8 +453,8 @@
                 <div class="split-layout">
                     <div class="graphic-container" style="background: rgba(15, 23, 42, 0.45);">
                         <div class="graphic-icon">🚀</div>
-                        <h4 style="color: var(--primary); margin: 0; font-size: 1.4em;">PRIME 試驗全球開花</h4>
-                        <p style="font-size: 0.9em; color: #94a3b8; margin-top: 10px; text-align: center;">從臨床試驗走向高產能規模</p>
+                        <h4 style="color: var(--primary); margin: 0;">PRIME 試驗全球開花</h4>
+                        <p style="color: #94a3b8;">從臨床試驗走向高產能規模</p>
                     </div>
                     <div class="glass-card">
                         <ul>
@@ -499,12 +475,12 @@
             <!-- 8. Neuralink 發展里程碑與時程預測 -->
             <section>
                 <h3>📅 Neuralink 階段性技術發展與時程表</h3>
-                <div class="timeline-container">
+                <div class="timeline-grid">
                     <!-- 第一階段 -->
                     <div class="timeline-step">
                         <span class="timeline-time">2026 目前階段</span>
-                        <h4 style="color: #f8fafc; font-size: 1.25em; margin: 8px 0; font-weight: 700;">PRIME 臨床驗證</h4>
-                        <p style="font-size: 0.95em; color: #cbd5e1; line-height: 1.5; margin: 0;">
+                        <h4>PRIME 臨床驗證</h4>
+                        <p>
                             ● 全球擴展 20+ 受試者<br>
                             ● 意念控制打字、玩遊戲（CS2）與 3D 建模順利運行<br>
                             ● 啟動 Blindsight 人體試驗
@@ -513,8 +489,8 @@
                     <!-- 第二階段 -->
                     <div class="timeline-step">
                         <span class="timeline-time">2027 - 2028</span>
-                        <h4 style="color: #f8fafc; font-size: 1.25em; margin: 8px 0; font-weight: 700;">數位語音與初代盲視覺</h4>
-                        <p style="font-size: 0.95em; color: #cbd5e1; line-height: 1.5; margin: 0;">
+                        <h4>數位語音與初代盲視覺</h4>
+                        <p>
                             ● 大規模臨床達 100+ 人<br>
                             ● Blindsight 實現初代像素視覺<br>
                             ● 推出高精細數位語音重建，讓失語者意念說話
@@ -523,8 +499,8 @@
                     <!-- 第三階段 -->
                     <div class="timeline-step">
                         <span class="timeline-time">2030 年</span>
-                        <h4 style="color: #f8fafc; font-size: 1.25em; margin: 8px 0; font-weight: 700;">脊髓繞道與自動化手術</h4>
-                        <p style="font-size: 0.95em; color: #cbd5e1; line-height: 1.5; margin: 0;">
+                        <h4>脊髓繞道與自動化手術</h4>
+                        <p>
                             ● 推向商業市場，手術完全自動化，費用降至雷射近視手術級<br>
                             ● 大腦晶片＋脊髓電刺激，推動 Neuralink 脊髓繞道自主行走
                         </p>
@@ -532,8 +508,8 @@
                     <!-- 第四階段 -->
                     <div class="timeline-step">
                         <span class="timeline-time">2035+ 長期</span>
-                        <h4 style="color: #f8fafc; font-size: 1.25em; margin: 8px 0; font-weight: 700;">數位進化與超視覺</h4>
-                        <p style="font-size: 0.95em; color: #cbd5e1; line-height: 1.5; margin: 0;">
+                        <h4>數位進化與超視覺</h4>
+                        <p>
                             ● 盲視覺解析度超越人眼極限，可見紅外線/紫外線<br>
                             ● 實現超高頻寬「心靈感應（Telepathy）」人機共生
                         </p>
@@ -547,18 +523,18 @@
                 <div class="split-layout">
                     <div class="graphic-container">
                         <div class="graphic-icon">🔍</div>
-                        <h4 style="color: #fbbf24; margin: 0; font-size: 1.4em;">科學的客觀挑戰</h4>
+                        <h4 style="color: #fbbf24; margin: 0;">科學的客觀挑戰</h4>
                     </div>
                     <div class="glass-card">
                         <ul>
-                            <li><span class="highlight-badge">挑戰一：電極回縮 (Thread Drift)</span>
-                                <span class="detail-text">大腦在顱骨內是晃動的，首位受試者曾發生 80% 的極細絲回縮，導致解碼率下降。Neuralink 隨後將植入加深，並減少了腦內縫隙成功克服。</span>
+                            <li><span class="highlight-badge">挑戰一：電極回縮</span>
+                                <span class="detail-text">大腦在顱骨內會晃動，首位受試者曾發生電極絲回縮導致解碼率下降。Neuralink 已成功加深植入深度並優化演算法解決。</span>
                             </li>
-                            <li><span class="highlight-badge">挑戰二：結疤與排斥 (疤痕組織)</span>
-                                <span class="detail-text">人體有自愈機制。晶片周圍如果長出结缔組織包裹，會使得訊號品質逐年下降。這是目前科學界正在努力研究的生物材料門檻。</span>
+                            <li><span class="highlight-badge">挑戰二：結疤與排斥</span>
+                                <span class="detail-text">人體自愈機制會使晶片周圍長出疤痕組織包裹，導致訊號逐年衰減。這是目前全球科學界在生物材料工程上的核心門檻。</span>
                             </li>
                             <li><span class="highlight-badge">長期安全性驗證</span>
-                                <span class="detail-text">作為高度侵入性手術，晶片與大腦皮層的長期共生（如 10 年以上）是否有組織發炎、降解風險，仍需更多臨床觀察。</span>
+                                <span class="detail-text">侵入式晶片與大腦皮層的長期共生（如 10 年以上）是否有降解或發炎風險，仍需更長期的臨床數據追蹤。</span>
                             </li>
                         </ul>
                     </div>
@@ -567,13 +543,13 @@
 
             <!-- 10. 結語 -->
             <section>
-                <div class="graphic-icon" style="font-size: 5rem; margin-bottom: 25px; filter: drop-shadow(0 0 30px var(--primary));">🚀</div>
-                <h2 style="font-size: 2.6em; margin-bottom: 25px;">這不只是醫療，這是人類的數位進化</h2>
-                <div class="glass-card" style="margin: 0 auto; max-width: 900px; text-align: center;">
-                    <p style="font-size: 1.35em; font-weight: 600; color: #cbd5e1; margin-bottom: 20px;">
+                <div class="graphic-icon" style="font-size: 6.5rem !important; margin-bottom: 25px; filter: drop-shadow(0 0 30px var(--primary));">🚀</div>
+                <h2 style="font-size: 3.4em !important; margin-bottom: 25px;">這不只是醫療，這是人類的數位進化</h2>
+                <div class="glass-card" style="margin: 0 auto; max-width: 1400px !important; text-align: center; padding: 40px !important;">
+                    <p style="font-size: 2.4em !important; font-weight: 700; color: var(--primary) !important; margin-bottom: 25px;">
                         「大腦不再是被困在骨骼裡的孤島，而是網際網路的一部分。」
                     </p>
-                    <p style="font-size: 1.15em; color: #94a3b8; line-height: 1.7;">
+                    <p style="font-size: 2.0em !important; color: #cbd5e1 !important; line-height: 1.6 !important;">
                         腦機介面已從科幻走入臨床現實。<br>
                         它最初的使命是幫四肢癱瘓者重拾肉體與數位的自由，<br>
                         而它的終點，將是打破人類認知的生物局限。<br>
