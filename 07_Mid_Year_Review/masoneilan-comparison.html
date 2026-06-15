@@ -28,6 +28,8 @@
             padding: 40px 20px;
             overflow-x: hidden;
             perspective: 1000px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         /* 漸層背景與科技感網格 */
@@ -98,7 +100,7 @@
             text-align: center;
             position: relative;
             transform-style: preserve-3d;
-            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            transition: border-color 0.5s, box-shadow 0.5s, opacity 0.5s;
             opacity: 0;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             cursor: pointer;
@@ -400,6 +402,7 @@
                 }, 400 + (index * 200));
 
                 card.addEventListener('mousemove', (e) => {
+                    card.style.transition = 'none'; // 移除 transition 防止游標抖動與閃爍
                     const rect = card.getBoundingClientRect();
                     const x = e.clientX - rect.left;
                     const y = e.clientY - rect.top;
@@ -414,6 +417,7 @@
                 });
 
                 card.addEventListener('mouseleave', () => {
+                    card.style.transition = 'transform 0.5s cubic-bezier(0.23, 1, 0.32, 1), border-color 0.5s, box-shadow 0.5s, opacity 0.5s';
                     card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
                 });
             });
