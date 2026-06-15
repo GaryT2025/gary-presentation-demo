@@ -11,6 +11,7 @@
             --neon-green: #00ff41;
             --text-main: #e0e0e0;
             --text-muted: #9e9e9e;
+            --border-color: #333;
         }
 
         body {
@@ -21,9 +22,14 @@
             padding: 40px 20px;
         }
 
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
         header {
             text-align: center;
-            margin-bottom: 50px;
+            margin-bottom: 40px;
         }
 
         h1 {
@@ -34,132 +40,175 @@
             text-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
         }
 
-        .comparison-container {
+        /* Hero images */
+        .hero-section {
             display: flex;
-            gap: 40px;
-            max-width: 1200px;
-            margin: 0 auto;
-            justify-content: center;
-            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 40px;
         }
 
-        .product-card {
+        .hero-card {
+            flex: 1;
             background: var(--bg-card);
-            border: 1px solid #333;
-            border-radius: 16px;
-            padding: 30px;
-            width: 45%;
-            min-width: 350px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            transition: transform 0.4s, border-color 0.4s;
             position: relative;
-            overflow: hidden;
         }
 
-        .product-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: var(--neon-green);
-            transform: scaleX(0);
-            transition: transform 0.4s ease;
+        .hero-card h2 {
+            color: #fff;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
         }
 
-        .product-card:hover::before {
-            transform: scaleX(1);
-        }
-
-        .product-card:hover {
-            transform: translateY(-10px);
-            border-color: rgba(0, 255, 65, 0.4);
-        }
-
-        .product-image {
+        .hero-image {
             width: 100%;
             height: 350px;
             object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Comparison Table */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-card);
             border-radius: 12px;
-            margin-bottom: 25px;
-            border: 1px solid #333;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        h2 {
-            color: var(--neon-green);
-            font-size: 2.2rem;
-            margin-bottom: 20px;
-            border-bottom: 1px dashed var(--neon-green);
-            display: inline-block;
-            padding-bottom: 5px;
-        }
-
-        .feature-list {
-            list-style: none;
-            padding: 0;
+        .comparison-table th, .comparison-table td {
+            padding: 20px;
             text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .comparison-table th {
+            font-size: 1.2rem;
+            color: var(--neon-green);
+            background: rgba(255,255,255,0.02);
+            width: 20%;
+        }
+
+        .comparison-table td {
             font-size: 1.15rem;
+            width: 40%;
+            vertical-align: top;
+            line-height: 1.6;
         }
 
-        .feature-list li {
-            margin-bottom: 15px;
-            padding: 12px 10px;
-            border-bottom: 1px solid #2a2a2a;
-            display: flex;
-            align-items: center;
+        .comparison-table td:not(:last-child) {
+            border-right: 1px solid var(--border-color);
         }
 
-        .feature-list li strong {
-            color: #fff;
-            width: 80px;
-            display: inline-block;
-            margin-left: 10px;
+        .comparison-table tr:last-child th,
+        .comparison-table tr:last-child td {
+            border-bottom: none;
         }
 
         .highlight {
-            color: var(--neon-green);
+            color: #fff;
             font-weight: bold;
-            font-size: 1.25rem;
-            margin-left: auto;
+        }
+
+        .vs-badge {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--neon-green);
+            color: #000;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.5rem;
+            z-index: 10;
+            border: 4px solid var(--bg-dark);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.4);
+        }
+
+        .relative-container {
+            position: relative;
+        }
+
+        @media (max-width: 768px) {
+            .hero-section {
+                flex-direction: column;
+            }
+            .vs-badge {
+                display: none;
+            }
+            .comparison-table, .comparison-table tbody, .comparison-table tr, .comparison-table th, .comparison-table td {
+                display: block;
+                width: 100%;
+            }
+            .comparison-table td {
+                border-right: none !important;
+            }
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Masoneilan 頂級控制閥</h1>
-        <p style="color: var(--text-muted); font-size: 1.3rem;">21K 通用型 vs 41K 嚴苛工況型</p>
-    </header>
+    <div class="container">
+        <header>
+            <h1>Masoneilan 頂級控制閥對照</h1>
+            <p style="color: var(--text-muted); font-size: 1.2rem;">直觀技術對比：21K 通用型 vs 41K 嚴苛工況型</p>
+        </header>
 
-    <div class="comparison-container">
-        <!-- 21K 系列 -->
-        <div class="product-card">
-            <img src="assets/21k.png" alt="Masoneilan 21K" class="product-image">
-            <h2>21000 系列 (21K)</h2>
-            <ul class="feature-list">
-                <li>🎯 <strong>定位</strong> <span class="highlight">頂部導引式</span></li>
-                <li>📏 <strong>管徑</strong> <span class="highlight">0.75" ~ 8"</span></li>
-                <li>💧 <strong>流量</strong> <span class="highlight">可達微小流量 (Cv 0.008)</span></li>
-                <li>🌡️ <strong>溫度</strong> <span class="highlight">-196°C ~ +427°C</span></li>
-                <li>🔧 <strong>壓力</strong> <span class="highlight">Max 15K PSI</span></li>
-                <li>🌟 <strong>適用</strong> <span class="highlight">波紋管零洩漏 / 通用</span></li>
-            </ul>
+        <div class="relative-container">
+            <div class="hero-section">
+                <div class="hero-card">
+                    <h2>21000 系列 (21K)</h2>
+                    <img src="assets/21k.png" alt="Masoneilan 21K" class="hero-image">
+                </div>
+                <div class="hero-card">
+                    <h2>41000 系列 (41K)</h2>
+                    <img src="assets/41k.png" alt="Masoneilan 41K" class="hero-image">
+                </div>
+            </div>
+            <div class="vs-badge">VS</div>
         </div>
 
-        <!-- 41K 系列 -->
-        <div class="product-card">
-            <img src="assets/41k.png" alt="Masoneilan 41K" class="product-image">
-            <h2>41000 系列 (41K)</h2>
-            <ul class="feature-list">
-                <li>🎯 <strong>定位</strong> <span class="highlight">套筒平衡式</span></li>
-                <li>📏 <strong>管徑</strong> <span class="highlight">2" ~ 36" (巨型)</span></li>
-                <li>💧 <strong>流量</strong> <span class="highlight">超大吞吐量 (Cv 17,000)</span></li>
-                <li>🌡️ <strong>溫度</strong> <span class="highlight">-196°C ~ +593°C</span></li>
-                <li>🔧 <strong>壓力</strong> <span class="highlight">Max 15K PSI</span></li>
-                <li>🌟 <strong>適用</strong> <span class="highlight">極大壓差 / 最嚴苛工況</span></li>
-            </ul>
-        </div>
+        <table class="comparison-table">
+            <tr>
+                <th>🎯 核心設計</th>
+                <td><span class="highlight">頂部導引式</span>單座球閥 (非平衡)</td>
+                <td><span class="highlight">套筒導引式</span>平衡球閥</td>
+            </tr>
+            <tr>
+                <th>📏 尺寸涵蓋</th>
+                <td>中小型：<span class="highlight">0.75" ~ 8"</span></td>
+                <td>大容量：<span class="highlight">2" ~ 36" (巨型管徑)</span></td>
+            </tr>
+            <tr>
+                <th>💧 流量係數 (Cv)</th>
+                <td><span class="highlight">0.008 起</span> (精準控制微小流量)<br>最大約 640</td>
+                <td>0.2 起<br>最大可達 <span class="highlight">17,000</span> (極大吞吐量)</td>
+            </tr>
+            <tr>
+                <th>🔧 壓力等級</th>
+                <td>最高 <span class="highlight">15K PSI (API 6A)</span><br>全尺寸皆可高壓</td>
+                <td>最高 <span class="highlight">15K PSI (API 6A)</span><br>30"以上超大尺寸受限 Class 150/300</td>
+            </tr>
+            <tr>
+                <th>🌡️ 耐溫範圍</th>
+                <td>-196°C ~ <span class="highlight">+427°C</span></td>
+                <td>-196°C ~ <span class="highlight">+593°C</span> (金屬/輔助先導密封)</td>
+            </tr>
+            <tr>
+                <th>🌟 最佳適用工況</th>
+                <td>廣泛通用製程、防空化<br><span class="highlight">波紋管零洩漏環保工況</span></td>
+                <td><span class="highlight">高壓差、大流量、極端高低溫</span><br>最嚴苛工況 (Severe Service)</td>
+            </tr>
+        </table>
     </div>
 </body>
 </html>
