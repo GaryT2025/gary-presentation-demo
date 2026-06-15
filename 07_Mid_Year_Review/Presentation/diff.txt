@@ -1,0 +1,209 @@
+--- 
++++ 
+@@ -658,7 +658,7 @@
+       </div>
+       <div class="slide-content">
+         <div class="bento-grid" style="grid-template-rows: 1fr 1fr;">
+-          <div class="bento-card" style="background: var(--white); justify-content: center; align-items: center; text-align: center; border: 1px dashed var(--gray-300); cursor: pointer;" onclick="const t = document.getElementById('p05-bottom'); t.style.opacity = t.style.opacity === '1' ? '0' : '1';">
++          <div class="bento-card" style="background: var(--white); justify-content: center; align-items: center; text-align: center; border: 1px dashed var(--gray-300); cursor: context-menu;" oncontextmenu="event.preventDefault(); const t = document.getElementById('p05-bottom'); t.style.opacity = t.style.opacity === '1' ? '0' : '1';">
+             <div style="font-size: 4rem; margin-bottom: 1rem;">📊 📎 📝 ❌</div>
+             <h3 style="font-size: 2.2rem; color: var(--text);">被表單與報表淹沒的日常</h3>
+             <p style="font-size: 1.1rem; color: var(--primary); font-weight: bold; margin-top: 0.5rem;">(每天處理超過 30 分鐘的同仁，請舉手 👋)</p>
+@@ -859,14 +859,14 @@
+         <div class="bento-grid" style="grid-template-columns: 1fr 1fr;">
+           <div class="bento-card" style="justify-content: space-between;">
+             <div>
+-                <h3 style="font-size: 1.8rem;">法拉利 vs 牛車</h3>
+-                <p style="font-size: 1.2rem; margin-bottom: 0.5rem;">不要用操控牛車的方式 (步驟導向) 來開法拉利。</p>
+-                <div class="bento-highlight" style="background: var(--white); padding: 0; border: none; margin-top: 0.5rem; margin-bottom: 1.5rem; color: var(--text-muted); font-size: 1.1rem; font-weight: normal;">
++                <h3 style="font-size: 1.8rem; margin-bottom: 1rem;">法拉利 vs 牛車</h3>
++                <p style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--text);">不要用操控牛車的方式 (步驟導向) 來開法拉利。</p>
++                <div style="background: var(--gray-50); padding: 1.2rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem; color: var(--text-muted); font-size: 1.1rem; border-left: 4px solid var(--primary);">
+                   「最好的介面，就是不需要介面。」與其展示如何免登入，不如直接讓你透過 Line Bot 查詢 CRM。
+                 </div>
+-                <p style="font-size: 1.2rem;"><strong style="font-size: 1.4rem; color: var(--text);">「讓 AI 達成你的目標 (結果導向)，而不是模仿你的動作。」</strong></p>
+-            </div>
+-            <div style="background: rgba(192, 0, 0, 0.1); border-left: 4px solid var(--danger); padding: 1.2rem; color: var(--danger); font-weight: bold; font-size: 1.1rem; border-radius: 4px; margin-top: 1rem;">
++                <div style="font-size: 1.4rem; font-weight: bold; color: var(--primary-dark);">「讓 AI 達成你的目標 (結果導向)，<br>而不是模仿你的動作。」</div>
++            </div>
++            <div style="background: rgba(192, 0, 0, 0.05); border: 1px solid rgba(192, 0, 0, 0.2); border-left: 4px solid var(--danger); padding: 1.2rem; color: var(--danger); font-weight: bold; font-size: 1.1rem; border-radius: var(--radius-sm); margin-top: 1.5rem;">
+               ⚡ AI First 警語：當 AI 產出不好時，不是它笨，而是我們沒講清楚。
+             </div>
+           </div>
+@@ -1120,25 +1120,23 @@
+             <div class="bento-card" style="text-align: center;">
+               <h3 style="font-size: 1.6rem; color: var(--text);">生產生態系</h3>
+               <div style="font-size: 3rem; margin: 1rem 0;">🏭 🚗</div>
+-              <p style="font-size: 1.1rem; font-weight: bold; color: var(--text-muted);">「賣車、交車、結束」</p>
++              <p style="font-size: 1.1rem; font-weight: bold; color: var(--primary-dark);">「內部價值網路的建立」</p>
++              <p style="font-size: 0.95rem; color: var(--text-muted); margin-top: 0.5rem;">聚焦於製程數據，幫助企業「優化生產、降低成本」，這是傳統主戰場。</p>
+             </div>
+             <div style="text-align: center;">
+-              <div style="font-size: 1.3rem; font-weight: bold; color: var(--primary);">1hr = 25GB 數據</div>
++              <div style="font-size: 1.3rem; font-weight: bold; color: var(--primary);">跨出工廠大門</div>
+               <div style="font-size: 2.5rem; color: var(--primary);">➔</div>
+             </div>
+             <div class="bento-card" style="text-align: center; border-color: var(--neon); background: var(--primary-light);">
+               <h3 style="font-size: 1.6rem;">消費生態系</h3>
+               <div style="font-size: 3rem; margin: 1rem 0;">📱 ☕</div>
+-              <p style="font-size: 1.1rem; font-weight: bold; color: var(--primary-dark);">「尋找附近車位、訂咖啡、MyPass 結帳」</p>
+-              <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--primary);">
+-                <div style="font-size: 1rem; color: var(--text-muted);">真正的對手已經不再是原本的對手：</div>
+-                <div style="font-size: 1.4rem; font-weight: bold; margin-top: 0.5rem;">Uber / Waymo (移動數據核心)</div>
+-              </div>
++              <p style="font-size: 1.1rem; font-weight: bold; color: var(--primary-dark);">「外部價值網路的發掘」</p>
++              <p style="font-size: 0.95rem; color: var(--primary-dark); margin-top: 0.5rem;">透過與客戶在實際環境互動產生數據，創造全新商業價值。</p>
+             </div>
+           </div>
+         </div>
+         <div class="bento-highlight" style="margin-top: 0.5rem; flex-shrink: 0;">
+-          福特後來才理解，真正的威脅不是通用汽車，而是掌握全人類「移動數據」的 Uber 與 Waymo。數位生態系正全面重寫競爭規則。
++          福特後來才理解，賣車只是生產生態系。當汽車變成「帶輪子的手機」，車主的移動與消費數據，才是消費生態系中最有價值的資產。
+         </div>
+       </div>
+ 
+@@ -1163,7 +1161,7 @@
+       </div>
+       <div class="slide-content">
+         <div class="bento-grid" style="grid-template-columns: 1fr 1fr; height: 100%;">
+-          <div class="bento-card" style="background: var(--gray-200); justify-content: center; align-items: center; text-align: center; cursor: pointer;" onclick="const c = document.getElementById('p15-reveal-card'); const h = document.getElementById('p15-reveal-text'); const show = c.style.opacity === '0'; c.style.opacity = show ? '1' : '0'; h.style.opacity = show ? '1' : '0';">
++          <div class="bento-card" style="background: var(--gray-200); justify-content: center; align-items: center; text-align: center; cursor: context-menu;" oncontextmenu="event.preventDefault(); const c = document.getElementById('p15-reveal-card'); const h = document.getElementById('p15-reveal-text'); const show = c.style.opacity === '0'; c.style.opacity = show ? '1' : '0'; h.style.opacity = show ? '1' : '0';">
+             <div style="font-size: 1.5rem; color: var(--text-muted); margin-bottom: 1rem;">舊定義</div>
+             <div style="font-size: 2.2rem; font-weight: bold; color: var(--text);">競爭對手 = <br>供應相似產品的公司</div>
+           </div>
+@@ -1292,59 +1290,36 @@
+       <div class="slide-content">
+         <div class="bento-grid" style="grid-template-columns: 1fr 1.1fr; gap: 1.5rem;">
+ 
+-          <!-- Left: Maturity Levels — progress bar design -->
+-          <div class="bento-card" style="padding: 1.5rem;">
+-            <h3 style="border-bottom: 2px solid var(--primary-light); padding-bottom: 0.5rem; margin-bottom: 1.2rem;">維護成熟度 Level 1–4</h3>
+-            <div style="display: flex; flex-direction: column; gap: 0.65rem; flex: 1;">
+-
+-              <!-- Level 1 -->
+-              <div style="position: relative; border-radius: var(--radius-sm); overflow: hidden; border: 1.5px solid var(--gray-200); flex: 1;">
+-                <div style="position: absolute; inset: 0; width: 25%; background: var(--gray-100);"></div>
+-                <div style="position: relative; display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0.8rem; height: 100%;">
+-                  <div style="width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: 900; color: var(--text-muted); border: 2px solid var(--gray-300); font-size: 0.9rem; background: white;">1</div>
+-                  <div>
+-                    <div style="font-weight: 800; font-size: 0.95rem;">壞了才修 <span style="color: var(--text-muted); font-size: 0.78rem; margin-left: 0.3rem;">Run to Failure</span></div>
+-                    <div style="font-size: 0.78rem; color: var(--text-muted);">反應式維護 (Reactive)</div>
+-                  </div>
++          <!-- Left: Strategic Transformation (Merged from P17) -->
++          <div class="bento-card" style="padding: 1.5rem; justify-content: center;">
++            <div style="text-align: center; margin-bottom: 1.5rem;">
++              <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎯</div>
++              <h3 style="color: var(--primary); font-size: 1.6rem; margin-bottom: 0.5rem; font-weight: 800;">Core Vision</h3>
++              <p style="color: var(--text); font-size: 1.1rem; font-weight: 600;">讓數據成為 FCI 與客戶之間的信任橋樑</p>
++            </div>
++            
++            <div style="display: flex; flex-direction: column; gap: 0.8rem;">
++              <div class="fragment" style="display: flex; gap: 1rem; align-items: center; background: var(--gray-50); padding: 1rem; border-radius: var(--radius-sm); border-left: 4px solid var(--primary);">
++                <div style="font-size: 1.8rem; font-weight: 900; color: var(--primary); flex-shrink: 0;">❶</div>
++                <div>
++                  <h3 style="font-size: 1.1rem; color: var(--primary-dark); margin-bottom: 0.2rem;">關鍵節點</h3>
++                  <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.4;">切入客戶核心決策點：預算撥付、大修計畫、緊急採購。</p>
+                 </div>
+               </div>
+-
+-              <!-- Level 2 -->
+-              <div style="position: relative; border-radius: var(--radius-sm); overflow: hidden; border: 1.5px solid var(--gray-200); flex: 1;">
+-                <div style="position: absolute; inset: 0; width: 50%; background: var(--gray-50);"></div>
+-                <div style="position: relative; display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0.8rem; height: 100%;">
+-                  <div style="width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: 900; color: var(--text-muted); border: 2px solid var(--gray-200); font-size: 0.9rem; background: white;">2</div>
+-                  <div>
+-                    <div style="font-weight: 800; font-size: 0.95rem;">定期大修 <span style="color: var(--text-muted); font-size: 0.78rem; margin-left: 0.3rem;">Overhaul</span></div>
+-                    <div style="font-size: 0.78rem; color: var(--text-muted);">預防式維護 (Preventive)</div>
+-                  </div>
++              <div class="fragment" style="display: flex; gap: 1rem; align-items: center; background: var(--gray-50); padding: 1rem; border-radius: var(--radius-sm); border-left: 4px solid var(--neon);">
++                <div style="font-size: 1.8rem; font-weight: 900; color: var(--neon); flex-shrink: 0;">❷</div>
++                <div>
++                  <h3 style="font-size: 1.1rem; color: var(--primary); margin-bottom: 0.2rem;">戰略轉型</h3>
++                  <p style="font-size: 0.9rem; color: var(--text); line-height: 1.4; font-weight: 600;">從「救火隊」轉為「數位參謀」。決策基準依賴 VLMS 報告。</p>
+                 </div>
+               </div>
+-
+-              <!-- Level 3 (中期目標) -->
+-              <div style="position: relative; border-radius: var(--radius-sm); overflow: hidden; border: 1.5px solid var(--primary); flex: 1;">
+-                <div style="position: absolute; inset: 0; width: 75%; background: var(--primary-light);"></div>
+-                <div style="position: relative; display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0.8rem; height: 100%;">
+-                  <div style="width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: 900; color: var(--primary); border: 2px solid var(--primary); font-size: 0.9rem; background: var(--primary-light);">3</div>
+-                  <div>
+-                    <div style="font-weight: 800; font-size: 0.95rem; color: var(--text);">趨勢預警 <span style="color: var(--text-muted); font-size: 0.78rem; margin-left: 0.3rem;">Predictive</span></div>
+-                    <div style="font-size: 0.78rem; color: var(--text-muted);">中期目標 (Intelligence)</div>
+-                  </div>
++              <div class="fragment" style="display: flex; gap: 1rem; align-items: center; background: var(--gray-50); padding: 1rem; border-radius: var(--radius-sm); border-left: 4px solid var(--accent-blue);">
++                <div style="font-size: 1.8rem; font-weight: 900; color: var(--accent-blue); flex-shrink: 0;">❸</div>
++                <div>
++                  <h3 style="font-size: 1.1rem; color: var(--accent-blue); margin-bottom: 0.2rem;">極致黏性</h3>
++                  <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.4;">數據診斷嵌入客戶日常，築起「習慣防禦牆」。</p>
+                 </div>
+               </div>
+-
+-              <!-- Level 4 (長期目標) -->
+-              <div style="position: relative; border-radius: var(--radius-sm); overflow: hidden; border: 1.5px solid var(--neon); box-shadow: 0 0 10px rgba(6,214,173,0.2); flex: 1;">
+-                <div style="position: absolute; inset: 0; width: 100%; background: rgba(6,214,173,0.08);"></div>
+-                <div style="position: relative; display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0.8rem; height: 100%;">
+-                  <div style="width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: 900; color: var(--dark-bg); background: var(--neon); font-size: 0.9rem; box-shadow: 0 0 8px rgba(6,214,173,0.4);">4</div>
+-                  <div>
+-                    <div style="font-weight: 800; font-size: 0.95rem; color: var(--text);">AI 主動指揮 <span style="color: var(--text-muted); font-size: 0.78rem; margin-left: 0.3rem;">Proactive</span></div>
+-                    <div style="font-size: 0.78rem; color: var(--text-muted);">長期目標 (Agentic)</div>
+-                  </div>
+-                </div>
+-              </div>
+-
+             </div>
+           </div>
+ 
+@@ -1479,50 +1454,7 @@
+             <div style="position: absolute; top: 0; right: 0; width: 6px; height: 100%; background: var(--primary);"></div>
+             <div style="font-size: 3rem; margin-bottom: 1.5rem;">📜</div>
+             <h3 style="font-size: 1.8rem; color: var(--primary); margin-bottom: 1.2rem; font-weight: 800;">規格是門檻</h3>
+-            <p style="font-size: 1.2rem; line-height: 1.7; color: var(--text);">當 VLMS 的數位標準被寫入客戶的招標規範，競爭對手連入場參賽的門票都沒有。</p>
+-          </div>
+-
+-        </div>
+-        
+-        <div style="margin-top: 3.5rem; text-align: center; font-size: 1.6rem; font-weight: 900; color: var(--primary-dark); letter-spacing: 0.1em; background: var(--primary-light); padding: 1.2rem 3rem; border-radius: 50px; border: 1px solid var(--primary); box-shadow: var(--shadow-sm);">
+-          這三道牆共同構成了 FCI 在 AI 時代最深的護城河
+-        </div>
+-      </div>
+-
+-
+-      <div class="slide-footer">
+-        <span>Facilitation Control Innovation</span>
+-        <span>Gary Tzeng 2026</span>
+-      </div>
+-
+-    </div>
+-
+-    <!-- P20: Epilogue 1-3 -->
+-    <div class="slide">
+-
+-      <div class="slide-header">
+-        <img src="../素材/Fluids Control橫式2去背@4x.png" alt="Logo" class="logo">
+-        <div class="section-label">結語</div>
+-        <div class="counter">20 / 23</div>
+-      </div>
+-
+-      <div class="slide-titlebar">
+-        <h2 style="font-size: 1.8rem;">AI 時代的三個核心觀點</h2>
+-      </div>
+-      <div class="slide-content" style="padding: 1rem 4rem; justify-content: center; gap: 1rem;">
+-        <div class="bento-grid" style="grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+-          <div class="bento-card" style="padding: 1.2rem;">
+-            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔴</div>
+-            <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem;">這是生存問題</h3>
+-            <p style="font-size: 1rem;">少子化嚴重，AI 不是選配，是缺工時代維持運作的唯一出路。</p>
+-          </div>
+-          <div class="bento-card" style="padding: 1.2rem;">
+-            <div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
+-            <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem;">1:99 法則</h3>
+-            <p style="font-size: 1rem;">掌握 AI 的 1% 企業，會拿走市場 99% 的利潤與機會。你想站在哪邊？</p>
+-          </div>
+-          <div class="bento-card" style="padding: 1.2rem;">
+-            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🦾</div>
++            <p style="font-size: 1.2rem; line-height: 1.7; color: var(--text);">當 VLMS 的數位標準被寫入客戶的招標規範，競<!-- P23: Ending -->rgin-bottom: 0.5rem;">🦾</div>
+             <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem;">AI 是戰甲</h3>
+             <p style="font-size: 1rem;">AI 強化你的專業判斷力，就像穿上戰甲——讓你更強，不是把你換掉。</p>
+           </div>

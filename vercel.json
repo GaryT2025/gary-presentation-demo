@@ -11,6 +11,10 @@
     {
       "source": "/neuralink",
       "destination": "/Neuralink_Presentation.html"
+    },
+    {
+      "source": "/masoneilan-comparison",
+      "destination": "/masoneilan-comparison.html"
     }
   ],
   "headers": [

@@ -1,0 +1,4 @@
+581: <div id="btn-prev" class="nav-btn" onclick="prevSlide()" style="display: flex;">❮</div>
+582: <div id="btn-next" class="nav-btn" onclick="nextSlide()" style="display: none;">❯</div>
+660: <div class="bento-card" style="background: var(--white); justify-content: center; align-items: cente
+1165: <div class="bento-card" style="background: var(--gray-200); justify-content: center; align-items: ce

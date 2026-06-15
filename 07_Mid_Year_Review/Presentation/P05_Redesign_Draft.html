@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>P05 Redesign Draft - Timeline</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <style>
+    /* ─── DESIGN TOKENS ─── */
+    :root {
+      --primary:        #009D88;
+      --primary-light:  #E5F5F3;
+      --primary-dark:   #007A6A;
+      --neon:           #06D6AD;
+      --text:           #3E3A39;
+      --text-muted:     #7A7675;
+      --white:          #FFFFFF;
+      --gray-200:       #E8E8E8;
+      --dark-bg:        #0a0a0a;
+      --radius-md:      12px;
+      --radius-lg:      20px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--primary-light);
+      font-family: 'Calibri', 'Microsoft JhengHei', sans-serif;
+      color: var(--text);
+    }
+
+    .slide {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ─── HEADER (ORIGINAL STYLE) ─── */
+    .slide-header {
+      height: 9vh;
+      min-height: 60px;
+      background: var(--primary-light);
+      border-bottom: 3px solid var(--primary);
+      display: flex;
+      align-items: center;
+      padding: 0 2.5rem;
+      gap: 2rem;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .slide-header .logo { height: clamp(30px, 4vh, 45px); width: auto; object-fit: contain; flex-shrink: 0; }
+    .slide-header .section-label { flex: 1; font-weight: 700; color: var(--primary); letter-spacing: 0.15em; font-size: 0.9rem; text-transform: uppercase; }
+    .slide-header .counter { font-weight: 600; color: var(--text-muted); font-size: 0.9rem; }
+
+    /* ─── SLIDE TITLE BAR (ORIGINAL STYLE) ─── */
+    .slide-titlebar {
+      height: 13vh;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      padding: 0 2.5rem;
+      border-left: 4px solid var(--primary);
+      margin: 1.5rem 2.5rem 0 2.5rem;
+      flex-shrink: 0;
+    }
+    .slide-titlebar h2 { font-size: clamp(1.4rem, 1.1rem + 1.3vw, 2.2rem); font-weight: 700; color: var(--primary); line-height: 1.2; }
+
+    /* ─── FOOTER (ORIGINAL STYLE) ─── */
+    .slide-footer {
+      height: 6vh;
+      min-height: 40px;
+      background: var(--primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2.5rem;
+      flex-shrink: 0;
+      border-top: 1px solid var(--gray-200);
+    }
+    .slide-footer span { font-size: 0.8rem; color: var(--primary-dark); letter-spacing: 0.04em; }
+
+    /* ─── CONTENT AREA ─── */
+    .slide-content {
+      flex: 1;
+      padding: 0.5rem 2.5rem 2.5rem 2.5rem; /* Reduced top padding to make dark container larger */
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .dark-container {
+      flex: 1;
+      background: var(--dark-bg);
+      border-radius: var(--radius-lg);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.15);
+      padding: 2.5rem; /* Increased inner padding */
+    }
+
+    /* Grid overlay */
+    .grid-overlay {
+      position: absolute; inset: 0;
+      background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px; z-index: 0; pointer-events: none;
+    }
+
+    .timelines-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      z-index: 1;
+      padding-bottom: 3rem; /* space for conclusion */
+    }
+
+    /* Linear Track */
+    .linear-track { position: relative; width: 100%; height: 40%; display: flex; align-items: flex-end; padding-bottom: 2.5rem; }
+    .track-label { position: absolute; top: -20px; left: 0; font-size: 1.3rem; font-weight: bold; color: rgba(255,255,255,0.7); }
+    .track-line { position: absolute; bottom: 0; left: 5%; width: 90%; height: 2px; background: rgba(255,255,255,0.2); transform-origin: left; }
+    
+    /* Nodes */
+    .node { position: absolute; display: flex; flex-direction: column; align-items: center; opacity: 0; z-index: 10; color: white; transform: translateX(-50%); }
+    .node-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--dark-bg); border: 2px solid rgba(255,255,255,0.6); z-index: 10; margin: 8px 0; }
+    
+    .linear-node { bottom: -8px; }
+    .linear-node .node-content {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 0.6rem; border-radius: var(--radius-md); text-align: center; width: 120px;
+    }
+
+    /* Expo Track */
+    .expo-track { position: relative; width: 100%; height: 50%; display: flex; align-items: flex-start; margin-top: 2rem; }
+    .expo-track .track-label { color: var(--neon); top: -15px; left: 0; position: absolute; }
+    
+    .expo-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    .expo-line { fill: none; stroke: var(--neon); stroke-width: 4; stroke-linecap: round; filter: drop-shadow(0 0 10px var(--neon)); stroke-dasharray: 2000; stroke-dashoffset: 2000; }
+    
+    .expo-track .node-dot { background: var(--neon); border-color: var(--neon); box-shadow: 0 0 10px var(--neon); }
+    
+    .expo-track .node-content {
+      background: rgba(6, 214, 173, 0.1); border: 1px solid rgba(6, 214, 173, 0.4); padding: 0.6rem; border-radius: var(--radius-md); text-align: center; width: 140px; backdrop-filter: blur(10px);
+    }
+    
+    .node-year { font-weight: 900; font-size: 1.1rem; margin-top: 2px; }
+    .expo-track .node-year { color: var(--neon); }
+    .node-title { font-size: 0.9rem; color: rgba(255,255,255,0.9); }
+
+    /* specific expo node positions (sync with SVG) */
+    /* top 0 means it anchors at the SVG container top. We align node-dot with SVG curve */
+    .expo-node { top: 0; }
+    .expo-node.downward { top: 0; flex-direction: column-reverse; }
+
+    /* Position tuning for SVG curve Y alignment */
+    /* Curve goes from bottom-left to top-right. Y values correspond to CSS top offset relative to track height */
+    .node-expo-1 { top: calc(85% - 8px); left: 15%; }
+    .node-expo-2 { top: calc(75% - 8px); left: 45%; }
+    .node-expo-3 { top: calc(45% - 8px); left: 70%; }
+    .node-expo-4 { top: calc(10% - 8px); left: 90%; } 
+
+    .conclusion {
+      position: absolute; bottom: 1.5rem; right: 1.5rem;
+      background: rgba(255,255,255,0.05); border-right: 4px solid var(--neon);
+      padding: 1.2rem 2rem; border-radius: var(--radius-md) 0 0 var(--radius-md);
+      font-size: 1.3rem; font-weight: 800; opacity: 0; color: white;
+      z-index: 20;
+      text-align: right;
+      backdrop-filter: blur(8px);
+      max-width: 450px;
+    }
+    .conclusion span { color: var(--neon); }
+  </style>
+</head>
+<body>
+
+  <div class="slide">
+    <!-- Header -->
+    <div class="slide-header">
+      <img src="../素材/Fluids Control橫式2去背@4x.png" alt="Logo" class="logo">
+      <div class="section-label">第一篇：認知篇</div>
+      <div class="counter">05 / 23</div>
+    </div>
+
+    <!-- Titlebar -->
+    <div class="slide-titlebar">
+      <h2>維度躍遷：演進的速度感</h2>
+    </div>
+
+    <!-- Content -->
+    <div class="slide-content">
+      
+      <div class="dark-container">
+        <div class="grid-overlay"></div>
+        
+        <div class="timelines-container">
+          
+          <!-- Linear Timeline (Industrial) -->
+          <div class="linear-track">
+            <div class="track-label">🚗 工業演進：138 年的線性累積 (1886 — 2024)</div>
+            <div class="track-line" id="line-linear"></div>
+            
+            <div class="node linear-node" style="left: 15%;">
+              <div class="node-content">
+                <div style="font-size: 1.6rem;">🚗</div>
+                <div class="node-year">1886</div>
+                <div class="node-title">手排車</div>
+              </div>
+              <div class="node-dot"></div>
+            </div>
+            
+            <div class="node linear-node" style="left: 40%;">
+              <div class="node-content">
+                <div style="font-size: 1.6rem;">⚙️</div>
+                <div class="node-year">1920s</div>
+                <div class="node-title">自排車</div>
+              </div>
+              <div class="node-dot"></div>
+            </div>
+            
+            <div class="node linear-node" style="left: 65%;">
+              <div class="node-content">
+                <div style="font-size: 1.6rem;">⚡</div>
+                <div class="node-year">2008</div>
+                <div class="node-title">電動車</div>
+              </div>
+              <div class="node-dot"></div>
+            </div>
+            
+            <div class="node linear-node" style="left: 90%;">
+              <div class="node-content">
+                <div style="font-size: 1.6rem;">🤖</div>
+                <div class="node-year">2024</div>
+                <div class="node-title">自動駕駛</div>
+              </div>
+              <div class="node-dot"></div>
+            </div>
+          </div>
+
+          <!-- Exponential Timeline (AI) -->
+          <div class="expo-track">
+            <div class="track-label">🤖 AI 革命：跨越式的指數躍遷 (2022 — 2026)</div>
+            
+            <svg class="expo-svg" viewBox="0 0 1000 100" preserveAspectRatio="none">
+              <!-- Curve matching the node Y positions roughly:
+                   15% x -> 85% y (Y=85)
+                   45% x -> 75% y (Y=75)
+                   70% x -> 45% y (Y=45)
+                   90% x -> 10% y (Y=10)
+              -->
+              <path id="line-expo" class="expo-line" d="M 50 90 C 400 85, 600 70, 950 10" />
+            </svg>
+
+            <div class="node expo-node node-expo-1">
+              <div class="node-content">
+                <div style="font-size: 1.6rem;">💬</div>
+                <div class="node-year">2022</div>
+                <div class="node-title">對話式 (ChatGPT)</div>
+              </div>
+              <div class="node-dot"></div>
+            </div>
+            
+            <div class="node expo-node node-expo-2">
+              <div class="node-content">
+                <div style="font-size: 1.6rem;">👥</div>
+                <div class="node-year">2024</div>
+                <div class="node-title">協作式 (Copilot)</div>
+              </div>
+              <div class="node-dot"></div>
+            </div>
+            
+            <div class="node expo-node node-expo-3">
+              <div class="node-content">
+                <div style="font-size: 1.6rem;">🦞</div>
+                <div class="node-year">2025</div>
+                <div class="node-title">Agentic (OpenClaw)</div>
+              </div>
+              <div class="node-dot"></div>
+            </div>
+            
+            <div class="node expo-node node-expo-4">
+              <div class="node-content" style="border-style: dashed;">
+                <div style="font-size: 1.6rem;">❓</div>
+                <div class="node-year">2026</div>
+                <div class="node-title">自主代理</div>
+              </div>
+              <div class="node-dot"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="conclusion">
+          工業演進是「線性」的改善，<br>AI 革命是<span>「指數」</span>的躍遷。
+        </div>
+      </div>
+      
+    </div>
+
+    <!-- Footer -->
+    <div class="slide-footer">
+      <span>Facilitation Control Innovation</span>
+      <span>Gary Tzeng 2026</span>
+    </div>
+  </div>
+
+  <script>
+    // GSAP Animations
+    document.addEventListener("DOMContentLoaded", () => {
+      const tl = gsap.timeline();
+
+      gsap.set("#line-linear", { scaleX: 0 });
+      gsap.set(".linear-node", { y: 20, opacity: 0 });
+      gsap.set(".expo-node", { y: 20, opacity: 0 });
+      
+      tl.to("#line-linear", { scaleX: 1, duration: 1.5, ease: "power2.inOut" }, 0.5)
+        .to(".linear-node", { y: 0, opacity: 1, duration: 0.6, stagger: 0.2, ease: "back.out(1.5)" }, 0.8)
+        .addPause() // 暫停，等待點擊才繼續播放 AI 革命曲線
+        .to("#line-expo", { strokeDashoffset: 0, duration: 1.5, ease: "power3.in" })
+        .to(".expo-node", { y: 0, opacity: 1, duration: 0.6, stagger: 0.2, ease: "back.out(1.5)" }, "-=1.3")
+        .to(".conclusion", { x: 0, opacity: 1, duration: 0.8, ease: "power2.out" }, "+=0.2");
+
+      // 點擊滑鼠或按鍵盤繼續動畫
+      document.body.addEventListener("click", () => {
+        if (tl.paused()) tl.play();
+      });
+      document.body.addEventListener("keydown", (e) => {
+        if (tl.paused() && (e.key === "ArrowRight" || e.key === " " || e.key === "Enter")) tl.play();
+      });
+    });
+  </script>
+</body>
+</html>

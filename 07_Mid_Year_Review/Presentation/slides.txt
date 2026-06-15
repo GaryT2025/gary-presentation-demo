@@ -1,0 +1,28 @@
+581: <div id="btn-prev" class="nav-btn" onclick="prevSlide()" style="display: flex;">❮</div>
+582: <div id="btn-next" class="nav-btn" onclick="nextSlide()" style="display: none;">❯</div>
+585: <div id="runner" style="transform: translateX(0);"><!-- P01: Cover -->
+600: <!-- P03: Agenda -->
+639: <!-- P04: Phase 01 Divider -->
+646: <!-- P05: Pain Point -->
+660: <div class="bento-card" style="background: var(--white); justify-content: center; align-items: cente
+682: <!-- P05: Timeline Comparison -->
+809: <!-- P02: Formula -->
+845: <!-- P07: Demo -->
+887: <!-- P08: Phase 02 Divider -->
+894: <!-- P09: My Day -->
+938: <!-- P10: DD Training Center -->
+999: <!-- P11: 3 Employees -->
+1056: <!-- P12: Phase 03 Divider -->
+1063: <!-- P13: Data is New Oil -->
+1103: <!-- P14: Ford Case -->
+1151: <!-- P15: Competitor Definition -->
+1165: <div class="bento-card" style="background: var(--gray-200); justify-content: center; align-items: ce
+1186: <!-- P16: VLMS -->
+1227: <!-- P17: Elevator Story (Alchemy) -->
+1279: <!-- P18: Maturity & Ecosystem -->
+1448: <!-- P19: Moat -->
+1499: <!-- P20: Epilogue 1-3 -->
+1542: <!-- P21: 21% Warning -->
+1574: <!-- P22: Amplifier -->
+1609: <!-- P23: Ending -->
+1635: const totalSlides = 23;

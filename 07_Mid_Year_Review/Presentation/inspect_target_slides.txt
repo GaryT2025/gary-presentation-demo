@@ -1,0 +1,268 @@
+=== P18 CONTENT ===
+<!-- P18: VLMS Core Vision -->
+    <div class="slide">
+      <div class="slide-header">
+        <img src="../素材/Fluids Control橫式2去背@4x.png" alt="Logo" class="logo">
+        <div class="section-label">第三篇：價值篇</div>
+        <div class="counter">18 / 26</div>
+      </div>
+
+      <div class="slide-titlebar">
+        <h2>進入客戶的「決策循環」: VLMS 核心戰略</h2>
+      </div>
+
+      <div class="slide-content">
+        <div class="bento-grid" style="grid-template-columns: 1.2fr 1.8fr; gap: 1.5rem; flex: 1;">
+          
+          <!-- Left Bento Card: Visual representation or Image -->
+          <div class="bento-card" style="align-items: center; justify-content: center; padding: 2rem; background: var(--white); border-color: var(--gray-200);">
+            <img src="../../02_Presentation/VLMS infra and furture plan/assets/hero_clean.png" alt="Decision Cycle" style="max-width: 100%; max-height: 80%; object-fit: contain; border-radius: var(--radius-md); box-shadow: var(--shadow-sm);">
+            <div style="margin-top: 1.5rem; font-size: 1.2rem; font-weight: 800; color: var(--primary-dark); text-align: center;">數據驅動的決策引擎</div>
+          </div>
+
+          <!-- Right Bento Card: 3 key points -->
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div class="bento-card" style="flex: 1; border-left: 5px solid var(--accent-blue); padding: 1.2rem 1.5rem;">
+              <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem; color: var(--accent-blue);">❶ 定義 (Decision Cycle)</h3>
+              <p style="font-size: 0.95rem; color: var(--text);">客戶在資產管理中的關鍵節點 —— <strong>年度預算撥付、大修計畫安排、緊急採購決策</strong>。</p>
+            </div>
+            
+            <div class="bento-card" style="flex: 1; border-left: 5px solid var(--primary); padding: 1.2rem 1.5rem;">
+              <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem; color: var(--primary);">❷ 戰略轉型 (Digital Advisor)</h3>
+              <p style="font-size: 0.95rem; color: var(--text);">從「被動救火隊」轉型為<strong>「數位參謀」</strong>。當客戶的決策基準依賴於 VLMS 的健康報告時，我們便建立了極高的商業黏性（Habit Wall）。</p>
+            </div>
+
+            <div class="bento-card" style="flex: 1; border-left: 5px solid var(--neon); background: var(--primary-light); padding: 1.2rem 1.5rem;">
+              <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem; color: var(--primary-dark);">❸ 終極目標 (Trust Bridge)</h3>
+              <p style="font-size: 0.95rem; color: var(--text); font-weight: 600;">讓數據成為 FCI 與客戶之間，最堅實的<strong>信任橋樑</strong>。</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Facilitation Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+    </div>
+
+    
+
+=== P21 CONTENT ===
+<!-- P18: Maturity & Ecosystem -->
+    <div class="slide">
+
+      <div class="slide-header">
+        <img src="../素材/Fluids Control橫式2去背@4x.png" alt="Logo" class="logo">
+        <div class="section-label">第三篇：價值篇</div>
+        <div class="counter">21 / 26</div>
+      </div>
+
+      <div class="slide-titlebar">
+        <h2>從「壞了才修」到「AI 主動指揮」</h2>
+      </div>
+      <div class="slide-content">
+        <div class="bento-grid" style="grid-template-columns: 1fr 1.1fr; gap: 1.5rem;">
+
+          <!-- Left: Maturity Levels — progress bar design -->
+          <div class="bento-card" style="padding: 1.5rem;">
+            <h3 style="border-bottom: 2px solid var(--primary-light); padding-bottom: 0.5rem; margin-bottom: 1.2rem;">維護成熟度 Level 1–4</h3>
+            <div style="display: flex; flex-direction: column; gap: 0.65rem; flex: 1;">
+
+              <!-- Level 1 -->
+              <div style="position: relative; border-radius: var(--radius-sm); overflow: hidden; border: 1.5px solid var(--gray-200); flex: 1;">
+                <div style="position: absolute; inset: 0; width: 25%; background: var(--gray-100);"></div>
+                <div style="position: relative; display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0.8rem; height: 100%;">
+                  <div style="width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: 900; color: var(--text-muted); border: 2px solid var(--gray-300); font-size: 0.9rem; background: white;">1</div>
+                  <div>
+                    <div style="font-weight: 800; font-size: 0.95rem;">壞了才修 <span style="color: var(--text-muted); font-size: 0.78rem; margin-left: 0.3rem;">Run to Failure</span></div>
+                    <div style="font-size: 0.78rem; color: var(--text-muted);">反應式維護 (Reactive)</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Level 2 -->
+              <div style="position: relative; border-radius: var(--radius-sm); overflow: hidden; border: 1.5px solid var(--gray-200); flex: 1;">
+                <div style="position: absolute; inset: 0; width: 50%; background: var(--gray-50);"></div>
+                <div style="position: relative; display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0.8rem; height: 100%;">
+                  <div style="width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: 900; color: var(--text-muted); border: 2px solid var(--gray-200); font-size: 0.9rem; background: white;">2</div>
+                  <div>
+                    <div style="font-weight: 800; font-size: 0.95rem;">定期大修 <span style="color: var(--text-muted); font-size: 0.78rem; margin-left: 0.3rem;">Overhaul</span></div>
+                    <div style="font-size: 0.78rem; color: var(--text-muted);">預防式維護 (Preventive)</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Level 3 (中期目標) -->
+              <div style="position: relative; border-radius: var(--radius-sm); overflow: hidden; border: 1.5px solid var(--primary); flex: 1;">
+                <div style="position: absolute; inset: 0; width: 75%; background: var(--primary-light);"></div>
+                <div style="position: relative; display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0.8rem; height: 100%;">
+                  <div style="width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: 900; color: var(--primary); border: 2px solid var(--primary); font-size: 0.9rem; background: var(--primary-light);">3</div>
+                  <div>
+                    <div style="font-weight: 800; font-size: 0.95rem; color: var(--text);">趨勢預警 <span style="color: var(--text-muted); font-size: 0.78rem; margin-left: 0.3rem;">Predictive</span></div>
+                    <div style="font-size: 0.78rem; color: var(--text-muted);">中期目標 (Intelligence)</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Level 4 (長期目標) -->
+              <div style="position: relative; border-radius: var(--radius-sm); overflow: hidden; border: 1.5px solid var(--neon); box-shadow: 0 0 10px rgba(6,214,173,0.2); flex: 1;">
+                <div style="position: absolute; inset: 0; width: 100%; background: rgba(6,214,173,0.08);"></div>
+                <div style="position: relative; display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0.8rem; height: 100%;">
+                  <div style="width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: 900; color: var(--dark-bg); background: var(--neon); font-size: 0.9rem; box-shadow: 0 0 8px rgba(6,214,173,0.4);">4</div>
+                  <div>
+                    <div style="font-weight: 800; font-size: 0.95rem; color: var(--text);">AI 主動指揮 <span style="color: var(--text-muted); font-size: 0.78rem; margin-left: 0.3rem;">Proactive</span></div>
+                    <div style="font-size: 0.78rem; color: var(--text-muted);">長期目標 (Agentic)</div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Right: Ecosystem Dual Ring -->
+          <div class="bento-card" style="align-items: center; justify-content: center; padding: 0.5rem 0.8rem 0.8rem;">
+            <h3 style="margin-bottom: 0.3rem; color: var(--primary-dark); text-align: center; font-size: 0.9rem;">生態系閉環</h3>
+
+            <div style="position: relative; width: min(100%, 450px); max-height: calc(100vh - 280px); aspect-ratio: 1; margin: 0 auto;">
+
+              <svg style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" viewBox="0 0 260 260">
+                <defs>
+                  <!-- Inner ring arrow -->
+                  <marker id="arr-in" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                    <polygon points="0 0,6 3,0 6" fill="#009D88"/>
+                  </marker>
+                  <!-- Outer: Service→VLMS (blue) -->
+                  <marker id="arr-svc" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                    <polygon points="0 0,6 3,0 6" fill="#2F8CCC"/>
+                  </marker>
+                  <!-- Outer: VLMS→Sales (green) -->
+                  <marker id="arr-vlms" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                    <polygon points="0 0,6 3,0 6" fill="#009D88"/>
+                  </marker>
+                  <!-- Outer: Sales→Service (amber) -->
+                  <marker id="arr-sales" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                    <polygon points="0 0,6 3,0 6" fill="#c89200"/>
+                  </marker>
+                </defs>
+
+                <!-- Background rings -->
+                <circle cx="130" cy="130" r="60" fill="none" stroke="#E5F5F3" stroke-width="10"/>
+                <circle cx="130" cy="130" r="100" fill="none" stroke="#F4F4F4" stroke-width="10"/>
+
+                <!-- Inner arcs (radius 60, VLMS green) -->
+                <path d="M 151 74 A 60 60 0 0 1 183 102" stroke="#009D88" stroke-width="2" fill="none" marker-end="url(#arr-in)"/>
+                <path d="M 190 128 A 60 60 0 0 1 173 172" stroke="#c89200" stroke-width="2" fill="none" marker-end="url(#arr-sales)"/>
+                <path d="M 158 183 A 60 60 0 0 1 102 183" stroke="#c89200" stroke-width="2" fill="none" marker-end="url(#arr-sales)"/>
+                <path d="M 88 173 A 60 60 0 0 1 71 120" stroke="#2F8CCC" stroke-width="2" fill="none" marker-end="url(#arr-svc)"/>
+                <path d="M 77 102 A 60 60 0 0 1 113 72" stroke="#2F8CCC" stroke-width="2" fill="none" marker-end="url(#arr-svc)"/>
+
+                <!-- Outer arcs (radius 100, colored) -->
+                <!-- Service(150°)→VLMS(270°): 165°→255° blue -->
+                <path d="M 33 156 A 100 100 0 0 1 104 33" stroke="#2F8CCC" stroke-width="2.5" fill="none" marker-end="url(#arr-svc)"/>
+                <!-- VLMS(270°)→Sales(30°): 285°→15° green -->
+                <path d="M 156 33 A 100 100 0 0 1 227 156" stroke="#009D88" stroke-width="2.5" fill="none" marker-end="url(#arr-vlms)"/>
+                <!-- Sales(30°)→Service(150°): 45°→135° amber -->
+                <path d="M 201 201 A 100 100 0 0 1 59 201" stroke="#c89200" stroke-width="2.5" fill="none" marker-end="url(#arr-sales)"/>
+              </svg>
+
+              <!-- ── INNER NODES ── -->
+              <!-- N1: AI 分析數據 (VLMS green) top, r=60 -->
+              <div style="position:absolute;top:26.9%;left:50%;transform:translate(-50%,-50%);background:#E5F5F3;border:2px solid #009D88;border-radius:6px;padding:3px 7px;white-space:nowrap;z-index:2;">
+                <div style="font-size:0.78rem;font-weight:900;color:#007A6A;">AI 分析數據</div>
+              </div>
+              <!-- N2: 建議採購清單 (VLMS green) top-right -->
+              <div style="position:absolute;top:42.7%;left:71.9%;transform:translate(-50%,-50%);background:#E5F5F3;border:2px solid #009D88;border-radius:6px;padding:3px 7px;white-space:nowrap;z-index:2;">
+                <div style="font-size:0.78rem;font-weight:900;color:#007A6A;">建議採購清單</div>
+              </div>
+              <!-- N3: 帶動設備銷售 (Sales amber) bottom-right -->
+              <div style="position:absolute;top:68.8%;left:63.5%;transform:translate(-50%,-50%);background:#FEF3CD;border:2px solid #F7B012;border-radius:6px;padding:3px 7px;white-space:nowrap;z-index:2;">
+                <div style="font-size:0.78rem;font-weight:900;color:#b08200;">帶動設備銷售</div>
+              </div>
+              <!-- N4: 維修服務 (Service blue) bottom-left -->
+              <div style="position:absolute;top:68.8%;left:36.5%;transform:translate(-50%,-50%);background:#E8F4FD;border:2px solid #2F8CCC;border-radius:6px;padding:3px 7px;white-space:nowrap;z-index:2;">
+                <div style="font-size:0.78rem;font-weight:900;color:#1a6ea0;">維修服務</div>
+              </div>
+              <!-- N5: 維修數據 (Service blue) top-left -->
+              <div style="position:absolute;top:42.7%;left:28.1%;transform:translate(-50%,-50%);background:#E8F4FD;border:2px solid #2F8CCC;border-radius:6px;padding:3px 7px;white-space:nowrap;z-index:2;">
+                <div style="font-size:0.78rem;font-weight:900;color:#1a6ea0;">維修數據</div>
+              </div>
+
+              <!-- ── OUTER NODES ── -->
+              <!-- VLMS: top (270°) green -->
+              <div style="position:absolute;top:11.5%;left:50%;transform:translate(-50%,-50%);background:#009D88;border-radius:8px;padding:6px 14px;white-space:nowrap;z-index:3;">
+                <div style="font-size:1rem;font-weight:900;color:white;">VLMS</div>
+              </div>
+              <!-- Sales: bottom-right (30°) amber -->
+              <div style="position:absolute;top:69.2%;left:83.5%;transform:translate(-50%,-50%);background:#F7B012;border-radius:8px;padding:6px 14px;white-space:nowrap;z-index:3;">
+                <div style="font-size:1rem;font-weight:900;color:#3E3A39;">Sales</div>
+              </div>
+              <!-- Service: bottom-left (150°) blue -->
+              <div style="position:absolute;top:69.2%;left:16.5%;transform:translate(-50%,-50%);background:#2F8CCC;border-radius:8px;padding:6px 14px;white-space:nowrap;z-index:3;">
+                <div style="font-size:1rem;font-weight:900;color:white;">Service</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bento-highlight" style="margin-top: 1.2rem; font-size: 1.3rem; font-weight: 900; background: linear-gradient(90deg, var(--primary), var(--primary-dark)); color: white; padding: 1rem; border-radius: var(--radius-md); text-align: center;">
+          AI 越來越準，客戶越用越離不開
+        </div>
+      </div>
+
+
+      <div class="slide-footer">
+        <span>Facilitation Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+
+    </div>
+
+    
+
+=== P23 CONTENT ===
+<!-- P20: Epilogue 1-3 -->
+    <div class="slide">
+
+      <div class="slide-header">
+        <img src="../素材/Fluids Control橫式2去背@4x.png" alt="Logo" class="logo">
+        <div class="section-label">結語</div>
+        <div class="counter">23 / 26</div>
+      </div>
+
+      <div class="slide-titlebar">
+        <h2 style="font-size: 1.8rem;">AI 時代的三個核心觀點</h2>
+      </div>
+      <div class="slide-content" style="padding: 1rem 4rem; justify-content: center; gap: 1rem;">
+        <div class="bento-grid" style="grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+          <div class="bento-card" style="padding: 1.2rem;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔴</div>
+            <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem;">這是生存問題</h3>
+            <p style="font-size: 1rem;">少子化嚴重，AI 不是選配，是缺工時代維持運作的唯一出路。</p>
+          </div>
+          <div class="bento-card" style="padding: 1.2rem;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
+            <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem;">1:99 法則</h3>
+            <p style="font-size: 1rem;">掌握 AI 的 1% 企業，會拿走市場 99% 的利潤與機會。你想站在哪邊？</p>
+          </div>
+          <div class="bento-card" style="padding: 1.2rem;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🦾</div>
+            <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem;">AI 是戰甲</h3>
+            <p style="font-size: 1rem;">AI 強化你的專業判斷力，就像穿上戰甲——讓你更強，不是把你換掉。</p>
+          </div>
+        </div>
+        <div style="text-align: right; color: var(--text-muted); font-size: 0.9rem; font-style: italic;">
+          — 參考自 簡立峰《台灣 AI 大未來》
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Facilitation Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+
+    </div>
+
+
+    

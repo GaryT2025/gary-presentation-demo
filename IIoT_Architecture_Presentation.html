@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="utf-8">
+    <title>工業物聯網架構深潛 | IIoT Architecture</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00f2fe;
+            --secondary: #4facfe;
+            --accent: #ff0844;
+            --accent-glow: rgba(255, 8, 68, 0.5);
+            --bg-gradient: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.15);
+        }
+
+        body {
+            background: var(--bg-gradient);
+            font-family: 'Outfit', 'Noto Sans TC', sans-serif;
+            color: #ffffff;
+            margin: 0;
+            overflow: hidden;
+        }
+        
+        .bg-animation {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 15% 50%, rgba(79, 172, 254, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(255, 8, 68, 0.1), transparent 25%);
+            animation: pulseBg 10s infinite alternate;
+        }
+
+        @keyframes pulseBg {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        .reveal { font-family: 'Outfit', 'Noto Sans TC', sans-serif; }
+        .reveal h1, .reveal h2, .reveal h3, .reveal h4, .reveal h5, .reveal h6 {
+            font-family: 'Outfit', 'Noto Sans TC', sans-serif;
+            text-transform: none;
+            font-weight: 700;
+        }
+
+        .reveal h2 {
+            font-size: 2.8em;
+            background: -webkit-linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0px 10px 20px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+        }
+
+        .reveal h3 {
+            font-size: 2.2em;
+            color: #e2e8f0;
+            border-bottom: 3px solid var(--secondary);
+            display: inline-block;
+            padding-bottom: 10px;
+            margin-bottom: 40px;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-align: left;
+            height: 100%;
+            box-sizing: border-box;
+        }
+        
+        .split-layout {
+            display: grid;
+            grid-template-columns: 35% 60%;
+            gap: 5%;
+            align-items: stretch;
+        }
+
+        .graphic-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            flex-direction: column;
+            background: rgba(0,0,0,0.2);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 30px;
+        }
+
+        .graphic-icon {
+            font-size: 6rem;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 20px rgba(79, 172, 254, 0.5));
+        }
+
+        .reveal ul { list-style: none; padding: 0; margin: 0; }
+        .reveal li {
+            font-size: 1.4em;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            position: relative;
+            padding-left: 35px;
+            color: #e2e8f0;
+        }
+        .reveal li::before {
+            content: "✦";
+            color: var(--primary);
+            position: absolute;
+            left: 0;
+            top: 2px;
+            font-size: 1.2em;
+        }
+
+        .highlight-badge {
+            display: inline-block;
+            background: linear-gradient(90deg, var(--accent), #ff4b2b);
+            padding: 6px 18px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 700;
+            color: white;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .detail-text {
+            display: block;
+            font-size: 1.1em;
+            color: #94a3b8;
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+
+        .flow-diagram-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+        }
+        .flow-box {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            border: 1px solid var(--secondary);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            flex: 1;
+            margin: 0 10px;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        .flow-arrow {
+            color: var(--primary);
+            font-size: 2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- 1. Title -->
+            <section>
+                <div class="graphic-icon" style="font-size: 5rem; margin-bottom: 10px;">🏭 ⚡ ☁️</div>
+                <h2>工業物聯網架構深潛</h2>
+                <h4 style="color: #94a3b8; font-weight: 300; font-size: 1.5em; margin-bottom: 40px;">Edge-to-Cloud 現代化監控體系</h4>
+                <div class="glass-card" style="display: inline-block; padding: 20px 50px; text-align: center;">
+                    <span style="font-size: 1.2em; color: var(--primary); font-weight: 600; letter-spacing: 2px;">
+                        OPC UA ➔ MQTT ➔ InfluxDB ➔ Grafana
+                    </span>
+                </div>
+            </section>
+
+            <!-- 2. Pain Points -->
+            <section>
+                <h3>1. 傳統機台連線的痛點</h3>
+                <div class="split-layout">
+                    <div class="graphic-container">
+                        <div class="graphic-icon">💥</div>
+                        <h4 style="color: #ff79c6; margin: 0; font-size: 1.5em;">孤島與瓶頸</h4>
+                    </div>
+                    <div class="glass-card">
+                        <ul>
+                            <li><span class="highlight-badge">資料孤島</span><span class="detail-text">各廠牌 PLC (Beckhoff, Siemens) 協定不通，廠內難以橫向整合，資料難以上雲。</span></li>
+                            <li><span class="highlight-badge">資安開洞</span><span class="detail-text">傳統架構要求 IT 防火牆「雙向開洞」讓外部讀取機台，造成嚴重資安漏洞，被駭客入侵風險極高。</span></li>
+                            <li><span class="highlight-badge">資料庫崩潰</span><span class="detail-text">工業感測器資料量龐大，寫入傳統 SQL (關聯式資料庫) 容易導致索引碎片化與效能卡死。</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. UNS Blueprint -->
+            <section>
+                <h3>2. UNS 核心架構全貌 (Unified Namespace)</h3>
+                <div class="glass-card" style="padding: 40px;">
+                    <p style="font-size: 1.2em; color: #cbd5e1; text-align: center;">從現場萃取數據，經過剝殼輕量化，單向推播至雲端進行大數據觀測。</p>
+                    <div class="flow-diagram-container">
+                        <div class="flow-box">
+                            <div style="font-size: 2.5em; margin-bottom: 10px;">🏭</div>
+                            現場設備<br><span style="font-size:0.8em;color:var(--secondary)">OPC UA Server</span>
+                        </div>
+                        <div class="flow-arrow">➔</div>
+                        <div class="flow-box">
+                            <div style="font-size: 2.5em; margin-bottom: 10px;">🖥️</div>
+                            邊緣擷取<br><span style="font-size:0.8em;color:var(--secondary)">Node-RED (Client)</span>
+                        </div>
+                        <div class="flow-arrow">➔</div>
+                        <div class="flow-box">
+                            <div style="font-size: 2.5em; margin-bottom: 10px;">📬</div>
+                            雲端傳輸<br><span style="font-size:0.8em;color:var(--secondary)">MQTT Broker</span>
+                        </div>
+                        <div class="flow-arrow">➔</div>
+                        <div class="flow-box">
+                            <div style="font-size: 2.5em; margin-bottom: 10px;">📈</div>
+                            儲存展示<br><span style="font-size:0.8em;color:var(--secondary)">InfluxDB + Grafana</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. OT Source -->
+            <section>
+                <h3>3. 第一層：現場設備 (OT Source)</h3>
+                <div class="split-layout">
+                    <div class="graphic-container">
+                        <div class="graphic-icon">⚙️</div>
+                        <h4 style="color: var(--primary); margin: 0; font-size: 1.5em;">OPC UA Server</h4>
+                    </div>
+                    <div class="glass-card">
+                        <ul>
+                            <li><span class="highlight-badge">工業標準通訊</span> 
+                                <span class="detail-text">OPC UA 已經是 OT 領域的主流通訊協定，打破了以往各家硬體廠商各自為政的封閉通訊。</span>
+                            </li>
+                            <li><span class="highlight-badge">單一對外端口</span> 
+                                <span class="detail-text">機台 (如 Beckhoff PLC) 扮演 Server。即使機台下接了 4 個 Channel 感測裝置，對外也只需要開放單一個 OPC UA IP 連線。擷取端透過訂閱精確的 <code>Node ID</code> 來獲取指定通道數據。</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. OPC UA Pros Cons -->
+            <section>
+                <h3>4. OPC UA 的雙面刃</h3>
+                <div class="split-layout">
+                    <div class="graphic-container">
+                        <div class="graphic-icon">⚖️</div>
+                        <h4 style="color: #cbd5e1; margin: 0; font-size: 1.5em;">優勢 vs 包袱</h4>
+                    </div>
+                    <div class="glass-card">
+                        <ul>
+                            <li><span class="highlight-badge" style="background: linear-gradient(90deg, #10b981, #059669);">優點：絕對嚴謹的結構</span> 
+                                <span class="detail-text">不僅傳輸數值，還夾帶了豐富的屬性 (資料型別、單位、時間戳記、品質標籤)，這保證了廠內溝通的一致性，不會有數值定義不清的問題。</span>
+                            </li>
+                            <li><span class="highlight-badge" style="background: linear-gradient(90deg, #ef4444, #dc2626);">缺點：厚重難上雲</span> 
+                                <span class="detail-text">龐大的封包極度消耗網路頻寬。更致命的是，傳統 Server/Client 模式需要外網主動連入 (雙向連線)，完全無法直接穿越現代嚴密的企業防火牆。</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6. OPC UA Pitfalls -->
+            <section>
+                <h3>5. OPC UA 實務踩坑點</h3>
+                <div class="split-layout">
+                    <div class="graphic-container">
+                        <div class="graphic-icon">🛡️</div>
+                        <h4 style="color: #fbbf24; margin: 0; font-size: 1.5em;">連線地雷</h4>
+                    </div>
+                    <div class="glass-card">
+                        <ul>
+                            <li><span class="highlight-badge">X.509 憑證交換</span> 
+                                <span class="detail-text">安全連線的第一道門檻。Client (Node-RED) 與 Server (PLC) 必須互相信任彼此的 X.509 憑證，未授權的設備絕對連不上，也是最常連線失敗的原因。</span>
+                            </li>
+                            <li><span class="highlight-badge">時間戳記之謎 (Timestamp)</span> 
+                                <span class="detail-text">必須嚴格區分 <code>Source Timestamp</code> (感測器產生數據的時間) 與 <code>Server Timestamp</code> (PLC 內部收到的時間)。務必確保 NTP 時鐘同步，否則寫入時序庫會造成報表錯亂。</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 7. Edge Layer -->
+            <section>
+                <h3>6. 第二層：邊緣擷取層 (Edge 中樞)</h3>
+                <div class="split-layout">
+                    <div class="graphic-container">
+                        <div class="graphic-icon">🧠</div>
+                        <h4 style="color: var(--primary); margin: 0; font-size: 1.5em;">資料洗石機</h4>
+                    </div>
+                    <div class="glass-card">
+                        <ul>
+                            <li><span class="highlight-badge">資料剝殼 (Payload 瘦身)</span> 
+                                <span class="detail-text">邊緣電腦負責將 OPC UA 龐雜的肥大封包剝開，拋棄不必要的 metadata，只萃取出核心的物理數值。</span>
+                            </li>
+                            <li><span class="highlight-badge">轉譯 JSON</span> 
+                                <span class="detail-text">將厚重資料轉換成輕薄短小的標準 Web 格式：<br><code style="background:rgba(0,0,0,0.3);padding:5px;border-radius:4px;">{"machine":"M1", "temp": 25.4, "time": "14:00"}</code></span>
+                            </li>
+                            <li><span class="highlight-badge">協議轉換橋樑</span> 
+                                <span class="detail-text">做為 OPC UA 的 Client (向內抓取) 同時扮演 MQTT 的 Publisher (向外發布)，完美隔離 OT 與 IT 網路。</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 8. Edge Logic -->
+            <section>
+                <h3>7. 邊緣運算：邏輯分流實戰</h3>
+                <div class="split-layout">
+                    <div class="graphic-container">
+                        <div class="graphic-icon">🔀</div>
+                        <h4 style="color: #60a5fa; margin: 0; font-size: 1.5em;">Node-RED 首選</h4>
+                    </div>
+                    <div class="glass-card">
+                        <ul>
+                            <li><span class="highlight-badge">為何首選 Node-RED？</span> 
+                                <span class="detail-text">比起純粹搬運資料的 Telegraf，Node-RED 的強項在於它是「邏輯中樞」，它具備 Low-code 視覺化介面，讓工程師能輕易刻畫商業邏輯。</span>
+                            </li>
+                            <li><span class="highlight-badge">異常觸發自動化 (Ragic API)</span> 
+                                <span class="detail-text">資料正常打上雲端的同時，Node-RED 可並行判斷 <code>數值 > 80度</code>。一旦超標，便即時觸發 HTTP Request，打 API 到 <b>Ragic</b> 自動建立一張「機台異常保修單」。</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 9. Transport MQTT -->
+            <section>
+                <h3>8. 第三層：雲端傳輸 MQTT</h3>
+                <div class="split-layout">
+                    <div class="graphic-container">
+                        <div class="graphic-icon">📡</div>
+                        <h4 style="color: #a78bfa; margin: 0; font-size: 1.5em;">Pub/Sub 解耦</h4>
+                    </div>
+                    <div class="glass-card">
+                        <ul>
+                            <li><span class="highlight-badge">廣播頻道概念</span> 
+                                <span class="detail-text">發布者與訂閱者互不相識。Edge 發布資料到特定 Topic，不管誰在聽；Grafana / DB 訂閱 Topic，不管誰在發。系統新增節點時不需修改舊有架構。</span>
+                            </li>
+                            <li><span class="highlight-badge">主動推播 (Push)</span> 
+                                <span class="detail-text">徹底淘汰傳統效率低落的「輪詢 (Polling)」。只要機台數值一有變化，MQTT 立即主動推播給所有訂閱者，達到毫秒級的極致低延遲。</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 10. MQTT Security -->
+            <section>
+                <h3>9. MQTT 的資安與效能絕對優勢</h3>
+                <div class="split-layout">
+                    <div class="graphic-container">
+                        <div class="graphic-icon">🧱</div>
+                        <h4 style="color: #34d399; margin: 0; font-size: 1.5em;">防火牆穿透</h4>
+                    </div>
+                    <div class="glass-card">
+                        <ul>
+                            <li><span class="highlight-badge">單向對外 (資安防護罩)</span> 
+                                <span class="detail-text">廠內設備只需對外 (通常是 Port 8883) 建立「單向 TCP 連線」推播數據。IT 防火牆<b>完全不需要開放外部連入廠內</b>，徹底解決傳統工廠資安抗性。</span>
+                            </li>
+                            <li><span class="highlight-badge">極度省頻寬</span> 
+                                <span class="detail-text">MQTT 的控制封包 Header 最小僅 2 bytes，專為不穩定、低頻寬的 IoT 網路設計。傳輸 JSON 的負載極輕，有效控制網路流量成本。</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 11. Broker On-Prem -->
+            <section>
+                <h3>10. MQTT Broker 選擇指南 (地端篇)</h3>
+                <div class="split-layout">
+                    <div class="graphic-container">
+                        <div class="graphic-icon">🖥️</div>
+                        <h4 style="color: var(--secondary); margin: 0; font-size: 1.5em;">資料不出廠</h4>
+                    </div>
+                    <div class="glass-card">
+                        <ul>
+                            <li><span class="highlight-badge">Mosquitto (最經典開源)</span> 
+                                <span class="detail-text">全世界最普及的輕量級 Broker。透過 Docker <code>docker run -p 1883:1883</code> 一秒架設完成，免憑證煩惱，適合嚴格限制外網的封閉廠區。</span>
+                            </li>
+                            <li><span class="highlight-badge">EMQX (企業級開源)</span> 
+                                <span class="detail-text">專為現代高併發設計，一樣可 Docker 部署，內建極度華麗的 Web 儀表板，可讓網管人員直接在瀏覽器監控百萬級設備的連線狀態與網路吞吐量。</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 12. Broker Cloud -->
+            <section>
+                <h3>11. MQTT Broker 選擇指南 (雲端篇)</h3>
+                <div class="split-layout">
+                    <div class="graphic-container">
+                        <div class="graphic-icon">☁️</div>
+                        <h4 style="color: #60a5fa; margin: 0; font-size: 1.5em;">公有雲擴充</h4>
+                    </div>
+                    <div class="glass-card">
+                        <ul>
+                            <li><span class="highlight-badge">AWS IoT Core / Azure</span> 
+                                <span class="detail-text">無縫銜接雲端大數據與機器學習 (ML) 算力。資安極其嚴格，必須在 Node-RED 匯入完整的 X.509 憑證套件 (憑證, 私鑰, Root CA) 並透過 MQTTS 通訊。</span>
+                            </li>
+                            <li><span class="highlight-badge">HiveMQ Cloud (BaaS)</span> 
+                                <span class="detail-text">免養伺服器、不用搞懂 AWS IAM 權限。註冊即用專屬 URL 與帳密連線，極度適合新創專案或概念驗證 (POC)，做到零 IT 包袱。</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 13. TSDB Database -->
+            <section>
+                <h3>12. 第四層：儲存層 (Consume - DB)</h3>
+                <div class="split-layout">
+                    <div class="graphic-container">
+                        <div class="graphic-icon">🗄️</div>
+                        <h4 style="color: #f472b6; margin: 0; font-size: 1.5em;">為何選 InfluxDB</h4>
+                    </div>
+                    <div class="glass-card">
+                        <ul>
+                            <li><span class="highlight-badge">拒絕關聯式 SQL</span> 
+                                <span class="detail-text">機台溫度、壓力數據是「只新增、不修改、頻率極高」的資料流。若用 MySQL 處理每秒寫入，很快就會發生硬碟 IO 瓶頸與索引崩潰。</span>
+                            </li>
+                            <li><span class="highlight-badge">TSDB 寫入極限</span> 
+                                <span class="detail-text">InfluxDB (時序資料庫) 專為 Timestamp + Value 結構深度優化，支援每秒數萬筆的超高速寫入，並提供專門針對時間範圍的聚合查詢語法。</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 14. Retention Policy -->
+            <section>
+                <h3>13. InfluxDB 資料保留策略 (RP)</h3>
+                <div class="split-layout">
+                    <div class="graphic-container">
+                        <div class="graphic-icon">🗜️</div>
+                        <h4 style="color: #fbbf24; margin: 0; font-size: 1.5em;">自動降維壓縮</h4>
+                    </div>
+                    <div class="glass-card">
+                        <ul>
+                            <li><span class="highlight-badge">硬碟防爆機制</span> 
+                                <span class="detail-text">若 24 小時永久保留所有機台的每秒原始數據，昂貴的 SSD 儲存空間將在幾個月內耗盡。InfluxDB 內建了優雅的 Retention Policy。</span>
+                            </li>
+                            <li><span class="highlight-badge">實務作法 (Downsampling)</span> 
+                                <span class="detail-text">設定 RP：讓「秒級原始高頻資料」自動銷毀，只保留 7 天。<br>搭配 Continuous Query 在背景自動將資料壓縮成「每小時平均值 / 最大值」，這些壓縮後的報表資料則永久保留做為歷史趨勢分析。</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 15. Grafana Viz -->
+            <section>
+                <h3>14. 第五層：視覺化與警報 (Consume - Viz)</h3>
+                <div class="split-layout">
+                    <div class="graphic-container">
+                        <div class="graphic-icon">📊</div>
+                        <h4 style="color: var(--primary); margin: 0; font-size: 1.5em;">實時戰情室</h4>
+                    </div>
+                    <div class="glass-card">
+                        <ul>
+                            <li><span class="highlight-badge">與 Power BI 的定位差異</span> 
+                                <span class="detail-text">Ragic 搭配 Power BI 是看「歷史營運報表」。InfluxDB 搭配 Grafana 則是看「實時機台心跳與毫秒波動」。Grafana 不存資料，專注於高速渲染波形圖。</span>
+                            </li>
+                            <li><span class="highlight-badge">強大的警報引擎 (Alerting)</span> 
+                                <span class="detail-text">可以設定動態的聚合閾值 (例如：過去 5 分鐘平均壓力低於 30 bar)。一旦超標，立刻透過 Webhook 將截圖與警報打到 LINE Notify 或是 Slack 群組。</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 16. Summary -->
+            <section>
+                <div class="graphic-icon" style="font-size: 6rem; margin-bottom: 20px;">🚀</div>
+                <h2 style="font-size: 2.8em; margin-bottom: 30px;">打通 OT 與 IT 的任督二脈</h2>
+                <div class="glass-card" style="margin: 0 auto; max-width: 900px; text-align: center;">
+                    <p style="font-size: 1.5em; font-weight: 600; color: #cbd5e1; margin-bottom: 20px;">
+                        「OPC UA 統治工廠內部，MQTT 統治雲端與邊緣。」
+                    </p>
+                    <p style="font-size: 1.2em; color: #94a3b8; line-height: 1.8;">
+                        透過 Edge PC 作為關鍵中樞，我們完美結合了<br>
+                        <b style="color: var(--primary);">地端的嚴謹安全</b> 與 <b style="color: var(--primary);">雲端的高效擴充</b>。<br>
+                        這是傳統工廠邁向大數據中樞 (UNS) 最優雅且標準的解法。
+                    </p>
+                </div>
+            </section>
+
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.min.js"></script>
+    <script>
+        Reveal.initialize({
+            hash: true,
+            slideNumber: 'c/t',
+            transition: 'fade',
+            backgroundTransition: 'fade',
+            controls: true,
+            progress: true,
+            center: true,
+            width: 1300,
+            height: 800,
+            margin: 0.1,
+            disableLayout: false
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+﻿    </div>
+
+    <!-- P23: Ending -->
+    <div class="slide cover-slide" id="slide-23">
+      <div class="cover-bg" style="position: absolute; inset: 0; background-image: url('../cover_building.png'); background-size: cover; background-position: center; z-index: 0;"></div>
+      <div class="cover-overlay"></div>
+      <div class="cover-content" style="text-align: center; max-width: 1200px; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%;">
+        
+        <div style="background: rgba(0,0,0,0.6); padding: 5rem 4rem; border-radius: 40px; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 30px 60px rgba(0,0,0,0.6);">
+          <h1 class="cover-title" style="font-size: clamp(2.5rem, 1.5rem + 4.5vw, 6rem); letter-spacing: 0.15em; margin-bottom: 2rem; line-height: 1.2; font-weight: 900;">
+            <span style="color: var(--white);">數位戰場 DD 鋪路</span>
+          </h1>
+          <h2 style="font-size: clamp(2rem, 1.5rem + 2vw, 3.8rem); color: var(--neon); margin-bottom: 4.5rem; font-weight: 800; letter-spacing: 0.1em; line-height: 1.5;">
+            讓數據出力 | 讓判斷成為價值
+          </h2>
+          <div class="cover-divider" style="margin: 0 auto 3.5rem; width: 300px; height: 6px; background: var(--neon); border-radius: 3px;"></div>
+          <div class="cover-reporter" style="font-size: 1.8rem; color: rgba(255,255,255,0.8); letter-spacing: 0.25em; font-weight: 600;">Gary Tzeng | FCI Digital Development</div>
+        </div>
+
+      </div>
+    </div>
+
+
+  </div>
+
+  <script>
+    // Total slides dynamically matches the 25-slide blueprint
+    const totalSlides = 23; 
+    let currentSlide = 0;
+
+    const runner = document.getElementById('runner');
+    const progressBar = document.getElementById('progress-bar');
+    
+    function updateSlide() {
+      // Move runner
+      runner.style.transform = `translateX(-${currentSlide * 100}vw)`;
+      
+      // Update progress bar
+      const progress = ((currentSlide + 1) / totalSlides) * 100;
+      progressBar.style.width = `${progress}%`;
+      
+      // Toggle nav buttons visibility based on current slide
+      const btnPrev = document.getElementById('btn-prev');
+      const btnNext = document.getElementById('btn-next');
+      
+      btnPrev.style.display = currentSlide === 0 ? 'none' : 'flex';
+      btnNext.style.display = currentSlide === totalSlides - 1 ? 'none' : 'flex';
+    }
+
+    function nextSlide() {
+      // Check for unrevealed fragments in current slide

@@ -1,0 +1,6 @@
+0: <div class="slide-header">
+1: <img src="../素材/Fluids Control橫式2去背@4x.png" alt="Logo" class="logo">
+2: <div class="section-label">引言</div>
+3: <div class="counter">06 / 23</div>
+4: </div>
+5: 

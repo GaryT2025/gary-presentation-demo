@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FCI Digital Development (DD) Operation</title>
+  <style>
+    :root {
+      --primary: #009D88; /* 深綠色，符合公司色 */
+      --primary-light: #E6F6F4;
+      --primary-dark: #007D6C;
+      --accent-blue: #06D6AD;
+      --bg: #F8FAF9;
+      --white: #FFFFFF;
+      --dark-bg: #1A1A1A;
+      --text-main: #333333;
+      --text-muted: #666666;
+      --gray-100: #F3F4F6;
+      --gray-200: #E5E7EB;
+      --gray-300: #D1D5DB;
+      --danger: #EF4444;
+      --font-main: "Microsoft JhengHei", "微軟正黑體", Calibri, sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-main);
+      background: var(--bg);
+      color: var(--text-main);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* Presentation Runner */
+    #runner {
+      display: flex;
+      transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+      height: 100vh;
+      width: 2500vw; /* 25 slides */
+    }
+
+    .slide {
+      width: 100vw;
+      height: 100vh;
+      flex-shrink: 0;
+      position: relative;
+      padding: 4rem 6rem;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+      background-image: radial-gradient(circle at 2% 2%, rgba(0, 157, 136, 0.05) 0%, transparent 40%);
+    }
+
+    /* Cover Slide Style */
+    .cover-slide {
+      background: var(--dark-bg);
+      color: white;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 0 10%;
+      overflow: hidden;
+    }
+
+    .cover-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #1a1a1a 0%, #004d40 100%);
+      opacity: 0.8;
+      z-index: 0;
+    }
+    
+    .cover-overlay {
+      position: absolute;
+      bottom: -10%;
+      right: -10%;
+      width: 60%;
+      height: 60%;
+      background: var(--primary);
+      filter: blur(150px);
+      opacity: 0.2;
+      border-radius: 50%;
+      z-index: 1;
+    }
+
+    .cover-content {
+      position: relative;
+      z-index: 2;
+      max-width: 900px;
+    }
+
+    .cover-label {
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      color: var(--primary);
+      margin-bottom: 1.5rem;
+      text-transform: uppercase;
+    }
+
+    .cover-title {
+      font-size: 5rem;
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+    }
+
+    .cover-subtitle {
+      font-size: 2.5rem;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 3rem;
+      font-weight: 300;
+    }
+
+    .cover-divider {
+      width: 100px;
+      height: 6px;
+      background: var(--primary);
+      margin-bottom: 3rem;
+    }
+
+    /* Section Divider Slide */
+    .slide-section {
+      background: var(--primary);
+      color: white;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .chapter-badge {
+      font-size: 1.5rem;
+      font-weight: bold;
+      border: 2px solid white;
+      padding: 0.5rem 2rem;
+      border-radius: 50px;
+      margin-bottom: 2rem;
+    }
+
+    .section-main-title {
+      font-size: 6rem;
+      font-weight: 900;
+      margin-bottom: 1rem;
+    }
+
+    .section-subtitle {
+      font-size: 2rem;
+      opacity: 0.9;
+    }
+
+    /* Standard Slide Elements */
+    .slide-header {
+      position: absolute;
+      top: 2rem;
+      left: 4rem;
+      right: 4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .slide-header .logo {
+      height: 45px;
+    }
+
+    .slide-header .section-label {
+      font-size: 1rem;
+      color: var(--primary);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .slide-header .counter {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-family: Calibri, sans-serif;
+    }
+
+    .slide-footer {
+      position: absolute;
+      bottom: 2rem;
+      left: 4rem;
+      right: 4rem;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--gray-300);
+      border-top: 1px solid var(--gray-100);
+      padding-top: 1rem;
+    }
+
+    .slide-titlebar {
+      margin-top: 2rem;
+      margin-bottom: 3rem;
+      border-left: 8px solid var(--primary);
+      padding-left: 1.5rem;
+    }
+
+    .slide-titlebar h2 {
+      font-size: 3rem;
+      font-weight: 900;
+      color: var(--primary-dark);
+    }
+
+    .slide-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Bento Grid System */
+    .bento-grid {
+      display: grid;
+      gap: 1.5rem;
+      flex: 1;
+    }
+
+    .bento-card {
+      background: var(--white);
+      border-radius: 1.5rem;
+      padding: 2.5rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+      border: 1px solid rgba(0, 157, 136, 0.05);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bento-card h3 {
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      color: var(--primary-dark);
+    }
+
+    .bento-card p {
+      font-size: 1.2rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    /* UI Components */
+    .timeline-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      margin: 2rem 0;
+    }
+
+    .timeline-line {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--gray-200);
+      z-index: 1;
+    }
+
+    .timeline-point {
+      background: var(--white);
+      border: 4px solid var(--gray-200);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+    }
+
+    .timeline-point.active {
+      border-color: var(--primary);
+      background: var(--primary);
+      box-shadow: 0 0 15px var(--primary);
+    }
+
+    /* Fragments */
+    .fragment {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s ease-out;
+    }
+
+    .fragment.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Progress Bar */
+    #progress-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 6px;
+      background: rgba(0,0,0,0.05);
+      z-index: 100;
+    }
+
+    #progress-bar {
+      height: 100%;
+      background: var(--primary);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* Navigation Buttons */
+    .nav-btn {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 101;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    #btn-prev { right: 6rem; background: var(--gray-300); }
+  </style>
+</head>
+<body>
+  <div id="progress-container"><div id="progress-bar"></div></div>
+  
+  <button id="btn-prev" class="nav-btn" onclick="prevSlide()">←</button>
+  <button id="btn-next" class="nav-btn" onclick="nextSlide()">→</button>
+
+  <div id="runner">
+
+    <!-- P01: Cover -->
+    <div class="slide cover-slide" id="slide-01">
+      <div class="cover-bg"></div>
+      <div class="cover-overlay"></div>
+      <div class="cover-content">
+        <div class="cover-label">2026 MID-YEAR REVIEW</div>
+        <h1 class="cover-title">FCI Digital Development (DD) Operation</h1>
+        <div class="cover-subtitle">數位生態系戰場</div>
+        <div class="cover-divider"></div>
+        <div style="font-size: 1.5rem; color: rgba(255,255,255,0.8); font-weight: 600;">Gary Tzeng | FCI Digital Development</div>
+      </div>
+    </div>
+
+    <!-- P02: Formula -->
+    <div class="slide">
+
+      <div class="slide-header">
+        <img src="../素材/Fluids Control橫式去背@4x.png" alt="Logo" class="logo">
+        <div class="section-label">導言：核心公式</div>
+        <div class="counter">02 / 25</div>
+      </div>
+
+      <div class="slide-titlebar">
+        <h2>價值 = 人的判斷力 (20%) × AI 勞動力 (80%)</h2>
+      </div>
+      <div class="slide-content">
+        <div style="display: flex; flex: 1; align-items: center; justify-content: center; gap: 2rem;">
+          <div class="bento-card" style="flex: 1; background: #2A2A2A; color: #AAAAAA; text-align: center; padding: 3rem;">
+            <div style="font-size: 2rem; margin-bottom: 1rem;">20%</div>
+            <div style="font-size: 2.5rem; font-weight: bold;">人的判斷力</div>
+            <p style="margin-top: 1rem; color: #888;">Domain Knowledge</p>
+          </div>
+          <div style="font-size: 4rem; font-weight: bold; color: var(--gray-300);">×</div>
+          <div class="bento-card" style="flex: 1.5; background: var(--primary); color: var(--white); text-align: center; padding: 3rem; box-shadow: 0 0 30px rgba(0, 157, 136, 0.3);">
+            <div style="font-size: 2rem; margin-bottom: 1rem;">80%</div>
+            <div style="font-size: 3rem; font-weight: bold;">AI 規模化勞動力</div>
+            <p style="margin-top: 1rem; color: rgba(255,255,255,0.8);">重複性、大規模運算與產出</p>
+          </div>
+        </div>
+        <div style="background: var(--gray-50); border-left: 4px solid var(--primary); padding: 1.5rem; border-radius: 4px; margin-top: 1.5rem;">
+          AI 負責處理 80% 的體力活。人只需要負責最後那 20% 最關鍵的「判斷」。這才是你真正的稀缺價值。
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Facilitation Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+
+    </div>
+
+    <!-- P03: Agenda -->
+    <div class="slide">
+
+      <div class="slide-header">
+        <img src="../素材/Fluids Control橫式去背@4x.png" alt="Logo" class="logo">
+        <div class="section-label">議程</div>
+        <div class="counter">03 / 25</div>
+      </div>
+
+      <div class="slide-titlebar">
+        <h2>今天的指揮官藍圖</h2>
+      </div>
+      <div class="slide-content">
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; flex: 1;">
+          <div class="bento-card" style="text-align: center; justify-content: center;">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-weight: bold;">01</div>
+            <h3 style="font-size: 1.8rem; color: var(--primary);">認知篇</h3>
+            <p style="font-size: 1.1rem; color: var(--text-muted); margin-top: 1rem;">思維重構 (15 min)</p>
+          </div>
+          <div class="bento-card" style="text-align: center; justify-content: center;">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-weight: bold;">02</div>
+            <h3 style="font-size: 1.8rem; color: var(--primary);">機制篇</h3>
+            <p style="font-size: 1.1rem; color: var(--text-muted); margin-top: 1rem;">數位員工 (20 min)</p>
+          </div>
+          <div class="bento-card" style="text-align: center; justify-content: center;">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-weight: bold;">03</div>
+            <h3 style="font-size: 1.8rem; color: var(--primary);">價值篇</h3>
+            <p style="font-size: 1.1rem; color: var(--text-muted); margin-top: 1rem;">數位競爭策略 (15 min)</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Facilitation Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+
+    </div>
+
+    <!-- P04: Phase 01 Divider -->
+    <div class="slide slide-section">
+      <div class="chapter-badge">階段 01</div>
+      <div class="section-main-title">思維重構</div>
+      <div class="section-subtitle">你每天在幫電腦打工嗎？</div>
+    </div>
+
+    <!-- P05: Pain Point -->
+    <div class="slide">
+
+      <div class="slide-header">
+        <img src="../素材/Fluids Control橫式去背@4x.png" alt="Logo" class="logo">
+        <div class="section-label">階段 01：思維重構</div>
+        <div class="counter">05 / 25</div>
+      </div>
+
+      <div class="slide-titlebar">
+        <h2>被表單與報表淹沒的日常</h2>
+      </div>
+      <div class="slide-content">
+        <div style="display: grid; grid-template-rows: 1fr 1fr; gap: 1.5rem; flex: 1;">
+          <div class="bento-card" style="justify-content: center; align-items: center; text-align: center; border: 2px dashed var(--gray-300);">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">📊 📋 📂 ❌</div>
+            <h3 style="font-size: 2rem;">「每天處理報表超過 30 分鐘的人，請舉手 👋」</h3>
+          </div>
+          <div class="bento-card fragment" style="background: var(--primary); color: white; justify-content: center; align-items: center; text-align: center;">
+            <div style="font-size: 3.5rem; margin-bottom: 1rem;">🤖</div>
+            <h3 style="font-size: 2.2rem; color: white;">如果這些事，都有人幫你做呢？</h3>
+            <p style="margin-top: 1rem; color: var(--primary-light); font-size: 1.2rem;">你不需要操作系統，你只需要下指令。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Facilitation Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+
+    </div>
+
+    <!-- P06: 3 Stages -->
+    <div class="slide">
+
+      <div class="slide-header">
+        <img src="../素材/Fluids Control橫式去背@4x.png" alt="Logo" class="logo">
+        <div class="section-label">階段 01：思維重構</div>
+        <div class="counter">06 / 25</div>
+      </div>
+
+      <div class="slide-titlebar">
+        <h2>從「手排」到「自動駕駛」的數位進化</h2>
+      </div>
+      <div class="slide-content">
+        <div class="bento-grid" style="grid-template-rows: 1.2fr 1fr; gap: 2rem;">
+          <!-- Car Evolution (Top) -->
+          <div class="timeline-container" style="background: var(--gray-50); border:none; box-shadow:none; padding: 2rem; border-radius: var(--radius-lg);">
+            <div class="timeline-line" style="top: 35%;"></div>
+            <div class="timeline-point" style="width: 150px; height: 150px; flex-direction: column;">
+              <div style="font-size: 2rem;">🕹️</div>
+              <div style="font-weight: bold; margin-top: 0.5rem;">手排檔</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">全程手動操作<br>(ERP 時代)</div>
+            </div>
+            <div class="timeline-point" style="width: 150px; height: 150px; flex-direction: column;">
+              <div style="font-size: 2rem;">🚗</div>
+              <div style="font-weight: bold; margin-top: 0.5rem;">自排檔</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">輔助駕駛系統<br>(Copilot 時代)</div>
+            </div>
+            <div class="timeline-point active" style="width: 150px; height: 150px; flex-direction: column;">
+              <div style="font-size: 2rem;">🚀</div>
+              <div style="font-weight: bold; margin-top: 0.5rem;">自動駕駛</div>
+              <div style="font-size: 0.8rem; color: var(--white); text-align: center;">任務導向執行<br>(Agentic Agent)</div>
+            </div>
+          </div>
+
+          <!-- AI Evolution (Bottom) -->
+          <div class="bento-grid" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="bento-card" style="text-align: center; border-top: 4px solid var(--gray-300);">
+              <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">AI 1.0 (Chat)</h3>
+              <p style="font-size: 0.9rem;">你學會問問題，它給你答案。本質上還是在操作系統。</p>
+            </div>
+            <div class="bento-card" style="text-align: center; border-top: 4px solid var(--accent-blue);">
+              <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">AI 2.0 (Copilot)</h3>
+              <p style="font-size: 0.9rem;">它坐在你旁邊，幫你寫一半。你還是要看著它。</p>
+            </div>
+            <div class="bento-card" style="text-align: center; border-top: 4px solid var(--primary); background: var(--primary-light);">
+              <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Agentic Agent</h3>
+              <p style="font-size: 0.9rem; font-weight: bold;">它是你的數位員工。你給目標，它自己規劃並執行。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Facilitation Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+
+    </div>
+
+    <!-- P07: AI First -->
+    <div class="slide">
+
+      <div class="slide-header">
+        <img src="../素材/Fluids Control橫式去背@4x.png" alt="Logo" class="logo">
+        <div class="section-label">階段 01：思維重構</div>
+        <div class="counter">07 / 25</div>
+      </div>
+
+      <div class="slide-titlebar">
+        <h2>AI First 的真實定義</h2>
+      </div>
+      <div class="slide-content">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; flex: 1;">
+          <div style="display: grid; grid-template-rows: 1fr 1fr; gap: 1.5rem;">
+            <div class="bento-card" style="border-left: 5px solid var(--danger);">
+              <h3 style="color: var(--danger);">Human First (舊)</h3>
+              <p>人要適應系統操作</p>
+            </div>
+            <div class="bento-card" style="border-left: 5px solid var(--primary); background: var(--primary-light);">
+              <h3 style="color: var(--primary-dark);">AI First (新)</h3>
+              <p>系統主動達成人的目標</p>
+            </div>
+          </div>
+          <div class="bento-card" style="background: var(--dark-bg); color: white; justify-content: center; align-items: center; text-align: center; padding: 2rem;">
+            <h3 style="color: var(--primary); font-size: 1.8rem; margin-bottom: 1rem;">「我們沒有講清楚，<br>而不是 AI 不好。」</h3>
+            <p style="color: var(--gray-300);">AI First 是讓 AI 做它擅長的事，<br>而不是讓它完全模仿人的笨拙。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Facilitation Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+
+    </div>
+
+    <!-- P08: Phase 02 Divider -->
+    <div class="slide slide-section">
+      <div class="chapter-badge">階段 02</div>
+      <div class="section-main-title">數位員工</div>
+      <div class="section-subtitle">打造你的數位特種部隊</div>
+    </div>
+
+    <!-- P09: My Day -->
+    <div class="slide">
+
+      <div class="slide-header">
+        <img src="../素材/Fluids Control橫式去背@4x.png" alt="Logo" class="logo">
+        <div class="section-label">階段 02：數位員工</div>
+        <div class="counter">09 / 25</div>
+      </div>
+
+      <div class="slide-titlebar">
+        <h2>大腦只負責做決定</h2>
+      </div>
+      <div class="slide-content">
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 1.5rem; flex: 1;">
+          <div class="bento-card">
+            <h3 style="border-bottom: 2px solid var(--gray-100); padding-bottom: 0.5rem; margin-bottom: 1rem;">Gary 的 24 小時 AI 工作流</h3>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 1rem;">
+              <li>☀️ <strong>晨間推播：</strong> 自動整理今日關鍵報表與代辦。</li>
+              <li>🗣️ <strong>隨身秘書：</strong> Line 語音直接存入「第二大腦」。</li>
+              <li>🌙 <strong>日誌自動化：</strong> 系統自動整理當日產出。</li>
+              <li>🔄 <strong>跨系統同步：</strong> 指令一出，Ragic/Excel 自動同步。</li>
+            </ul>
+          </div>
+          <div class="bento-card" style="background: var(--primary-light); justify-content: center; align-items: center; text-align: center;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">🧠</div>
+            <h3>第二大腦</h3>
+            <p>記憶外包，腦力留給判斷。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Facilitation Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+
+    </div>
+
+    <!-- P10: Training Center -->
+    <div class="slide">
+
+      <div class="slide-header">
+        <img src="../素材/Fluids Control橫式去背@4x.png" alt="Logo" class="logo">
+        <div class="section-label">階段 02：數位員工</div>
+        <div class="counter">10 / 25</div>
+      </div>
+
+      <div class="slide-titlebar">
+        <h2>數位員工訓練中心 (DD Training Center)</h2>
+      </div>
+      <div class="slide-content">
+        <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 1.5rem; flex: 1;">
+          <div class="bento-card" style="border-top: 5px solid var(--primary);">
+            <h3 style="color: var(--primary);">DD 的新定位</h3>
+            <p style="font-size: 1.1rem; line-height: 1.8;">
+              1. <strong>獵頭：</strong> 挑選最強模型<br>
+              2. <strong>教官：</strong> 訓練 Agent 邏輯<br>
+              3. <strong>後勤：</strong> 串接公司數據 API
+            </p>
+          </div>
+          <div class="bento-card">
+            <h3>員工入職流程</h3>
+            <div class="timeline-container" style="padding: 1rem;">
+              <div class="timeline-line"></div>
+              <div style="z-index:2;">📝<br><small>需求</small></div>
+              <div style="z-index:2;">🏗️<br><small>開發</small></div>
+              <div style="z-index:2;">🧪<br><small>測試</small></div>
+              <div style="z-index:2;">🚀<br><small>部署</small></div>
+            </div>
+            <p style="margin-top: 1rem; font-style: italic; color: var(--text-muted);">
+              我們正在將每一位資深同仁的「專家經驗」，固化成公司的數位資產。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Facilitation Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+
+    </div>
+
+    <!-- P11: 3 Employees -->
+    <div class="slide">
+
+      <div class="slide-header">
+        <img src="../素材/Fluids Control橫式去背@4x.png" alt="Logo" class="logo">
+        <div class="section-label">階段 02：數位員工</div>
+        <div class="counter">11 / 25</div>
+      </div>
+
+      <div class="slide-titlebar">
+        <h2>目前已上崗的數位員工</h2>
+      </div>
+      <div class="slide-content">
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; flex: 1;">
+          <div class="bento-card" style="text-align: center;">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">👩‍💻</div>
+            <h4 style="color: var(--primary);">Mira</h4>
+            <p style="font-size: 0.9rem; font-weight: bold;">規格解析員</p>
+            <div style="background: var(--gray-50); padding: 0.8rem; border-radius: 4px; margin-top: 0.5rem; font-size: 0.8rem;">
+              PDF ➔ 結構化清單 (10s)
+            </div>
+          </div>
+          <div class="bento-card" style="text-align: center;">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🕵️‍♂️</div>
+            <h4 style="color: var(--primary);">Jordan</h4>
+            <p style="font-size: 0.9rem; font-weight: bold;">差異比對員</p>
+            <div style="background: var(--gray-50); padding: 0.8rem; border-radius: 4px; margin-top: 0.5rem; font-size: 0.8rem;">
+              多文件 ➔ 異常高亮標記
+            </div>
+          </div>
+          <div class="bento-card" style="text-align: center;">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🤖</div>
+            <h4 style="color: var(--primary);">Quinn</h4>
+            <p style="font-size: 0.9rem; font-weight: bold;">報價判讀員</p>
+            <div style="background: var(--gray-50); padding: 0.8rem; border-radius: 4px; margin-top: 0.5rem; font-size: 0.8rem;">
+              台塑詢價單 ➔ 預警標註
+            </div>
+          </div>
+        </div>
+        <div style="text-align: center; margin-top: 1rem; font-weight: bold; color: var(--primary);">
+          💡 你的部門需要哪方面的助手？告訴我，DD 幫你招一個。
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Facilitation Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+
+    </div>
+
+    <!-- P12: Phase 03 Divider -->
+    <div class="slide slide-section">
+      <div class="chapter-badge">階段 03</div>
+      <div class="section-main-title">數位價值</div>
+      <div class="section-subtitle">別人偷不走的競爭力</div>
+    </div>
+
+    <!-- P13: Data is New Oil -->
+    <div class="slide">
+
+      <div class="slide-header">
+        <img src="../素材/Fluids Control橫式去背@4x.png" alt="Logo" class="logo">
+        <div class="section-label">階段 03：數位價值</div>
+        <div class="counter">13 / 25</div>
+      </div>
+
+      <div class="slide-titlebar">
+        <h2>數據是數位時代的新石油</h2>
+      </div>
+      <div class="slide-content">
+        <div class="bento-card" style="background: var(--dark-bg); color: white; justify-content: center; align-items: center; text-align: center; flex: 1;">
+          <div style="font-size: 1.8rem; font-style: italic; color: var(--gray-200);">
+            "The world's most valuable resource is no longer oil, but data."
+          </div>
+          <div style="margin-top: 2rem; display: flex; gap: 2rem; align-items: center;">
+            <span style="font-size: 3rem;">🛢️</span>
+            <span style="font-size: 2rem;">➔</span>
+            <span style="font-size: 3rem; color: var(--primary);">📊</span>
+          </div>
+          <p style="margin-top: 2rem; font-size: 1.2rem; color: var(--primary);">掌握數據，才能掌握決策權。</p>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Facilitation Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+
+    </div>
+
+    <!-- P14: Ford Case -->
+    <div class="slide">
+
+      <div class="slide-header">
+        <img src="../素材/Fluids Control橫式去背@4x.png" alt="Logo" class="logo">
+        <div class="section-label">階段 03：數位價值</div>
+        <div class="counter">14 / 25</div>
+      </div>
+
+      <div class="slide-titlebar">
+        <h2>福特案例：從「賣車」到「數據生態系」</h2>
+      </div>
+      <div class="slide-content">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; flex: 1;">
+          <div class="bento-card">
+            <h3>傳統思維</h3>
+            <p>賣出一輛車，交易就結束了。</p>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 1rem;">競爭者：通用汽車、豐田</p>
+          </div>
+          <div class="bento-card" style="border-color: var(--primary); background: var(--primary-light);">
+            <h3>生態系思維</h3>
+            <p>1hr 駕駛產出 25GB 數據。</p>
+            <p style="font-size: 0.9rem; color: var(--primary-dark); margin-top: 1rem;">競爭者：Uber、Waymo (數據持有者)</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Facilitation Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+
+    </div>
+
+    <!-- P15: Competitor Definition -->
+    <div class="slide">
+
+      <div class="slide-header">
+        <img src="../素材/Fluids Control橫式去背@4x.png" alt="Logo" class="logo">
+        <div class="section-label">階段 03：數位價值</div>
+        <div class="counter">15 / 25</div>
+      </div>
+
+      <div class="slide-titlebar">
+        <h2>重新定義競爭對手</h2>
+      </div>
+      <div class="slide-content">
+        <div style="display: flex; flex-direction: column; gap: 2rem; justify-content: center; flex: 1;">
+          <div style="display: flex; align-items: center; gap: 2rem;">
+            <div style="background: var(--gray-100); padding: 1.5rem; border-radius: 8px; flex: 1;">
+              <strong>舊定義：</strong> 競爭對手 = 供應相似產品的公司
+            </div>
+            <div style="font-size: 2rem;">➔</div>
+            <div style="background: var(--primary-light); padding: 1.5rem; border-radius: 8px; flex: 1; border: 2px solid var(--primary);">
+              <strong>新定義：</strong> 競爭對手 = 能取得相似數據的公司
+            </div>
+          </div>
+          <div class="bento-card" style="background: var(--dark-bg); color: var(--primary); text-align: center; padding: 2rem;">
+            <h3>誰掌握數據，誰就掌握了客戶的下一秒。</h3>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Facilitation Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+
+    </div>
+
+    <!-- P16: VLMS -->
+    <div class="slide">
+
+      <div class="slide-header">
+        <img src="../素材/Fluids Control橫式去背@4x.png" alt="Logo" class="logo">
+        <div class="section-label">階段 03：數位價值</div>
+        <div class="counter">16 / 25</div>
+      </div>
+
+      <div class="slide-titlebar">
+        <h2>VLMS 是富迪斯數據生態系的起點</h2>
+      </div>
+      <div class="slide-content">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; flex: 1;">
+          <div class="bento-card" style="justify-content: center; align-items: center; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🔧</div>
+            <h3>生產生態系</h3>
+            <p>賣硬體、修設備 (一次性)</p>
+          </div>
+          <div class="bento-card" style="background: var(--primary-light); justify-content: center; align-items: center; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+            <h3>消費生態系</h3>
+            <p>掌握設備運轉數據 (持續性)</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Facilitation Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+
+    </div>
+
+    <!-- P17: Elevator Story -->
+    <div class="slide">
+
+      <div class="slide-header">
+        <img src="../素材/Fluids Control橫式去背@4x.png" alt="Logo" class="logo">
+        <div class="section-label">階段 03：數位價值</div>
+        <div class="counter">17 / 25</div>
+      </div>
+
+      <div class="slide-titlebar">
+        <h2>電梯維修現場：DIISA 五步煉金術</h2>
+      </div>
+      <div class="slide-content">
+        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; flex: 1;">
+          <div class="bento-card" style="text-align: center; padding: 1rem;">
+            <small>Data</small>
+            <div style="font-size: 1.5rem; margin: 0.5rem 0;">📡</div>
+            <p style="font-size: 0.8rem;">掃描 NFC</p>
+          </div>
+          <div class="bento-card" style="text-align: center; padding: 1rem;">
+            <small>Info</small>
+            <div style="font-size: 1.5rem; margin: 0.5rem 0;">📋</div>
+            <p style="font-size: 0.8rem;">調閱病歷</p>
+          </div>
+          <div class="bento-card" style="text-align: center; padding: 1rem;">
+            <small>Insight</small>
+            <div style="font-size: 1.5rem; margin: 0.5rem 0;">💡</div>
+            <p style="font-size: 0.8rem;">發現規律</p>
+          </div>
+          <div class="bento-card" style="text-align: center; padding: 1rem;">
+            <small>Strategy</small>
+            <div style="font-size: 1.5rem; margin: 0.5rem 0;">🎯</div>
+            <p style="font-size: 0.8rem;">預測建議</p>
+          </div>
+          <div class="bento-card" style="text-align: center; padding: 1rem; background: var(--primary-light); border-color: var(--primary);">
+            <small>Action</small>
+            <div style="font-size: 1.5rem; margin: 0.5rem 0;">⚡</div>
+            <p style="font-size: 0.8rem; font-weight: bold;">自動派單</p>
+          </div>
+        </div>
+        <p style="margin-top: 1rem; text-align: center; font-weight: bold; color: var(--primary-dark);">從「記錄」到「行動」，AI 幫你走了 90% 的路。</p>
+      </div>
+
+      <div class="slide-footer">
+        <span>Facilitation Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+
+    </div>
+
+    <!-- P18: Level 1-4 -->
+    <div class="slide">
+
+      <div class="slide-header">
+        <img src="../素材/Fluids Control橫式去背@4x.png" alt="Logo" class="logo">
+        <div class="section-label">階段 03：數位價值</div>
+        <div class="counter">18 / 25</div>
+      </div>
+
+      <div class="slide-titlebar">
+        <h2>從「被動維護」到「主動指揮」</h2>
+      </div>
+      <div class="slide-content">
+        <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 1.5rem; flex: 1;">
+          <div class="bento-card">
+            <h3>成熟度等級</h3>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem;">
+              <li>L1：壞了才修</li>
+              <li>L2：診斷原因</li>
+              <li>L3：預測故障</li>
+              <li style="color: var(--primary); font-weight: bold;">L4：處方性決策 (AI)</li>
+            </ul>
+          </div>
+          <div class="bento-card" style="background: var(--primary-light); justify-content: center; align-items: center;">
+             <h4 style="margin-bottom: 1rem;">VLMS 價值閉環</h4>
+             <div style="font-size: 1.1rem; text-align: center;">數據累積 ➔ 準確預警 ➔ 信任建立 ➔ <br><strong>自動化採購與維修</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Facilitation Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+
+    </div>
+
+    <!-- P19: Moat -->
+    <div class="slide">
+
+      <div class="slide-header">
+        <img src="../素材/Fluids Control橫式去背@4x.png" alt="Logo" class="logo">
+        <div class="section-label">階段 03：數位價值</div>
+        <div class="counter">19 / 25</div>
+      </div>
+
+      <div class="slide-titlebar">
+        <h2>別人偷不走的三道牆</h2>
+      </div>
+      <div class="slide-content">
+        <div class="bento-grid" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="bento-card" style="border-top: 6px solid var(--accent-yellow);">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🧱</div>
+            <h3>數據壁壘</h3>
+            <p style="font-weight: bold; color: var(--primary-dark);">累積的歷史數據是 AI 燃料</p>
+            <p style="font-size: 0.9rem; margin-top: 0.5rem;">十年維修紀錄與即時健康數據，讓 AI 越用越準，這是對手花錢也買不到的時間複利。</p>
+          </div>
+          <div class="bento-card" style="border-top: 6px solid var(--accent-blue);">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔁</div>
+            <h3>習慣壁壘</h3>
+            <p style="font-weight: bold; color: var(--primary-dark);">極致的認知流暢度</p>
+            <p style="font-size: 0.9rem; margin-top: 0.5rem;">客戶習慣了 VLMS 的直覺操作與 AI 精準建議，轉換工具的學習成本與心理負擔極高。</p>
+          </div>
+          <div class="bento-card" style="border-top: 6px solid var(--primary);">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📐</div>
+            <h3>規格壁壘</h3>
+            <p style="font-weight: bold; color: var(--primary-dark);">寫進招標規範與 SOP</p>
+            <p style="font-size: 0.9rem; margin-top: 0.5rem;">協助客戶將數位履歷與預測性維護列入標案規範，讓對手連競爭的入場券都拿不到。</p>
+          </div>
+        </div>
+        <div class="bento-card" style="margin-top: 1.5rem; background: var(--primary-light); text-align: center; padding: 1.5rem;">
+          <p style="color: var(--primary-dark); font-weight: bold; font-size: 1.1rem;">
+            這三道牆構築了 FCI 的數位護城河，將單次交易轉變為長期的共生關係。
+          </p>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Facilitation Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+
+    </div>
+
+    <!-- P20: 21% Warning -->
+    <div class="slide" style="background: var(--danger); color: white;">
+
+      <div class="slide-header">
+        <img src="../素材/Fluids Control橫式去背@4x.png" alt="Logo" class="logo">
+        <div class="section-label">階段 03：數位價值</div>
+        <div class="counter">20 / 25</div>
+      </div>
+
+      <div class="slide-content" style="justify-content: center; align-items: center; text-align: center;">
+        <h2 style="color: white; font-size: 8rem; font-weight: 900; margin: 0;">21%</h2>
+        <h3 style="color: white; font-size: 2rem;">高自動化職位需求已消失</h3>
+        <div style="margin-top: 3rem; background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 8px; max-width: 800px;">
+          不是 AI 取代人，而是「會用 AI 的人」取代了「不會用 AI 的人」。
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Facilitation Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+
+    </div>
+
+    <!-- P21: Epilogue Divider -->
+    <div class="slide slide-section" style="background: var(--dark-bg);">
+      <div class="section-main-title">給資深工作者</div>
+      <div class="section-subtitle">你的經驗，是 AI 最強大的導航。</div>
+    </div>
+
+    <!-- P22: Epilogue 1-3 -->
+    <div class="slide">
+
+      <div class="slide-header">
+        <img src="../素材/Fluids Control橫式去背@4x.png" alt="Logo" class="logo">
+        <div class="section-label">結語</div>
+        <div class="counter">22 / 25</div>
+      </div>
+
+      <div class="slide-titlebar">
+        <h2>AI 時代的核心觀點</h2>
+      </div>
+      <div class="slide-content">
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; flex: 1;">
+          <div class="bento-card">
+            <h4>🔴 生存問題</h4>
+            <p style="font-size: 0.9rem; margin-top: 0.5rem;">少子化與缺工，AI 是唯一的出路。</p>
+          </div>
+          <div class="bento-card">
+            <h4>📊 1:99 法則</h4>
+            <p style="font-size: 0.9rem; margin-top: 0.5rem;">領先者會拿走大部分機會。</p>
+          </div>
+          <div class="bento-card">
+            <h4>🦾 AI 是戰甲</h4>
+            <p style="font-size: 0.9rem; margin-top: 0.5rem;">它是你的放大器，不是你的替換者。</p>
+          </div>
+        </div>
+        <p style="text-align: right; font-size: 0.8rem; color: var(--text-muted); margin-top: 1rem;">— 參考自 簡立峰《台灣 AI 大未來》</p>
+      </div>
+
+      <div class="slide-footer">
+        <span>Facilitation Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+
+    </div>
+
+    <!-- P23: Epilogue 4-5 + CTA -->
+    <div class="slide">
+
+      <div class="slide-header">
+        
+        <div class="section-label">結語</div>
+        <div class="counter">23 / 25</div>
+      </div>
+
+      <div class="slide-titlebar">
+        <h2>資深者的主場優勢</h2>
+      </div>
+      <div class="slide-content">
+        <div style="display: grid; grid-template-rows: 1fr 1.5fr; gap: 1.5rem; flex: 1;">
+          <div class="bento-card" style="background: var(--primary-light); border-color: var(--primary);">
+            <h3 style="color: var(--primary-dark);">20 分的靈魂判斷，決定 80 分的價值。</h3>
+          </div>
+          <div class="bento-card" style="background: var(--dark-bg); color: white; justify-content: center; align-items: center; text-align: center;">
+            <h3 style="color: var(--primary); font-size: 2rem;">拿出手機，寫下一件你每天重複的事。</h3>
+            <p style="margin-top: 1rem;">下週，DD 幫你把這段時間拿回來。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Facilitation Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+
+    </div>
+
+    <!-- P24: Ending -->
+    <div class="slide cover-slide" id="slide-24">
+      <div class="cover-bg"></div>
+      <div class="cover-overlay"></div>
+      <div class="cover-content">
+        <h1 class="cover-title">讓 AI 出力，<br>讓判斷更值錢。</h1>
+        <div class="cover-divider"></div>
+        <div style="font-size: 1.5rem; color: rgba(255,255,255,0.8); font-weight: 600;">Gary Tzeng | FCI Digital Development</div>
+      </div>
+    </div>
+
+    <!-- P25: Thank You -->
+    <div class="slide cover-slide" id="slide-25">
+      <div class="cover-bg"></div>
+      <div class="cover-overlay"></div>
+      <div class="cover-content">
+        <h1 class="cover-title">THANK YOU</h1>
+        <div class="cover-subtitle">Q & A</div>
+        <div class="cover-divider"></div>
+        <div style="font-size: 1.5rem; color: rgba(255,255,255,0.8);">讓我們一起迎接 AI 新時代</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const totalSlides = 25; 
+    let currentSlide = 0;
+
+    const runner = document.getElementById('runner');
+    const progressBar = document.getElementById('progress-bar');
+    
+    function updateSlide() {
+      // Move runner
+      runner.style.transform = `translateX(-${currentSlide * 100}vw)`;
+      
+      // Update progress bar
+      const progress = ((currentSlide + 1) / totalSlides) * 100;
+      progressBar.style.width = `${progress}%`;
+      
+      // Toggle nav buttons
+      document.getElementById('btn-prev').style.display = currentSlide === 0 ? 'none' : 'flex';
+      document.getElementById('btn-next').style.display = currentSlide === totalSlides - 1 ? 'none' : 'flex';
+
+      // Reset fragments in current slide
+      const slides = document.querySelectorAll('.slide');
+      const currentSlideEl = slides[currentSlide];
+      if (currentSlideEl) {
+        const fragments = currentSlideEl.querySelectorAll('.fragment');
+        fragments.forEach(f => f.classList.remove('visible'));
+      }
+    }
+
+    function nextSlide() {
+      const slides = document.querySelectorAll('.slide');
+      const currentSlideEl = slides[currentSlide];
+      const nextFragment = currentSlideEl.querySelector('.fragment:not(.visible)');
+      
+      if (nextFragment) {
+        nextFragment.classList.add('visible');
+      } else if (currentSlide < totalSlides - 1) {
+        currentSlide++;
+        updateSlide();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        currentSlide--;
+        updateSlide();
+      }
+    }
+
+    // Keyboard
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'Space' || e.key === 'Enter') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
+        prevSlide();
+      }
+    });
+
+    // Initialize
+    updateSlide();
+  </script>
+</body>
+</html>
