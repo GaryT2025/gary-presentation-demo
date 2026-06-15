@@ -8,7 +8,7 @@
         :root {
             --bg-dark: #121212;
             --bg-card: #1e1e1e;
-            --neon-green: #00ff41;
+            --accent-color: #06D6AD; /* Updated to user's requested color */
             --text-main: #e0e0e0;
             --text-muted: #9e9e9e;
             --border-color: #333;
@@ -33,11 +33,11 @@
         }
 
         h1 {
-            color: var(--neon-green);
+            color: var(--accent-color);
             font-size: 2.8rem;
             text-transform: uppercase;
             margin-bottom: 10px;
-            text-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+            text-shadow: 0 0 10px rgba(6, 214, 173, 0.3);
         }
 
         /* Hero images */
@@ -89,7 +89,7 @@
 
         .comparison-table th {
             font-size: 1.2rem;
-            color: var(--neon-green);
+            color: var(--accent-color);
             background: rgba(255,255,255,0.02);
             width: 20%;
         }
@@ -120,7 +120,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: var(--neon-green);
+            background: var(--accent-color);
             color: #000;
             width: 60px;
             height: 60px;
@@ -132,7 +132,7 @@
             font-size: 1.5rem;
             z-index: 10;
             border: 4px solid var(--bg-dark);
-            box-shadow: 0 0 20px rgba(0, 255, 65, 0.4);
+            box-shadow: 0 0 20px rgba(6, 214, 173, 0.4);
         }
 
         .relative-container {
@@ -178,11 +178,24 @@
         </div>
 
         <table class="comparison-table">
+            <!-- 產品設計差異群組 -->
             <tr>
-                <th>🎯 核心設計</th>
-                <td><span class="highlight">頂部導引式</span>單座球閥 (非平衡)</td>
-                <td><span class="highlight">套筒導引式</span>平衡球閥</td>
+                <th>🎯 導引機構設計</th>
+                <td><span class="highlight">頂部導引 (Top Guided)</span><br>重型頂部導引能為閥塞提供強大支撐與穩定性</td>
+                <td><span class="highlight">套筒導引 (Cage Guided)</span><br>大尺寸時可提供雙套筒 (Double Cage) 設計</td>
             </tr>
+            <tr>
+                <th>⚖️ 閥塞平衡機制</th>
+                <td><span class="highlight">非平衡式 (Unbalanced)</span><br>結構簡單直觀，可靠度高</td>
+                <td><span class="highlight">平衡式 (Balanced)</span><br>大幅減少在高壓差、大流量下的驅動器推力需求</td>
+            </tr>
+            <tr>
+                <th>🧩 閥內件複雜度</th>
+                <td><span class="highlight">標準化多用途</span><br>螺紋閥座、快拆閥座設計，並支援單級或雙級降噪防空化閥件</td>
+                <td><span class="highlight">高階嚴苛工況專武</span><br>可搭載 VRT (可變阻力堆疊式/套筒式)、先導閥塞 (Pilot Plug) 應對極端狀態</td>
+            </tr>
+
+            <!-- 規格性能群組 -->
             <tr>
                 <th>📏 尺寸涵蓋</th>
                 <td>中小型：<span class="highlight">0.75" ~ 8"</span></td>
