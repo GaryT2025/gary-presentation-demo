@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masoneilan 21K vs 41K 產品比較</title>
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --bg-card: #1e1e1e;
+            --neon-green: #00ff41;
+            --text-main: #e0e0e0;
+            --text-muted: #9e9e9e;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', -apple-system, sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            color: var(--neon-green);
+            font-size: 2.8rem;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+        }
+
+        .comparison-container {
+            display: flex;
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .product-card {
+            background: var(--bg-card);
+            border: 1px solid #333;
+            border-radius: 16px;
+            padding: 30px;
+            width: 45%;
+            min-width: 350px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: transform 0.4s, border-color 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--neon-green);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .product-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(0, 255, 65, 0.4);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 350px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px solid #333;
+        }
+
+        h2 {
+            color: var(--neon-green);
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            border-bottom: 1px dashed var(--neon-green);
+            display: inline-block;
+            padding-bottom: 5px;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+            font-size: 1.15rem;
+        }
+
+        .feature-list li {
+            margin-bottom: 15px;
+            padding: 12px 10px;
+            border-bottom: 1px solid #2a2a2a;
+            display: flex;
+            align-items: center;
+        }
+
+        .feature-list li strong {
+            color: #fff;
+            width: 80px;
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        .highlight {
+            color: var(--neon-green);
+            font-weight: bold;
+            font-size: 1.25rem;
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Masoneilan 頂級控制閥</h1>
+        <p style="color: var(--text-muted); font-size: 1.3rem;">21K 通用型 vs 41K 嚴苛工況型</p>
+    </header>
+
+    <div class="comparison-container">
+        <!-- 21K 系列 -->
+        <div class="product-card">
+            <img src="assets/21k.png" alt="Masoneilan 21K" class="product-image">
+            <h2>21000 系列 (21K)</h2>
+            <ul class="feature-list">
+                <li>🎯 <strong>定位</strong> <span class="highlight">頂部導引式</span></li>
+                <li>📏 <strong>管徑</strong> <span class="highlight">0.75" ~ 8"</span></li>
+                <li>💧 <strong>流量</strong> <span class="highlight">可達微小流量 (Cv 0.008)</span></li>
+                <li>🌡️ <strong>溫度</strong> <span class="highlight">-196°C ~ +427°C</span></li>
+                <li>🔧 <strong>壓力</strong> <span class="highlight">Max 15K PSI</span></li>
+                <li>🌟 <strong>適用</strong> <span class="highlight">波紋管零洩漏 / 通用</span></li>
+            </ul>
+        </div>
+
+        <!-- 41K 系列 -->
+        <div class="product-card">
+            <img src="assets/41k.png" alt="Masoneilan 41K" class="product-image">
+            <h2>41000 系列 (41K)</h2>
+            <ul class="feature-list">
+                <li>🎯 <strong>定位</strong> <span class="highlight">套筒平衡式</span></li>
+                <li>📏 <strong>管徑</strong> <span class="highlight">2" ~ 36" (巨型)</span></li>
+                <li>💧 <strong>流量</strong> <span class="highlight">超大吞吐量 (Cv 17,000)</span></li>
+                <li>🌡️ <strong>溫度</strong> <span class="highlight">-196°C ~ +593°C</span></li>
+                <li>🔧 <strong>壓力</strong> <span class="highlight">Max 15K PSI</span></li>
+                <li>🌟 <strong>適用</strong> <span class="highlight">極大壓差 / 最嚴苛工況</span></li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
