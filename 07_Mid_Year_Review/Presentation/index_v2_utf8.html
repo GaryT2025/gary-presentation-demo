@@ -1,0 +1,2531 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FCI 2026 Mid-Year Review ??Gary Tzeng</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  
+
+  <!-- GSAP CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+  <style>
+    /* ??? CSS RESET ??? */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ??? DESIGN TOKENS ??? */
+    :root {
+      --primary:        #009D88;
+      --primary-light:  #E5F5F3;
+      --primary-dark:   #007A6A;
+      --text:           #3E3A39;
+      --text-muted:     #7A7675;
+      --accent-yellow:  #F7B012;
+      --accent-blue:    #2F8CCC;
+      --danger:         #C00000;
+      --white:          #FFFFFF;
+      --gray-50:        #F9F9F9;
+      --gray-100:       #F4F4F4;
+      --gray-200:       #E8E8E8;
+      --gray-300:       #D0CFCF;
+      --shadow-sm:      0 2px 8px rgba(0,0,0,0.07);
+      --shadow-md:      0 6px 24px rgba(0,0,0,0.10);
+      --shadow-lg:      0 16px 48px rgba(0,0,0,0.14);
+      --radius-sm:      6px;
+      --radius-md:      12px;
+      --radius-lg:      20px;
+
+      /* Typography scale */
+      --text-xs:   clamp(0.65rem, 0.6rem + 0.25vw,  0.72rem);
+      --text-sm:   clamp(0.78rem, 0.72rem + 0.25vw, 0.85rem);
+      --text-base: clamp(0.9rem,  0.82rem + 0.3vw,  1rem);
+      --text-lg:   clamp(1.05rem, 0.95rem + 0.45vw, 1.2rem);
+      --text-xl:   clamp(1.2rem,  1.05rem + 0.7vw,  1.5rem);
+      --text-2xl:  clamp(1.5rem,  1.25rem + 1.2vw,  2rem);
+      --text-3xl:  clamp(1.9rem,  1.5rem + 1.8vw,   2.8rem);
+      --text-4xl:  clamp(2.4rem,  1.8rem + 2.5vw,   3.8rem);
+      --text-display: clamp(3rem, 2rem + 4vw,        6rem);
+    }
+
+    /* ??? BASE ??? */
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0a0a0a;
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      color: var(--text);
+    }
+
+    /* ??? SLIDE RUNNER ??? */
+    #runner {
+      display: flex;
+      width: calc(25 * 100vw);
+      height: 100vh;
+      will-change: transform;
+      transition: transform 0.65s cubic-bezier(0.77, 0, 0.175, 1);
+    }
+
+    .slide {
+      min-width: 100vw;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
+      background: var(--white);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ??? HEADER CHROME ??? */
+    .slide-header {
+      height: 9vh;
+      min-height: 60px;
+      background: var(--white);
+      border-bottom: 3px solid var(--primary);
+      display: flex;
+      align-items: center;
+      padding: 0 2.5rem;
+      gap: 2rem;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .slide-header .logo {
+      height: clamp(36px, 5vh, 52px);
+      width: auto;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    .slide-header .section-label {
+      flex: 1;
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: var(--text-xs);
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--primary);
+    }
+
+    .slide-header .counter {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: var(--text-sm);
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+
+    /* ??? SLIDE TITLE BAR ??? */
+    .slide-titlebar {
+      height: 13vh;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      padding: 0 2.5rem;
+      border-left: 4px solid var(--primary);
+      margin: 0 2rem;
+      flex-shrink: 0;
+    }
+
+    .slide-titlebar h2 {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: clamp(1.4rem, 1.1rem + 1.3vw, 2rem);
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+    }
+
+    /* ??? CONTENT AREA ??? */
+    .slide-content {
+      flex: 1;
+      padding: 1.2rem 2.5rem;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ??? FOOTER ??? */
+    .slide-footer {
+      height: 6vh;
+      min-height: 40px;
+      background: var(--primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2.5rem;
+      flex-shrink: 0;
+    }
+
+    .slide-footer span {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: var(--text-xs);
+      color: var(--primary-dark);
+      letter-spacing: 0.04em;
+    }
+
+    /* ??? SECTION TRANSITION SLIDES ??? */
+    .slide-section {
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      gap: 1.5rem;
+      padding: 3rem;
+    }
+
+    .slide-section .chapter-badge {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: var(--text-sm);
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.65);
+      background: rgba(255,255,255,0.12);
+      padding: 0.4rem 1.2rem;
+      border-radius: 2rem;
+    }
+
+    .slide-section .section-main-title {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: clamp(3rem, 2rem + 4vw, 6rem);
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+
+    .slide-section .section-subtitle {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: clamp(1rem, 0.8rem + 1vw, 1.6rem);
+      color: rgba(255,255,255,0.85);
+      font-weight: 300;
+    }
+
+    .slide-section .section-concept {
+      font-style: italic;
+      font-size: var(--text-lg);
+      color: rgba(255,255,255,0.7);
+      max-width: 600px;
+      line-height: 1.6;
+    }
+
+    /* ??? PROGRESS BAR ??? */
+    #progress-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      background: var(--primary);
+      transition: width 0.65s cubic-bezier(0.77, 0, 0.175, 1);
+      z-index: 1000;
+    }
+
+    /* ??? NAV BUTTONS ??? */
+    .nav-btn {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 48px;
+      height: 48px;
+      background: rgba(255,255,255,0.9);
+      border: 2px solid var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 999;
+      transition: background 0.2s, transform 0.2s;
+      box-shadow: var(--shadow-md);
+    }
+
+    .nav-btn:hover {
+      background: var(--primary);
+      transform: translateY(-50%) scale(1.08);
+    }
+
+    .nav-btn:hover svg { stroke: white; }
+
+    .nav-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--primary);
+      fill: none;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    #btn-prev { left: 1rem; }
+    #btn-next { right: 1rem; }
+
+    /* ??? UTILITY CLASSES ??? */
+    .teal       { color: var(--primary); }
+    .yellow     { color: var(--accent-yellow); }
+    .blue       { color: var(--accent-blue); }
+    .danger     { color: var(--danger); }
+    .bold       { font-weight: 700; }
+    .italic     { font-style: italic; }
+    .small-caps { letter-spacing: 0.1em; text-transform: uppercase; font-size: 0.85em; }
+
+    /* ??? CONTENT REVEAL (GSAP targets) ??? */
+    .content-reveal {
+      opacity: 0;
+    }
+
+    /* ?????????????????????????????????????????????
+       SLIDE 01 ??COVER
+    ????????????????????????????????????????????? */
+    #slide-01 {
+      background: #0a0a0a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cover-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('../cover_building.png');
+      background-size: cover;
+      background-position: center;
+    }
+
+    .cover-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+    }
+
+    .cover-content {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding: 2rem;
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .cover-label {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: var(--text-sm);
+      font-weight: 600;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.65);
+      margin-bottom: 1.5rem;
+    }
+
+    .cover-title {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: clamp(2.4rem, 1.5rem + 3.5vw, 5rem);
+      font-weight: 900;
+      color: var(--white);
+      line-height: 1.1;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+
+    .cover-subtitle {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: clamp(0.9rem, 0.7rem + 0.8vw, 1.3rem);
+      font-weight: 500;
+      color: var(--primary);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+    }
+
+    .cover-divider {
+      width: 80px;
+      height: 3px;
+      background: var(--primary);
+      margin: 0 auto 2rem;
+    }
+
+    .cover-reporter {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: var(--text-base);
+      color: rgba(255,255,255,0.8);
+      margin-bottom: 2.5rem;
+    }
+
+    .cover-badge {
+      display: inline-block;
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(0, 157, 136, 0.5);
+      border-radius: var(--radius-md);
+      padding: 0.9rem 1.8rem;
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: clamp(0.75rem, 0.65rem + 0.4vw, 0.95rem);
+      color: rgba(255, 255, 255, 0.9);
+      line-height: 1.6;
+      backdrop-filter: blur(4px);
+    }
+
+    .cover-badge strong { color: var(--primary); }
+
+    /* ?????????????????????????????????????????????
+       SLIDE 02 ??AGENDA
+    ????????????????????????????????????????????? */
+    .agenda-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      flex: 1;
+    }
+
+    .agenda-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      padding: 1.2rem 1.4rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .agenda-item:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .agenda-num {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: var(--text-sm);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .agenda-text {
+      font-size: var(--text-base);
+      line-height: 1.55;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    /* ?????????????????????????????????????????????
+       SLIDE 03 ???謜? (BENTO)
+    ????????????????????????????????????????????? */
+    .bento-grid {
+      display: grid;
+      grid-template-columns: 3fr 2fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 1rem;
+      flex: 1;
+    }
+
+    .bento-card {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .bento-card.bento-main {
+      grid-row: 1 / 3;
+      border-left: 4px solid var(--primary);
+    }
+
+    .bento-card-label {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: var(--text-xs);
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .bento-card h3 {
+      font-size: clamp(1rem, 0.85rem + 0.6vw, 1.25rem);
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.35;
+      margin-bottom: 0.75rem;
+    }
+
+    .bento-card p {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      line-height: 1.65;
+      flex: 1;
+    }
+
+    .bento-stat {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: clamp(2.5rem, 1.5rem + 3vw, 4rem);
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1;
+      margin: 0.5rem 0;
+    }
+
+    .bento-stat-desc {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    .bento-bottom-strip {
+      background: var(--primary);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.5rem;
+      margin-top: 0.5rem;
+      font-size: var(--text-sm);
+      color: var(--white);
+      line-height: 1.65;
+      font-style: italic;
+    }
+
+    /* ?????????????????????????????????????????????
+       SLIDE 04 ??AI 改??    ????????????????????????????????????????????? */
+    .trio-cards {
+      display: flex;
+      gap: 1.2rem;
+      flex: 1;
+    }
+
+    .trio-card {
+      flex: 1;
+      border-radius: var(--radius-md);
+      padding: 1.6rem 1.4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .trio-card.muted {
+      background: var(--gray-100);
+      border: 1px solid var(--gray-200);
+    }
+
+    .trio-card.blue-tint {
+      background: #EFF7FF;
+      border: 2px solid var(--accent-blue);
+    }
+
+    .trio-card.teal-glow {
+      background: var(--primary-light);
+      border: 2px solid var(--primary);
+      box-shadow: 0 0 0 4px rgba(0,157,136,0.08);
+    }
+
+    .trio-card-icon {
+      font-size: 2.2rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .trio-card-label {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: var(--text-xs);
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .trio-card-label.teal-tint { color: var(--primary); }
+    .trio-card-label.blue-tint { color: var(--accent-blue); }
+
+    .trio-card-name {
+      font-size: clamp(1.1rem, 0.9rem + 0.7vw, 1.4rem);
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .trio-card-sub {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: var(--text-sm);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .trio-card p {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      line-height: 1.65;
+      flex: 1;
+    }
+
+    .trio-tag {
+      display: inline-block;
+      background: var(--primary);
+      color: white;
+      font-size: var(--text-xs);
+      padding: 0.25rem 0.75rem;
+      border-radius: 2rem;
+      font-weight: 600;
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      margin-top: 0.5rem;
+    }
+
+    /* ?????????????????????????????????????????????
+       SLIDE 05 ????/ TIMELINE
+    ????????????????????????????????????????????? */
+    .timeline-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 1.5rem;
+    }
+
+    .timeline-track {
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      padding: 0 2rem;
+    }
+
+    .timeline-node {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+    }
+
+    .timeline-dot {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--gray-100);
+      border: 3px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      z-index: 2;
+      position: relative;
+      transition: all 0.3s;
+    }
+
+    .timeline-dot.active {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 6px rgba(0,157,136,0.12);
+    }
+
+    .timeline-era {
+      font-weight: 700;
+      font-size: var(--text-base);
+      color: var(--text);
+      margin-top: 0.75rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .timeline-desc {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      line-height: 1.55;
+      max-width: 200px;
+    }
+
+    .timeline-warn {
+      color: var(--danger);
+      font-weight: 600;
+      font-size: var(--text-sm);
+    }
+
+    .timeline-connector {
+      position: absolute;
+      top: 28px;
+      left: calc(50% + 28px);
+      right: calc(-50% + 28px);
+      height: 3px;
+      background: var(--gray-200);
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .timeline-connector-fill {
+      height: 100%;
+      background: var(--primary);
+      width: 0%;
+    }
+
+    .timeline-quote {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-left: 4px solid var(--primary);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.5rem;
+      font-style: italic;
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+
+    /* ?????????????????????????????????????????????
+       SLIDE 06 ???豲 vs ?麻豲
+    ????????????????????????????????????????????? */
+    .comparison-layout {
+      display: flex;
+      gap: 1.2rem;
+      flex: 1;
+    }
+
+    .comparison-col {
+      flex: 1;
+      border-radius: var(--radius-md);
+      padding: 2rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .comparison-col.old-way {
+      background: var(--gray-100);
+      border: 1px solid var(--gray-200);
+    }
+
+    .comparison-col.new-way {
+      background: var(--primary-light);
+      border: 1px solid rgba(0,157,136,0.25);
+    }
+
+    .comparison-icon {
+      font-size: 2rem;
+    }
+
+    .comparison-label {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: var(--text-xs);
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .comparison-heading {
+      font-size: clamp(1rem, 0.85rem + 0.5vw, 1.3rem);
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .comparison-body {
+      font-size: var(--text-base);
+      color: var(--text);
+      line-height: 1.7;
+      flex: 1;
+    }
+
+    .comparison-note {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .comparison-banner {
+      background: var(--accent-yellow);
+      border-radius: var(--radius-md);
+      padding: 1.1rem 1.6rem;
+      font-size: clamp(0.85rem, 0.75rem + 0.4vw, 1rem);
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.55;
+      margin-top: 0.5rem;
+    }
+
+    /* ?????????????????????????????????????????????
+       SLIDE 07 ??NO UI DEMO
+    ????????????????????????????????????????????? */
+    .demo-layout {
+      display: flex;
+      gap: 2rem;
+      flex: 1;
+    }
+
+    .demo-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .demo-col-label {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: var(--text-sm);
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.4rem 0.9rem;
+      border-radius: var(--radius-sm);
+      display: inline-block;
+    }
+
+    .demo-col-label.old-label {
+      background: var(--gray-200);
+      color: var(--text-muted);
+    }
+
+    .demo-col-label.new-label {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .step-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      flex: 1;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: var(--text-sm);
+      color: var(--text);
+    }
+
+    .step-arrow {
+      color: var(--gray-300);
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .step-box {
+      background: var(--gray-100);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-sm);
+      padding: 0.5rem 0.9rem;
+      font-size: var(--text-sm);
+      color: var(--text);
+      width: 100%;
+    }
+
+    .timing-badge {
+      background: var(--gray-100);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-sm);
+      padding: 0.5rem 1rem;
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      display: inline-block;
+    }
+
+    /* Phone mockup */
+    .phone-mockup {
+      border: 3px solid var(--primary);
+      border-radius: 24px;
+      padding: 1rem;
+      background: #f8fffe;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      flex: 1;
+      max-height: 300px;
+      position: relative;
+    }
+
+    .phone-statusbar {
+      height: 8px;
+      background: var(--gray-200);
+      border-radius: 4px;
+      margin-bottom: 0.3rem;
+    }
+
+    .chat-bubble {
+      padding: 0.65rem 0.9rem;
+      border-radius: 14px;
+      font-size: var(--text-sm);
+      line-height: 1.5;
+      max-width: 90%;
+    }
+
+    .chat-bubble.user {
+      background: #2d2d2d;
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+
+    .chat-bubble.bot {
+      background: var(--primary);
+      color: white;
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+
+    .speed-badge {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: clamp(1.5rem, 1rem + 1.5vw, 2.2rem);
+      font-weight: 700;
+      color: var(--primary);
+      text-align: center;
+    }
+
+    .demo-quote {
+      background: var(--gray-50);
+      border-left: 4px solid var(--primary);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      padding: 0.9rem 1.4rem;
+      font-style: italic;
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+    }
+
+    /* ?????????????????????????????????????????????
+       SLIDE 08 ?????    ????????????????????????????????????????????? */
+    .day-table {
+      width: 100%;
+      border-collapse: collapse;
+      flex: 1;
+      font-size: var(--text-sm);
+    }
+
+    .day-table th {
+      padding: 0.75rem 1rem;
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: var(--text-xs);
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .day-table th:first-child {
+      background: var(--gray-100);
+      color: var(--text-muted);
+      width: 8%;
+      text-align: center;
+    }
+
+    .day-table th.old-header {
+      background: var(--gray-200);
+      color: var(--text);
+    }
+
+    .day-table th.new-header {
+      background: var(--primary);
+      color: white;
+    }
+
+    .day-table td {
+      padding: 0.8rem 1rem;
+      vertical-align: top;
+      border-bottom: 1px solid var(--gray-200);
+      line-height: 1.55;
+    }
+
+    .day-table td:first-child {
+      background: var(--gray-50);
+      font-weight: 700;
+      text-align: center;
+      color: var(--primary);
+      font-size: var(--text-sm);
+    }
+
+    .day-table td.old-cell { background: white; color: var(--text-muted); }
+    .day-table td.new-cell { background: #f0faf9; color: var(--text); }
+
+    .day-table .ai-cmd {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      background: var(--primary);
+      color: white;
+      padding: 0.1em 0.4em;
+      border-radius: 4px;
+      font-size: var(--text-xs);
+    }
+
+    .day-quote {
+      background: var(--primary);
+      border-radius: var(--radius-sm);
+      padding: 0.85rem 1.4rem;
+      color: white;
+      font-style: italic;
+      font-size: var(--text-sm);
+      margin-top: 0.75rem;
+    }
+
+    /* ?????????????????????????????????????????????
+       SLIDE 09 ??DD 殉扳?
+    ????????????????????????????????????????????? */
+    .dd-layout {
+      display: flex;
+      gap: 1.5rem;
+      flex: 1;
+    }
+
+    .dd-flow-card {
+      flex: 3;
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .dd-soul-card {
+      flex: 2;
+      background: var(--primary);
+      border-radius: var(--radius-md);
+      padding: 1.8rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 1rem;
+    }
+
+    .dd-soul-card .soul-title {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: clamp(1.6rem, 1.2rem + 1.2vw, 2.4rem);
+      font-weight: 700;
+      color: white;
+    }
+
+    .dd-soul-card .soul-body {
+      font-size: var(--text-base);
+      color: rgba(255,255,255,0.85);
+      line-height: 1.65;
+    }
+
+    .flow-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .flow-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: var(--text-sm);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .flow-content strong {
+      font-size: var(--text-base);
+      font-weight: 700;
+      color: var(--text);
+      display: block;
+      margin-bottom: 0.2rem;
+    }
+
+    .flow-content p {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .flow-connector {
+      height: 20px;
+      width: 2px;
+      background: var(--gray-200);
+      margin-left: 15px;
+    }
+
+    /* ?????????????????????????????????????????????
+       SLIDE 10 ???閮??芣扔??
+    ????????????????????????????????????????????? */
+    .roster-cards {
+      display: flex;
+      gap: 1.2rem;
+      flex: 1;
+    }
+
+    .roster-card {
+      flex: 1;
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-top: 4px solid var(--primary);
+      border-radius: var(--radius-md);
+      padding: 1.8rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .roster-card-icon { font-size: 2.5rem; }
+
+    .roster-card-name {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: clamp(1.2rem, 1rem + 0.7vw, 1.6rem);
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .roster-card-badge {
+      display: inline-block;
+      background: var(--primary-light);
+      color: var(--primary);
+      font-size: var(--text-xs);
+      font-weight: 600;
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      letter-spacing: 0.1em;
+      padding: 0.25rem 0.75rem;
+      border-radius: 2rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .roster-card p {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      line-height: 1.65;
+      flex: 1;
+    }
+
+    .roster-hook {
+      background: var(--primary);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.6rem;
+      color: white;
+      font-size: var(--text-sm);
+      font-weight: 600;
+      text-align: center;
+      margin-top: 0.5rem;
+    }
+
+    /* ?????????????????????????????????????????????
+       SLIDE 11 ???擗嚗??
+    ????????????????????????????????????????????? */
+    .elevator-layout {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+    }
+
+    .elevator-quote {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem 2rem;
+      font-style: italic;
+      font-size: clamp(1rem, 0.85rem + 0.5vw, 1.25rem);
+      color: var(--text-muted);
+      line-height: 1.7;
+      text-align: center;
+      max-width: 700px;
+    }
+
+    .elevator-scene {
+      background: var(--gray-100);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      padding: 1.2rem 1.8rem;
+      font-size: var(--text-base);
+      color: var(--text);
+      line-height: 1.65;
+      max-width: 680px;
+      text-align: center;
+    }
+
+    .elevator-then {
+      font-size: var(--text-lg);
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .elevator-cta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: var(--primary-light);
+      border: 2px solid var(--primary);
+      border-radius: var(--radius-md);
+      padding: 0.85rem 1.5rem;
+      font-size: var(--text-base);
+      font-weight: 700;
+      color: var(--primary);
+      cursor: pointer;
+    }
+
+    /* ?????????????????????????????????????????????
+       SLIDE 12 ??DIISA 叟
+    ????????????????????????????????????????????? */
+    .diisa-layout {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .diisa-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.8rem;
+      flex: 1;
+    }
+
+    .diisa-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      height: 100%;
+    }
+
+    .diisa-col-top {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .diisa-icon { font-size: 1.6rem; margin-bottom: 0.25rem; }
+
+    .diisa-bar-wrap {
+      width: 100%;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      height: 180px;
+    }
+
+    .diisa-bar {
+      width: 80%;
+      border-radius: 8px 8px 0 0;
+      height: 0%;
+      transition: none;
+    }
+
+    .diisa-bar.bar-1 { background: var(--gray-300); }
+    .diisa-bar.bar-2 { background: #8bbfd4; }
+    .diisa-bar.bar-3 { background: rgba(0,157,136,0.4); border: 2px solid var(--primary); }
+    .diisa-bar.bar-4 { background: rgba(0,157,136,0.75); }
+    .diisa-bar.bar-5 { background: var(--primary); }
+
+    .diisa-label {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: var(--text-sm);
+      font-weight: 700;
+      color: var(--text);
+      text-align: center;
+    }
+
+    .diisa-desc {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1.45;
+      max-width: 120px;
+    }
+
+    .diisa-quote {
+      background: var(--primary);
+      border-radius: var(--radius-sm);
+      padding: 0.85rem 1.4rem;
+      color: white;
+      font-style: italic;
+      font-size: var(--text-sm);
+      text-align: center;
+    }
+
+    /* ?????????????????????????????????????????????
+       SLIDE 13 ?????    ????????????????????????????????????????????? */
+    .moat-cards {
+      display: flex;
+      gap: 1.2rem;
+      flex: 1;
+    }
+
+    .moat-card {
+      flex: 1;
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .moat-card.yellow-top { border-top: 5px solid var(--accent-yellow); }
+    .moat-card.blue-top   { border-top: 5px solid var(--accent-blue); }
+    .moat-card.teal-top   { border-top: 5px solid var(--primary); }
+
+    .moat-card-icon { font-size: 2.5rem; }
+
+    .moat-card h3 {
+      font-size: clamp(1.1rem, 0.9rem + 0.6vw, 1.4rem);
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .moat-card p {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      line-height: 1.7;
+      flex: 1;
+    }
+
+    /* ?????????????????????????????????????????????
+       SLIDE 14 ??HBR ?
+    ????????????????????????????????????????????? */
+    .hbr-layout {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 1.2rem;
+    }
+
+    .hbr-stat {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: clamp(5rem, 3rem + 6vw, 9rem);
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1;
+    }
+
+    .hbr-label {
+      font-size: clamp(1rem, 0.85rem + 0.6vw, 1.4rem);
+      color: var(--text);
+      font-weight: 500;
+      max-width: 520px;
+    }
+
+    .hbr-source {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .hbr-divider {
+      width: 60px;
+      height: 2px;
+      background: var(--gray-200);
+    }
+
+    .hbr-banner {
+      background: var(--primary);
+      border-radius: var(--radius-md);
+      padding: 1.1rem 2rem;
+      color: white;
+      font-size: var(--text-base);
+      font-weight: 600;
+      max-width: 680px;
+      line-height: 1.6;
+    }
+
+    /* ?????????????????????????????????????????????
+       SLIDES 15??9 ??威?1??
+    ????????????????????????????????????????????? */
+    .perspective-slide {
+      background: var(--primary-light);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 1.5rem;
+      padding: 2rem;
+    }
+
+    .perspective-tag {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: var(--text-xs);
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--primary);
+      background: rgba(0,157,136,0.12);
+      padding: 0.35rem 1rem;
+      border-radius: 2rem;
+    }
+
+    .perspective-icon { font-size: clamp(2.5rem, 2rem + 1.5vw, 4rem); }
+
+    .perspective-title {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: clamp(1.8rem, 1.3rem + 2vw, 3rem);
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1.1;
+    }
+
+    .perspective-body {
+      font-size: clamp(1rem, 0.85rem + 0.55vw, 1.4rem);
+      color: var(--text);
+      line-height: 1.7;
+      max-width: 700px;
+    }
+
+    /* ?????????????????????????????????????????????
+       SLIDE 20 ??蛛??瞏
+    ????????????????????????????????????????????? */
+    .action-layout {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 1.5rem;
+    }
+
+    .action-pen { font-size: clamp(3rem, 2rem + 2vw, 5rem); }
+
+    .action-instruction {
+      font-size: clamp(1.3rem, 1rem + 1vw, 2rem);
+      font-weight: 700;
+      color: var(--text);
+      max-width: 640px;
+      line-height: 1.45;
+    }
+
+    .action-note {
+      font-size: var(--text-base);
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .action-banner {
+      background: var(--primary);
+      border-radius: var(--radius-md);
+      padding: 1.1rem 2rem;
+      color: white;
+      font-size: var(--text-base);
+      font-weight: 600;
+      max-width: 640px;
+      line-height: 1.6;
+    }
+
+    /* ?????????????????????????????????????????????
+       SLIDE 21 ??THANK YOU
+    ????????????????????????????????????????????? */
+    .thankyou-layout {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 1.2rem;
+    }
+
+    .thankyou-logo {
+      width: 160px;
+      height: auto;
+      object-fit: contain;
+    }
+
+    .thankyou-title {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: clamp(3.5rem, 2.5rem + 4vw, 7rem);
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+
+    .thankyou-qa {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: clamp(1.5rem, 1rem + 1.5vw, 2.5rem);
+      font-weight: 300;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    .thankyou-tag {
+      font-size: var(--text-base);
+      color: var(--text-muted);
+    }
+
+    .thankyou-divider {
+      width: 60px;
+      height: 2px;
+      background: var(--gray-200);
+    }
+
+    .thankyou-contact {
+      font-family: Calibri, 'Microsoft JhengHei', sans-serif;
+      font-size: var(--text-base);
+      color: var(--text-muted);
+    }
+
+    /* ??? RESPONSIVE adjustments ??? */
+    @media (max-width: 768px) {
+      .slide-header { padding: 0 1rem; }
+      .slide-content { padding: 0.8rem 1rem; }
+      .slide-titlebar { margin: 0 0.8rem; padding: 0 1rem; }
+      .slide-footer { padding: 0 1rem; }
+      .bento-grid { grid-template-columns: 1fr; grid-template-rows: auto; }
+      .bento-card.bento-main { grid-row: auto; }
+      .trio-cards { flex-direction: column; }
+      .comparison-layout { flex-direction: column; }
+      .demo-layout { flex-direction: column; }
+      .dd-layout { flex-direction: column; }
+      .roster-cards { flex-direction: column; }
+      .moat-cards { flex-direction: column; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ??? PROGRESS BAR ??? -->
+  <div id="progress-bar"></div>
+
+  <!-- ??? NAV BUTTONS ??? -->
+  <button class="nav-btn" id="btn-prev" aria-label="??>
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <button class="nav-btn" id="btn-next" aria-label="??>
+    <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
+
+  <!-- ??? SLIDE RUNNER ??? -->
+  <div id="runner">
+
+    <!-- ??????????????????????????????????????????
+         SLIDE 01 ??COVER
+    ?????????????????????????????????????????? -->
+    <div class="slide" id="slide-01">
+      <div class="cover-bg"></div>
+      <div class="cover-overlay"></div>
+      <div class="cover-content">
+        <div class="cover-label content-reveal">2026 MID-YEAR REVIEW</div>
+        <h1 class="cover-title content-reveal">?AI 鈭?碰 ?豯??謜?/h1>
+        <div class="cover-subtitle content-reveal">THE DECISION ENGINE BLUEPRINT<br><span style="font-size:0.8em; opacity:0.8; margin-top:0.5rem; display:block; letter-spacing:0.1em">憒雿皞Ｗ啁訾啣</span></div>
+        <div class="cover-divider content-reveal"></div>
+        <div class="cover-reporter content-reveal">??剔飭?Gary Tzeng謜衍uids Control DD</div>
+        <div class="cover-badge content-reveal">
+          ?閰???謍堆??= <strong>剔??謘 (20%)</strong> ? <strong>AI 秋脰?謘??? (80%)</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- ??????????????????????????????????????????
+         SLIDE 02 ??AGENDA
+    ?????????????????????????????????????????? -->
+    <div class="slide" id="slide-02">
+      <div class="slide-header">
+        <img src="../logo.png" alt="FCI Logo" class="logo" />
+        <span class="section-label">TODAY'S BRIEFING</span>
+        <span class="counter" id="counter-02">02 / 26</span>
+      </div>
+      <div class="slide-titlebar content-reveal">
+        <h2>謑?</h2>
+      </div>
+      <div class="slide-content">
+        <div class="agenda-grid">
+          <div class="agenda-item content-reveal">
+            <div class="agenda-num">01</div>
+            <div class="agenda-text">制?謍?梱???????哨?改亙</div>
+          </div>
+          <div class="agenda-item content-reveal">
+            <div class="agenda-num">04</div>
+            <div class="agenda-text">?∵漕??摮肅瞏? ???銋拍???∪伐??/div>
+          </div>
+          <div class="agenda-item content-reveal">
+            <div class="agenda-num">02</div>
+            <div class="agenda-text">?∵漕?歹貔???遴?剜謓剜謆?銵?鈭??/div>
+          </div>
+          <div class="agenda-item content-reveal">
+            <div class="agenda-num">05</div>
+            <div class="agenda-text">荒?謍脩芣銋???蹓箇</div>
+          </div>
+          <div class="agenda-item content-reveal">
+            <div class="agenda-num">03</div>
+            <div class="agenda-text">?∵漕?賹????玲?璆菟遴高??梁 AI</div>
+          </div>
+          <div class="agenda-item content-reveal">
+            <div class="agenda-num">06</div>
+            <div class="agenda-text">Q&amp;A 叟?</div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Facilitating Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+    </div>
+
+    <!-- ??????????????????????????????????????????
+         SLIDE 03 ??SECTION: CHAPTER 01
+    ?????????????????????????????????????????? -->
+    <div class="slide slide-section" id="slide-03">
+      <div class="chapter-badge content-reveal">CHAPTER 01</div>
+      <div class="section-main-title content-reveal">歹貔?/div>
+      <div class="section-subtitle content-reveal">遴?剜謓剜謆?銵?鈭??/div>
+      <div class="section-concept content-reveal">AI 謢遴??橘????Cognitive Exoskeleton</div>
+    </div>
+
+    <!-- ??????????????????????????????????????????
+         SLIDE 04 ???謜?
+    ?????????????????????????????????????????? -->
+    <div class="slide" id="slide-04">
+      <div class="slide-header">
+        <img src="../logo.png" alt="FCI Logo" class="logo" />
+        <span class="section-label">CHAPTER 01 ??歹貔?/span>
+        <span class="counter">04 / 26</span>
+      </div>
+      <div class="slide-titlebar content-reveal">
+        <h2>遴?剜蛛叟城??蹇??溘魂???</h2>
+      </div>
+      <div class="slide-content">
+        <div class="bento-grid">
+          <div class="bento-card bento-main content-reveal">
+            <div class="bento-card-label">THE PAIN POINT</div>
+            <h3>遴?剜蛛叟城??蹇??溘魂???</h3>
+            <p>赯芷萄溘蹓?鞈芰巨壇蹓魂祗?舀╰????蹓潘潮??笨‾謕????擗?遴?哨?剜???嚗??蹇???剜??謚軋秘???綽剜???蹇??擗豲嗽謕????Ｘ撢?/p>
+          </div>
+          <div class="bento-card content-reveal">
+            <div class="bento-card-label">STATISTICS</div>
+            <div class="bento-stat">80%</div>
+            <div class="bento-stat-desc">????伍曹? 30 ???踝?喳???頦蛔?謍梱??/div>
+          </div>
+          <div class="bento-card content-reveal">
+            <div class="bento-card-label">YEARLY WASTE</div>
+            <div class="bento-stat">??,000 hrs</div>
+            <div class="bento-stat-desc">伍啁伍勗曄孕?蜃謕?哨???蹇??螞謕謢??????/div>
+          </div>
+        </div>
+        <div class="bento-bottom-strip content-reveal">
+          ???謚捍謕?哨∴?Ｙ??謍堊典賹??謆??????魂?????脤選⊥銋純蹇?        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Facilitating Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+    </div>
+
+    <!-- ??????????????????????????????????????????
+         SLIDE 05 ??AI 改??    ?????????????????????????????????????????? -->
+    <div class="slide" id="slide-05">
+      <div class="slide-header">
+        <img src="../logo.png" alt="FCI Logo" class="logo" />
+        <span class="section-label">CHAPTER 01 ??歹貔?/span>
+        <span class="counter">05 / 26</span>
+      </div>
+      <div class="slide-titlebar content-reveal">
+        <h2>綜窖?唳?綜蛛蜃?AI ?鞈?改??/h2>
+      </div>
+      <div class="slide-content">
+        <div class="trio-cards">
+          <div class="trio-card muted content-reveal">
+            <div class="trio-card-icon">?</div>
+            <div class="trio-card-label">1.0 CHATBOT</div>
+            <div class="trio-card-name">?鈭賹謒?/div>
+            <div class="trio-card-sub">航??/div>
+            <p>?船秧???踐????????哨????豢????/p>
+          </div>
+          <div class="trio-card blue-tint content-reveal">
+            <div class="trio-card-icon">???/div>
+            <div class="trio-card-label blue-tint">2.0 COPILOT</div>
+            <div class="trio-card-name">???/div>
+            <div class="trio-card-sub" style="color:var(--accent-blue)">航謘?/div>
+            <p>堆瑞梁?蹓駁???遴滯???祈橘?賡舀０綜童?綜竣??/p>
+          </div>
+          <div class="trio-card teal-glow content-reveal">
+            <div class="trio-card-icon">??</div>
+            <div class="trio-card-label teal-tint">3.0 AGENTIC AI</div>
+            <div class="trio-card-name">???/div>
+            <div class="trio-card-sub">?堆?</div>
+            <p>航﹝謆謕?堆蛔???蹇??CRM?蹎磋P?蹓質??憛??皝?壇??謚阬瞍??????/p>
+            <div class="trio-tag">???威祈縣????/div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Facilitating Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+    </div>
+
+    <!-- ??????????????????????????????????????????
+         SLIDE 06 ????    ?????????????????????????????????????????? -->
+    <div class="slide" id="slide-06">
+      <div class="slide-header">
+        <img src="../logo.png" alt="FCI Logo" class="logo" />
+        <span class="section-label">CHAPTER 01 ??歹貔?/span>
+        <span class="counter">06 / 26</span>
+      </div>
+      <div class="slide-titlebar content-reveal">
+        <h2>綜窖?????踝??謜???/h2>
+      </div>
+      <div class="slide-content">
+        <div class="timeline-wrapper">
+          <div class="timeline-track content-reveal">
+            <!-- Node 1 -->
+            <div class="timeline-node">
+              <div class="timeline-dot" id="tl-dot-1">??</div>
+              <div class="timeline-era">???蹇隤</div>
+              <div class="timeline-desc">Command Line ??秋撮????鞈?擗</div>
+              <div class="timeline-connector">
+                <div class="timeline-connector-fill" id="tl-line-1"></div>
+              </div>
+            </div>
+            <!-- Node 2 -->
+            <div class="timeline-node">
+              <div class="timeline-dot" id="tl-dot-2">??</div>
+              <div class="timeline-era">???蹇隤典???閮曄?/div>
+              <div class="timeline-desc">ERP / CRM / Dashboard</div>
+              <div class="timeline-warn" style="margin-top:0.4rem; font-size:var(--text-xs); max-width:180px; line-height:1.4">
+                ??謍?株悻???哨??擗???Uber ?鞊??蹇??賊?擗唳銋???恃迤?銵曌遴璆菟遴馬?              </div>
+              <div class="timeline-connector">
+                <div class="timeline-connector-fill" id="tl-line-2"></div>
+              </div>
+            </div>
+            <!-- Node 3 -->
+            <div class="timeline-node">
+              <div class="timeline-dot active" id="tl-dot-3">??</div>
+              <div class="timeline-era">????蹇隤<br><small style="font-weight:400;font-size:0.8em;">??祈縣???/small></div>
+              <div class="timeline-desc">遴園方氐?秋撒?氐?格璇??蹇??????綜貔螞??蝓蹓???/div>
+            </div>
+          </div>
+          <div class="timeline-quote content-reveal">
+            ???剛梱姿?蝞????摮?謈I ??梱姿?蹎∠?謕??蹓??謚阬蹇????綽橫?????謘?蹇?          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Facilitating Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+    </div>
+
+    <!-- ??????????????????????????????????????????
+         SLIDE 07 ???鈭????謜?
+    ?????????????????????????????????????????? -->
+    <div class="slide" id="slide-07">
+      <div class="slide-header">
+        <img src="../logo.png" alt="FCI Logo" class="logo" />
+        <span class="section-label">CHAPTER 01 ??歹貔?/span>
+        <span class="counter">07 / 26</span>
+      </div>
+      <div class="slide-titlebar content-reveal">
+        <h2>?鈭????謜? ??綜窖??謘甄???踝?/h2>
+      </div>
+      <div class="slide-content">
+        <div class="comparison-layout" style="flex:1">
+          <div class="comparison-col old-way content-reveal">
+            <div class="comparison-icon">??/div>
+            <div class="comparison-label">?豲 Step-Based</div>
+            <div class="comparison-heading">?改豢璇?踝??叟■???/div>
+            <div class="comparison-body">???賹謓梢秋撚? 10 ????AI ?鞈??鞈ａ????10 ??????/div>
+            <div class="comparison-note">謕???謘??謜?謢 AI First?/div>
+          </div>
+          <div class="comparison-col new-way content-reveal">
+            <div class="comparison-icon">??/div>
+            <div class="comparison-label">?麻豲 Outcome-Based</div>
+            <div class="comparison-heading">綜策謆謕?瞏????踝?/div>
+            <div class="comparison-body">???謆謕謢?嚗瘀?謕?璇胼魂??AI ?蹇?謍????秋駁鈭交革?蹌 10 ?????皝?AI ?鞊?冽???/div>
+          </div>
+        </div>
+        <div class="comparison-banner content-reveal">
+          ?????謚殷批??? AI 拚遴???蝓魂?AI ??遴????蹇?        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Facilitating Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+    </div>
+
+    <!-- ??????????????????????????????????????????
+         SLIDE 08 ??NO UI DEMO
+    ?????????????????????????????????????????? -->
+    <div class="slide" id="slide-08">
+      <div class="slide-header">
+        <img src="../logo.png" alt="FCI Logo" class="logo" />
+        <span class="section-label">CHAPTER 01 ??歹貔?/span>
+        <span class="counter">08 / 26</span>
+      </div>
+      <div class="slide-titlebar content-reveal">
+        <h2>Demo謕褂 UI ?????????貊折唳╡?謢?軋箸?/h2>
+      </div>
+      <div class="slide-content">
+        <div class="demo-layout">
+          <div class="demo-col content-reveal">
+            <div class="demo-col-label old-label">?蝯蹓? ??/div>
+            <div class="step-list">
+              <div class="step-box">???湔??/div>
+              <div class="step-arrow">??/div>
+              <div class="step-box">?擗 Portal</div>
+              <div class="step-arrow">??/div>
+              <div class="step-box">?CRM</div>
+              <div class="step-arrow">??/div>
+              <div class="step-box">剜蹓?鈭?</div>
+              <div class="step-arrow">??/div>
+              <div class="step-box">???璇?</div>
+              <div class="step-arrow">??/div>
+              <div class="step-box">??塗</div>
+            </div>
+            <div class="timing-badge">?璇? ?謅? 5??0 ??</div>
+          </div>
+          <div class="demo-col content-reveal">
+            <div class="demo-col-label new-label">???摮? ??/div>
+            <div class="phone-mockup">
+              <div class="phone-statusbar"></div>
+              <div class="chat-bubble user">?Angel CRM ?皝謘?寞?芷叟?</div>
+              <div class="chat-bubble bot">?? ?謢?謍梱秧? 3 謆??br>??A 堆撓謍堊鼓?摮蛔刈蹓鳴曉??豯?<br>??B 堆撓謍聆⊿歹瞍?賹??? Q3<br>??C 堆撓謍?蹇?謍?梁賹?/div>
+            </div>
+            <div class="speed-badge">??5 ?/div>
+          </div>
+        </div>
+        <div class="demo-quote content-reveal">
+          ??鞈?∵箏???秋撩??嚗肅蹇?        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Facilitating Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+    </div>
+
+    <!-- ??????????????????????????????????????????
+         SLIDE 09 ??SECTION: CHAPTER 02
+    ?????????????????????????????????????????? -->
+    <div class="slide slide-section" id="slide-09">
+      <div class="chapter-badge content-reveal">CHAPTER 02</div>
+      <div class="section-main-title content-reveal">賹?/div>
+      <div class="section-subtitle content-reveal">?玲?璆菟遴馬??倦蝑 AI</div>
+      <div class="section-concept content-reveal">剜荔???蝞?</div>
+    </div>
+
+    <!-- ??????????????????????????????????????????
+         SLIDE 10 ?????    ?????????????????????????????????????????? -->
+    <div class="slide" id="slide-10">
+      <div class="slide-header">
+        <img src="../logo.png" alt="FCI Logo" class="logo" />
+        <span class="section-label">CHAPTER 02 ??賹?/span>
+        <span class="counter">10 / 26</span>
+      </div>
+      <div class="slide-titlebar content-reveal">
+        <h2>??剜?剜荔???蝞?</h2>
+      </div>
+      <div class="slide-content">
+        <table class="day-table content-reveal">
+          <thead>
+            <tr>
+              <th>?蹇</th>
+              <th class="old-header">?蝯銋????/th>
+              <th class="new-header">???AI 踝?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>??</td>
+              <td class="old-cell">?Email?蹓?蛛??蹓?殷蹓???10 綜等????謍梯縣?/td>
+              <td class="new-cell"><span class="ai-cmd">/morning</span> ??AI ?塗旦?鈭止?+ Gmail + 蛛????蜃蹓??隞??/td>
+            </tr>
+            <tr>
+              <td>銋??/td>
+              <td class="old-cell">?喉餅螂?寞??砍?萇巨賜巨頛荒插?/td>
+              <td class="new-cell">?Telegram 方賂 ???鈭??鈭瞉?剜荔啣謜??∵?鈭??鈭?憸?/td>
+            </tr>
+            <tr>
+              <td>伍?/td>
+              <td class="old-cell">??豲?剜?哨?餅??嗅嗆??/td>
+              <td class="new-cell"><span class="ai-cmd">/update</span> ????方?????????銵謆???鈭止?/td>
+            </tr>
+            <tr>
+              <td>?謓</td>
+              <td class="old-cell">??塗?赯芸踝 1 ??豯伐</td>
+              <td class="new-cell"><span class="ai-cmd">/weekly</span> ??AI ???賹?荒??謖赯芸澗?鈭??寡?/td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="day-quote content-reveal">
+          ??????蛛魂?鞈???踝唳殉?謕蝑?謘?綽?純蹇?        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Facilitating Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+    </div>
+
+    <!-- ??????????????????????????????????????????
+         SLIDE 11 ??DD 殉扳?
+    ?????????????????????????????????????????? -->
+    <div class="slide" id="slide-11">
+      <div class="slide-header">
+        <img src="../logo.png" alt="FCI Logo" class="logo" />
+        <span class="section-label">CHAPTER 02 ??賹?/span>
+        <span class="counter">11 / 26</span>
+      </div>
+      <div class="slide-titlebar content-reveal">
+        <h2>DD ??IT魂???魂脤選⊥鈭?箸葛對麻?/h2>
+      </div>
+      <div class="slide-content">
+        <div class="dd-layout">
+          <div class="dd-flow-card content-reveal">
+            <div class="flow-step">
+              <div class="flow-num">1</div>
+              <div class="flow-content">
+                <strong>?蹇???/strong>
+                <p>遴滿???秋撩????赯?摮蛔???/p>
+              </div>
+            </div>
+            <div class="flow-connector"></div>
+            <div class="flow-step">
+              <div class="flow-num">2</div>
+              <div class="flow-content">
+                <strong>Skill ?謚?</strong>
+                <p>Irene 擗??謚???啗堊選???謚殷 Skills</p>
+              </div>
+            </div>
+            <div class="flow-connector"></div>
+            <div class="flow-step">
+              <div class="flow-num">3</div>
+              <div class="flow-content">
+                <strong>??蹎?</strong>
+                <p>??Agent ?蹎??????鞈?/p>
+              </div>
+            </div>
+            <div class="flow-connector"></div>
+            <div class="flow-step">
+              <div class="flow-num">4</div>
+              <div class="flow-content">
+                <strong>SOP 賂</strong>
+                <p>???謕??橘???啾?純?/p>
+              </div>
+            </div>
+            <div class="flow-connector"></div>
+            <div class="flow-step">
+              <div class="flow-num">5</div>
+              <div class="flow-content">
+                <strong>??</strong>
+                <p>遴??叟姿?堆萄?遴?抆</p>
+              </div>
+            </div>
+          </div>
+          <div class="dd-soul-card content-reveal">
+            <div class="soul-title">DD = ?閮???</div>
+            <div class="soul-body">? DD ??AI ?謢鈭?br>?? DD ??AI ?謢?綜⊥銋?/div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Facilitating Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+    </div>
+
+    
+    <!-- 
+         SLIDE 11-1 
+    -->
+    <div class="slide" id="slide-11-1">
+      <div class="slide-header">
+        <img src="../logo.png" alt="FCI Logo" class="logo" />
+        <span class="section-label">CHAPTER 02 </span>
+        <span class="counter">12 / 26</span>
+      </div>
+      <div class="slide-titlebar content-reveal">
+        <h2>芸撖行堆BH ValvStream 閬潸圾</h2>
+      </div>
+      <div class="slide-content">
+        <div class="bento-grid" style="grid-template-columns: 1fr 1fr;">
+          <div class="bento-card content-reveal">
+            <h3 style="font-size: 1.8rem; color: var(--danger);">喟絞瘚蝔 (Human)</h3>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; font-size: 1.2rem;">
+              <li> 鈭箏極方銴閬潭 (PDF/摮)</li>
+              <li> 亥”撠 ValvStream 銝詨桅</li>
+              <li> 蝑頛詨亙‵銵剁銝璆菜粹</li>
+            </ul>
+          </div>
+          <div class="bento-card content-reveal" style="border: 2px solid var(--neon);">
+            <h3 style="font-size: 1.8rem; color: var(--neon);">Agentic 瘚蝔 (n8n + AI)</h3>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; font-size: 1.2rem;">
+              <li> 璆剖湔仿撠撅祇蝯銝唾潭隞</li>
+              <li> AI Agent 芸蝎暹 41+ 甈雿鞈</li>
+              <li> 芸撠朣 ValvStream 甈雿 (Enum) 銝血神 Excel</li>
+              <li> 甇 Outcome-Based (靘隞  湔交踹啁)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Facilitating Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+    </div>
+
+<!-- ??????????????????????????????????????????
+         SLIDE 12 ???閮??芣扔??
+    ?????????????????????????????????????????? -->
+    <div class="slide" id="slide-12">
+      <div class="slide-header">
+        <img src="../logo.png" alt="FCI Logo" class="logo" />
+        <span class="section-label">CHAPTER 02 ??賹?/span>
+        <span class="counter">12 / 26</span>
+      </div>
+      <div class="slide-titlebar content-reveal">
+        <h2>?獢????脤選⊥?/h2>
+      </div>
+      <div class="slide-content">
+        <div class="roster-cards">
+          <div class="roster-card content-reveal">
+            <div class="roster-card-icon">??</div>
+            <div class="roster-card-name">Mira</div>
+            <div class="roster-card-badge">秋船僱??/div>
+            <p>?????蛔??瞏叟??謖????鞈???銵?????嚗瘀 Word 伍??/p>
+          </div>
+          <div class="roster-card content-reveal">
+            <div class="roster-card-icon">??</div>
+            <div class="roster-card-name">Jordan</div>
+            <div class="roster-card-badge">?刻麾伍???/div>
+            <p>叟垢?刻麾剜?伍?鳴?蝞璁??蛔?澗?蝞?謘踐僱梱鼓?/p>
+          </div>
+          <div class="roster-card content-reveal">
+            <div class="roster-card-icon">?</div>
+            <div class="roster-card-name">Quinn</div>
+            <div class="roster-card-badge">?????/div>
+            <p>??????堆撥?畾??謘?秋銵??豲颲?殉朴?叟???/p>
+          </div>
+        </div>
+        <div class="roster-hook content-reveal">
+          ????????⊥???銋?賹鞈??餈???恍遴??蹇?        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Facilitating Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+    </div>
+
+    <!-- ??????????????????????????????????????????
+         SLIDE 13 ??SECTION: CHAPTER 03
+    ?????????????????????????????????????????? -->
+    <div class="slide slide-section" id="slide-13">
+      <div class="chapter-badge content-reveal">CHAPTER 03</div>
+      <div class="section-main-title content-reveal">?摮肅瞏?</div>
+      <div class="section-subtitle content-reveal">?銋拍???∪伐??/div>
+      <div class="section-concept content-reveal">綜竣???????謢瘀??/div>
+    </div>
+
+    <!-- ??????????????????????????????????????????
+         SLIDE 14 ???擗嚗??
+    ?????????????????????????????????????????? -->
+    <div class="slide" id="slide-14">
+      <div class="slide-header">
+        <img src="../logo.png" alt="FCI Logo" class="logo" />
+        <span class="section-label">CHAPTER 03 ???摮肅瞏?</span>
+        <span class="counter">14 / 26</span>
+      </div>
+      <div class="slide-titlebar content-reveal">
+        <h2>?謆?哨????嚚?</h2>
+      </div>
+      <div class="slide-content">
+        <div class="elevator-layout">
+          <div class="elevator-quote content-reveal">
+            ???叟?銋啣?蹇??皝謒賢??AI ??制謓剜摮??蹇?          </div>
+          <div class="elevator-scene content-reveal">
+            ? 鈭??赯剖澗?? NFC ???擗嚗?謢? ??擗蝯??殉死??謕瘣餉砍券哨颲??          </div>
+          <div class="elevator-then content-reveal">?銋??叟綽?踐 AI ?謍???/div>
+          <div class="elevator-cta content-reveal">
+            <span>??/span>
+            <span>??叟???/span>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Facilitating Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+    </div>
+
+    <!-- ??????????????????????????????????????????
+         SLIDE 15 ??DIISA 叟???    ?????????????????????????????????????????? -->
+    <div class="slide" id="slide-15">
+      <div class="slide-header">
+        <img src="../logo.png" alt="FCI Logo" class="logo" />
+        <span class="section-label">CHAPTER 03 ???摮肅瞏?</span>
+        <span class="counter">15 / 26</span>
+      </div>
+      <div class="slide-titlebar content-reveal">
+        <h2>叟???DIISA ??綜等??賹???瞉謘</h2>
+      </div>
+      <div class="slide-content">
+        <div class="diisa-layout">
+          <div class="diisa-bars content-reveal">
+            <!-- D -->
+            <div class="diisa-col">
+              <div class="diisa-col-top">
+                <div class="diisa-icon">?</div>
+              </div>
+              <div class="diisa-bar-wrap">
+                <div class="diisa-bar bar-1" id="diisa-bar-1" data-target="28"></div>
+              </div>
+              <div class="diisa-label">Data</div>
+              <div class="diisa-desc">鈭??????殉死?砍券哨颲</div>
+            </div>
+            <!-- I -->
+            <div class="diisa-col">
+              <div class="diisa-col-top">
+                <div class="diisa-icon">??</div>
+              </div>
+              <div class="diisa-bar-wrap">
+                <div class="diisa-bar bar-2" id="diisa-bar-2" data-target="48"></div>
+              </div>
+              <div class="diisa-label">Information</div>
+              <div class="diisa-desc">10 皜⊿賣???????瘞玲???/div>
+            </div>
+            <!-- I -->
+            <div class="diisa-col">
+              <div class="diisa-col-top">
+                <div class="diisa-icon">?</div>
+              </div>
+              <div class="diisa-bar-wrap">
+                <div class="diisa-bar bar-3" id="diisa-bar-3" data-target="65"></div>
+              </div>
+              <div class="diisa-label">Insight</div>
+              <div class="diisa-desc">AI ?瞏謍梯縐?∟麾? 3 皜??4 ?伍脫暑?鞈ｆ祗叟曹</div>
+            </div>
+            <!-- S -->
+            <div class="diisa-col">
+              <div class="diisa-col-top">
+                <div class="diisa-icon">?</div>
+              </div>
+              <div class="diisa-bar-wrap">
+                <div class="diisa-bar bar-4" id="diisa-bar-4" data-target="80"></div>
+              </div>
+              <div class="diisa-label">Strategy</div>
+              <div class="diisa-desc">擗??蜃蹐?梁 6 ???謢?啾??/div>
+            </div>
+            <!-- A -->
+            <div class="diisa-col">
+              <div class="diisa-col-top">
+                <div class="diisa-icon">??/div>
+              </div>
+              <div class="diisa-bar-wrap">
+                <div class="diisa-bar bar-5" id="diisa-bar-5" data-target="100"></div>
+              </div>
+              <div class="diisa-label">Actions</div>
+              <div class="diisa-desc">遴滯??潑⊿歹? AI ???瞉謘?蹓螞謍船?瞉?蹓?鈭??/div>
+            </div>
+          </div>
+          <div class="diisa-quote content-reveal">
+            ????哨??謍?蝞??蹇謕?純?鈭????純蹇?          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Facilitating Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+    </div>
+
+    <!-- ??????????????????????????????????????????
+         SLIDE 16 ?????    ?????????????????????????????????????????? -->
+    <div class="slide" id="slide-16">
+      <div class="slide-header">
+        <img src="../logo.png" alt="FCI Logo" class="logo" />
+        <span class="section-label">CHAPTER 03 ???摮肅瞏?</span>
+        <span class="counter">16 / 26</span>
+      </div>
+      <div class="slide-titlebar content-reveal">
+        <h2>?蝞?餅蔭謕??銋拍???</h2>
+      </div>
+      <div class="slide-content">
+        <div class="moat-cards">
+          <div class="moat-card yellow-top content-reveal">
+            <div class="moat-card-icon">?憒</div>
+            <h3>???/h3>
+            <p>?蹓餃暹皜⊿賣澗?謍??謕謢??憳螞???嚗?????? AI ?蹓??/p>
+          </div>
+          <div class="moat-card blue-top content-reveal">
+            <div class="moat-card-icon">??</div>
+            <h3>抆??/h3>
+            <p>?????????隞?桀??蹓嗽蹎遐 擗???踐???謘澆?豯??憸???/p>
+          </div>
+          <div class="moat-card teal-top content-reveal">
+            <div class="moat-card-icon">??</div>
+            <h3>秋船僱??/h3>
+            <p>?威? AI ???謕?澗?鈭蟡????謜?秋船僱?鞎?蹇剔捂??賹???威?謕????/p>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Facilitating Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+    </div>
+
+    <!-- ??????????????????????????????????????????
+         SLIDE 17 ??HBR ?
+    ?????????????????????????????????????????? -->
+    <div class="slide" id="slide-17">
+      <div class="slide-header">
+        <img src="../logo.png" alt="FCI Logo" class="logo" />
+        <span class="section-label">CHAPTER 03 ???摮肅瞏?</span>
+        <span class="counter">17 / 26</span>
+      </div>
+      <div class="slide-titlebar content-reveal">
+        <h2>?鞊?方曉謍朝謕??謓舫?哨??餈?踐赤?賹??/h2>
+      </div>
+      <div class="slide-content">
+        <div class="hbr-layout">
+          <div class="hbr-stat content-reveal">21%</div>
+          <div class="hbr-label content-reveal">?????謘遴選?蹇甇秋餃園?剜?/div>
+          <div class="hbr-source content-reveal">?????撟喲堊? (HBR)?ow Gen AI Is Already Impacting the Labor Market??/div>
+          <div class="hbr-divider content-reveal"></div>
+          <div class="hbr-banner content-reveal">
+            ?壇謕??謢??急扔遴鬼?螞謕謢伐?閰制祗?? 5 皝??鞈??蜃謕???蜃蹇?          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Facilitating Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+    </div>
+
+    <!-- ??????????????????????????????????????????
+         SLIDE 18 ??SECTION: EPILOGUE
+    ?????????????????????????????????????????? -->
+    <div class="slide slide-section" id="slide-18">
+      <div class="chapter-badge content-reveal">EPILOGUE</div>
+      <div class="section-main-title content-reveal">航正?璆菟遴鬼?蹓箇</div>
+      <div class="section-concept content-reveal">??芬???AI 剜啾秤??赯望對??/div>
+    </div>
+
+    <!-- ??????????????????????????????????????????
+         SLIDE 19 ??威?1
+    ?????????????????????????????????????????? -->
+    <div class="slide" id="slide-19">
+      <div class="slide-header">
+        <img src="../logo.png" alt="FCI Logo" class="logo" />
+        <span class="section-label">EPILOGUE</span>
+        <span class="counter">19 / 26</span>
+      </div>
+      <div class="slide-content" style="padding-top:0">
+        <div class="perspective-slide">
+          <div class="perspective-tag content-reveal">Perspective 01 / 05</div>
+          <div class="perspective-icon content-reveal">?</div>
+          <div class="perspective-title content-reveal">?謕謢?賹???</div>
+          <div class="perspective-body content-reveal">?蹍寞??謘澗矽??AI 謢?鞈??螞謢餌璆?蹇隤刻砍?瑟?????蝞璆??/div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Facilitating Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+    </div>
+
+    <!-- ??????????????????????????????????????????
+         SLIDE 20 ??威?2
+    ?????????????????????????????????????????? -->
+    <div class="slide" id="slide-20">
+      <div class="slide-header">
+        <img src="../logo.png" alt="FCI Logo" class="logo" />
+        <span class="section-label">EPILOGUE</span>
+        <span class="counter">20 / 26</span>
+      </div>
+      <div class="slide-content" style="padding-top:0">
+        <div class="perspective-slide">
+          <div class="perspective-tag content-reveal">Perspective 02 / 05</div>
+          <div class="perspective-icon content-reveal">??</div>
+          <div class="perspective-title content-reveal">1:99 ?</div>
+          <div class="perspective-body content-reveal">?魂 AI ?蹌 1% ???頛舐畦 99% ???麻蹇????賃??</div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Facilitating Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+    </div>
+
+    <!-- ??????????????????????????????????????????
+         SLIDE 21 ??威?3
+    ?????????????????????????????????????????? -->
+    <div class="slide" id="slide-21">
+      <div class="slide-header">
+        <img src="../logo.png" alt="FCI Logo" class="logo" />
+        <span class="section-label">EPILOGUE</span>
+        <span class="counter">21 / 26</span>
+      </div>
+      <div class="slide-content" style="padding-top:0">
+        <div class="perspective-slide">
+          <div class="perspective-tag content-reveal">Perspective 03 / 05</div>
+          <div class="perspective-icon content-reveal">?瘙</div>
+          <div class="perspective-title content-reveal">AI ???謢?謘餉爸?/div>
+          <div class="perspective-body content-reveal">AI ?遴?撟?謘?謜?謢遴?選??蹇????摮??蹎∠?蝞???/div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Facilitating Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+    </div>
+
+    <!-- ??????????????????????????????????????????
+         SLIDE 22 ??威?4
+    ?????????????????????????????????????????? -->
+    <div class="slide" id="slide-22">
+      <div class="slide-header">
+        <img src="../logo.png" alt="FCI Logo" class="logo" />
+        <span class="section-label">EPILOGUE</span>
+        <span class="counter">22 / 26</span>
+      </div>
+      <div class="slide-content" style="padding-top:0">
+        <div class="perspective-slide">
+          <div class="perspective-tag content-reveal">Perspective 04 / 05</div>
+          <div class="perspective-icon content-reveal">??</div>
+          <div class="perspective-title content-reveal">80 ?瞍梯?AI</div>
+          <div class="perspective-body content-reveal">AI 蹎∠?蝞???80 ?抵?遴滿?蟡??20 ?螞蹌?????踐??鞈??蝞???啾?純?/div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Facilitating Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+    </div>
+
+    <!-- ??????????????????????????????????????????
+         SLIDE 23 ??威?5
+    ?????????????????????????????????????????? -->
+    <div class="slide" id="slide-23">
+      <div class="slide-header">
+        <img src="../logo.png" alt="FCI Logo" class="logo" />
+        <span class="section-label">EPILOGUE</span>
+        <span class="counter">23 / 26</span>
+      </div>
+      <div class="slide-content" style="padding-top:0">
+        <div class="perspective-slide">
+          <div class="perspective-tag content-reveal">Perspective 05 / 05</div>
+          <div class="perspective-icon content-reveal">??</div>
+          <div class="perspective-title content-reveal">芣????剜??/div>
+          <div class="perspective-body content-reveal">?10 瘞玲?0 皜⊥? Domain Knowledge魂 AI ?蹇隤?銋???圈舀蹐I ?寞?選???隞?甄?整怏?/div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Facilitating Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+    </div>
+
+    <!-- ??????????????????????????????????????????
+         SLIDE 24 ??蛛??瞏
+    ?????????????????????????????????????????? -->
+    <div class="slide" id="slide-24">
+      <div class="slide-header">
+        <img src="../logo.png" alt="FCI Logo" class="logo" />
+        <span class="section-label">EPILOGUE</span>
+        <span class="counter">24 / 26</span>
+      </div>
+      <div class="slide-titlebar content-reveal">
+        <h2>?謓剖??頦對??</h2>
+      </div>
+      <div class="slide-content">
+        <div class="action-layout">
+          <div class="action-pen content-reveal">??</div>
+          <div class="action-instruction content-reveal">
+            ?遴?剜秋撚?湛? 3 抵??潘?銵?遴馬?          </div>
+          <div class="action-note content-reveal">? 30 ?剜寞舀?</div>
+          <div class="action-banner content-reveal">
+            ???璇?迎?DD ???謕??蹇??蝑遴蹇?遴?謍梱???望堊垣蹇?          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Facilitating Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+    </div>
+
+    <!-- ??????????????????????????????????????????
+         SLIDE 25 ??THANK YOU
+    ?????????????????????????????????????????? -->
+    <div class="slide" id="slide-25">
+      <div class="slide-header">
+        <img src="../logo.png" alt="FCI Logo" class="logo" />
+        <span class="section-label"></span>
+        <span class="counter">25 / 26</span>
+      </div>
+      <div class="slide-content">
+        <div class="thankyou-layout">
+          <img src="../logo.png" alt="FCI Logo" class="thankyou-logo content-reveal" />
+          <div class="thankyou-title content-reveal">THANK YOU</div>
+          <div class="thankyou-qa content-reveal">Q &amp; A</div>
+          <div class="thankyou-divider content-reveal"></div>
+          <div class="thankyou-tag content-reveal">??????AI ?豯??謜??/div>
+          <div class="thankyou-contact content-reveal">Gary Tzeng謓arywendy.wc@gmail.com</div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Facilitating Control Innovation</span>
+        <span>Gary Tzeng 2026</span>
+      </div>
+    </div>
+
+  </div><!-- /runner -->
+
+  <!-- ??? SCRIPT ??? -->
+  <script>
+    (() => {
+      const TOTAL = 26;
+      let current = 0;
+      let isAnimating = false;
+
+      const runner   = document.getElementById('runner');
+      const progressBar = document.getElementById('progress-bar');
+      const btnPrev  = document.getElementById('btn-prev');
+      const btnNext  = document.getElementById('btn-next');
+
+      /* ?? Navigation ?? */
+      function goTo(index) {
+        if (index < 0 || index >= TOTAL || isAnimating) return;
+        isAnimating = true;
+
+        current = index;
+
+        // Slide the runner
+        runner.style.transform = `translateX(${-current * 100}vw)`;
+
+        // Progress bar
+        const pct = TOTAL === 1 ? 100 : (current / (TOTAL - 1)) * 100;
+        progressBar.style.width = pct + '%';
+
+        // Update nav button visibility
+        btnPrev.style.opacity = current === 0 ? '0.35' : '1';
+        btnNext.style.opacity = current === TOTAL - 1 ? '0.35' : '1';
+        btnPrev.style.pointerEvents = current === 0 ? 'none' : 'auto';
+        btnNext.style.pointerEvents = current === TOTAL - 1 ? 'none' : 'auto';
+
+        // Allow next navigation after transition completes
+        setTimeout(() => {
+          isAnimating = false;
+          animateSlide(current);
+        }, 680);
+      }
+
+      /* ?? GSAP Animations per slide ?? */
+      function animateSlide(idx) {
+        const slide = document.querySelectorAll('.slide')[idx];
+        if (!slide) return;
+
+        const isSection = slide.classList.contains('slide-section');
+        const isCover   = slide.id === 'slide-01';
+        const reveals   = slide.querySelectorAll('.content-reveal');
+
+        // Reset all to initial state first
+        gsap.set(reveals, { opacity: 0, y: 30, filter: 'blur(8px)', scale: 1 });
+
+        if (isSection) {
+          // Section slides: scale from 0.85
+          gsap.fromTo(reveals,
+            { opacity: 0, scale: 0.85, filter: 'blur(8px)' },
+            { opacity: 1, scale: 1, filter: 'blur(0px)',
+              duration: 0.7, stagger: 0.14, ease: 'power3.out' }
+          );
+        } else if (isCover) {
+          gsap.fromTo(reveals,
+            { opacity: 0, y: 40, filter: 'blur(10px)' },
+            { opacity: 1, y: 0, filter: 'blur(0px)',
+              duration: 0.8, stagger: 0.15, ease: 'power3.out' }
+          );
+        } else {
+          gsap.fromTo(reveals,
+            { opacity: 0, y: 30, filter: 'blur(8px)' },
+            { opacity: 1, y: 0, filter: 'blur(0px)',
+              duration: 0.7, stagger: 0.12, ease: 'power3.out' }
+          );
+        }
+
+        // Special: Timeline connectors (slide-06)
+        if (slide.id === 'slide-06') {
+          // Reset first so animation replays on re-entry
+          const lines = slide.querySelectorAll('.timeline-connector-fill');
+          lines.forEach(line => { line.style.width = '0%'; });
+          setTimeout(() => {
+            lines.forEach((line, i) => {
+              gsap.to(line, { width: '100%', duration: 0.6, delay: i * 0.25 + 0.5, ease: 'power2.out' });
+            });
+          }, 300);
+        }
+
+        // Special: DIISA bars (slide-15, idx=14)
+        if (slide.id === 'slide-15') {
+          const bars = slide.querySelectorAll('.diisa-bar');
+          // Reset bars
+          bars.forEach(bar => { bar.style.height = '0%'; });
+          setTimeout(() => {
+            bars.forEach((bar, i) => {
+              const target = parseFloat(bar.dataset.target) || 50;
+              gsap.to(bar, {
+                height: target + '%',
+                duration: 0.7,
+                delay: i * 0.18 + 0.4,
+                ease: 'power3.out'
+              });
+            });
+          }, 350);
+        }
+      }
+
+      /* ?? Keyboard ?? */
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          goTo(current + 1);
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          goTo(current - 1);
+        }
+      });
+
+      /* ?? Button clicks ?? */
+      btnNext.addEventListener('click', () => goTo(current + 1));
+      btnPrev.addEventListener('click', () => goTo(current - 1));
+
+      /* ?? Touch / Swipe ?? */
+      let touchStartX = 0;
+      document.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].clientX;
+      }, { passive: true });
+      document.addEventListener('touchend', (e) => {
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(dx) > 50) {
+          dx < 0 ? goTo(current + 1) : goTo(current - 1);
+        }
+      }, { passive: true });
+
+      /* ?? Init ?? */
+      // Set initial progress bar width to 0
+      progressBar.style.width = '0%';
+      btnPrev.style.opacity = '0.35';
+      btnPrev.style.pointerEvents = 'none';
+
+      // Animate first slide after a short delay
+      setTimeout(() => animateSlide(0), 200);
+
+    })();
+  </script>
+
+</body>
+</html>
+<!-- signed: Beauty | 2026-05-06 00:00:00 UTC | task-20260506-fci-midyear-review-v2 -->
+

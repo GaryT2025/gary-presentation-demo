@@ -235,7 +235,7 @@ function getData(payload) {
         .filter(function(r) { return String(r['技服組別 (1)'] || '').trim() === t; })
         .reduce(function(s, r) { return s + (Number(r['台幣完工金額 (1)']) || 0); }, 0);
       const inv = invoiceRows
-        .filter(function(r) { return String(r['技服組別'] || '').trim() === t; })
+        .filter(function(r) { return String(r['技服團隊'] || '').trim() === t; })
         .reduce(function(s, r) { return s + (Number(r['台幣未稅金額']) || 0); }, 0);
       teamExec[t] = { '完工': _r4(cn), '開發票': _r4(inv), 'total': _r4(cn + inv) };
     });

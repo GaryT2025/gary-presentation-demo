@@ -3,290 +3,678 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Masoneilan 21K vs 41K 產品比較</title>
+    <title>Masoneilan 21K vs 41K 控制閥深度交叉比對</title>
+    <!-- 引入科技感與現代字體 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-dark: #0a0a0a;
-            --bg-card: #151515;
+            --bg-dark: #070b19;
+            --bg-card: rgba(13, 20, 41, 0.7);
+            --bg-card-hover: rgba(18, 28, 58, 0.85);
             --accent-color: #06D6AD;
-            --accent-glow: rgba(6, 214, 173, 0.4);
-            --text-main: #f0f0f0;
-            --text-muted: #888;
-            --border-color: #2a2a2a;
-            --scan-color: rgba(6, 214, 173, 0.05);
+            --accent-glow: rgba(6, 214, 173, 0.35);
+            --accent-glow-strong: rgba(6, 214, 173, 0.6);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border-color: rgba(6, 214, 173, 0.15);
+            --border-color-hover: rgba(6, 214, 173, 0.4);
+            --scan-color: rgba(6, 214, 173, 0.08);
+            --diff-color: #ff5a79;
+            --diff-glow: rgba(255, 90, 121, 0.25);
         }
 
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
             background-color: var(--bg-dark);
             color: var(--text-main);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-            padding: 40px 20px;
+            min-height: 100vh;
+            padding: 50px 20px;
             overflow-x: hidden;
-            perspective: 1000px;
+            position: relative;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* 漸層背景與科技感網格 */
-        body::before {
-            content: '';
+        /* 炫目跟隨雷射光暈與科技感網格背景 */
+        .bg-grid {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
             background: 
-                radial-gradient(circle at 50% 0%, var(--accent-glow) 0%, transparent 40%),
-                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-            background-size: 100% 100%, 30px 30px, 30px 30px;
+                linear-gradient(rgba(6, 214, 173, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(6, 214, 173, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px, 40px 40px;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        .laser-glow {
+            position: fixed;
+            top: 0; left: 0;
+            width: 800px; height: 800px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            border-radius: 50%;
             z-index: -1;
             pointer-events: none;
-            opacity: 0.5;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s cubic-bezier(0.1, 0.8, 0.2, 1);
+            opacity: 0.8;
+            will-change: transform;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            opacity: 0; /* JS Fade in */
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
         }
 
+        /* 頁首標題 */
         header {
             text-align: center;
-            margin-bottom: 50px;
-            transform: translateY(30px);
-            opacity: 0;
-            animation: fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 0.2s;
+            margin-bottom: 20px;
+            animation: fadeInDown 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
         }
 
         h1 {
-            color: var(--text-main);
-            font-size: 3rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 2px;
+            background: linear-gradient(135deg, #fff 40%, var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(6, 214, 173, 0.2);
             margin-bottom: 10px;
-            text-shadow: 0 0 15px var(--accent-glow);
-        }
-
-        h1 span {
-            color: var(--accent-color);
         }
 
         .subtitle {
+            font-family: 'Share Tech Mono', monospace;
             color: var(--accent-color);
-            font-size: 1.2rem;
-            letter-spacing: 3px;
+            font-size: 1.1rem;
+            letter-spacing: 4px;
             text-transform: uppercase;
-            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
-        /* Hero images (3D Hover Cards) */
+        .subtitle::before, .subtitle::after {
+            content: "";
+            display: inline-block;
+            width: 40px;
+            height: 1px;
+            background: var(--accent-color);
+            opacity: 0.5;
+        }
+
+        /* 雙主圖 3D Hover 區 */
+        .hero-wrapper {
+            position: relative;
+            margin: 20px 0;
+        }
+
         .hero-section {
             display: flex;
-            gap: 30px;
-            margin-bottom: 60px;
-            position: relative;
+            gap: 40px;
             z-index: 1;
         }
 
         .hero-card {
             flex: 1;
-            background: linear-gradient(145deg, #1a1a1a, #0f0f0f);
+            background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 16px;
+            border-radius: 20px;
             padding: 30px;
             text-align: center;
             position: relative;
             transform-style: preserve-3d;
-            transition: border-color 0.5s, box-shadow 0.5s, opacity 0.5s;
-            opacity: 0;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: border-color 0.4s, box-shadow 0.4s, background-color 0.4s;
+            box-shadow: 0 15px 45px rgba(0,0,0,0.4);
             cursor: pointer;
             overflow: hidden;
-        }
-
-        .hero-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, rgba(6, 214, 173, 0.1) 0%, transparent 60%);
-            opacity: 0;
-            transition: opacity 0.5s;
+            will-change: transform;
         }
 
         .hero-card:hover {
             border-color: var(--accent-color);
-            box-shadow: 0 15px 40px rgba(6, 214, 173, 0.2), 0 0 15px var(--accent-glow) inset;
+            background-color: var(--bg-card-hover);
+            box-shadow: 0 20px 50px rgba(6, 214, 173, 0.15), 0 0 20px var(--accent-glow) inset;
         }
-        
-        .hero-card:hover::before {
+
+        /* 3D 反光光澤 */
+        .shiny-reflection {
+            position: absolute;
+            top: 0; left: 0; width: 200%; height: 200%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 50%);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.3s;
+            opacity: 0;
+            z-index: 5;
+        }
+
+        .hero-card:hover .shiny-reflection {
             opacity: 1;
         }
 
         .hero-card h2 {
+            font-family: 'Outfit', sans-serif;
             color: #fff;
             margin-bottom: 20px;
             font-size: 2rem;
+            letter-spacing: 1px;
             transform: translateZ(30px);
-            text-shadow: 0 5px 10px rgba(0,0,0,0.5);
+            transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            text-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .hero-card:hover h2 {
+            color: var(--accent-color);
+            transform: translateZ(45px);
         }
 
         .hero-image {
             width: 100%;
-            height: 350px;
+            height: 380px;
             object-fit: cover;
             border-radius: 12px;
-            border: 1px solid var(--border-color);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             transform: translateZ(50px);
-            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), border-color 0.4s;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
         }
 
         .hero-card:hover .hero-image {
-            transform: translateZ(70px) scale(1.05);
+            transform: translateZ(75px) scale(1.03);
+            border-color: rgba(6, 214, 173, 0.3);
         }
 
-        /* VS Badge */
+        /* VS 彈出徽章 */
         .vs-badge {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            background: linear-gradient(135deg, #111, #222);
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(1);
+            background: radial-gradient(circle, #12203f 0%, #070b19 100%);
             color: var(--accent-color);
-            width: 80px;
-            height: 80px;
+            width: 80px; height: 80px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 900;
             font-size: 1.8rem;
             z-index: 10;
             border: 2px solid var(--accent-color);
-            box-shadow: 0 0 30px var(--accent-glow);
-            transition: all 0.3s ease;
-            animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards 1s;
+            box-shadow: 0 0 35px var(--accent-glow);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s;
+            animation: pulseVS 2s infinite alternate;
         }
 
         .vs-badge:hover {
-            transform: translate(-50%, -50%) scale(1.1) rotate(10deg);
-            box-shadow: 0 0 50px var(--accent-glow);
+            transform: translate(-50%, -50%) scale(1.15) rotate(15deg);
+            box-shadow: 0 0 50px var(--accent-glow-strong);
             text-shadow: 0 0 10px var(--accent-color);
         }
 
-        /* Comparison Table */
-        .table-wrapper {
-            opacity: 0;
-            transform: translateY(40px);
+        /* 控制操作面板 (React-like 互動核心) */
+        .control-panel {
+            background: rgba(13, 20, 41, 0.5);
+            border: 1px solid rgba(6, 214, 173, 0.1);
             border-radius: 16px;
-            padding: 1px;
-            background: linear-gradient(180deg, var(--border-color), transparent);
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            backdrop-filter: blur(10px);
+            z-index: 2;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+        }
+
+        .tab-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tab-btn:hover {
+            color: #fff;
+            border-color: rgba(6, 214, 173, 0.4);
+            background: rgba(6, 214, 173, 0.05);
+        }
+
+        .tab-btn.active {
+            color: #070b19;
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            font-weight: 600;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .interaction-tools {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        /* 搜尋框 */
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 10px 15px 10px 35px;
+            border-radius: 30px;
+            width: 220px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            width: 280px;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 15px rgba(6, 214, 173, 0.15);
+        }
+
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.9rem;
+            opacity: 0.6;
+        }
+
+        /* Toggle Switch */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .switch-label {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: color 0.3s;
+        }
+
+        .toggle-container:hover .switch-label {
+            color: #fff;
+        }
+
+        .toggle-container.active .switch-label {
+            color: var(--accent-color);
+        }
+
+        .switch {
+            width: 50px;
+            height: 26px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            position: relative;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .switch::after {
+            content: "";
+            width: 18px;
+            height: 18px;
+            background: #fff;
+            border-radius: 50%;
+            position: absolute;
+            top: 3px; left: 3px;
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .toggle-container.active .switch {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .toggle-container.active .switch::after {
+            left: 27px;
+            background: #070b19;
+        }
+
+        /* 互動式工況選型助手 */
+        .selector-widget {
+            background: linear-gradient(135deg, rgba(13, 20, 41, 0.8) 0%, rgba(7, 11, 25, 0.9) 100%);
+            border: 1px dashed rgba(6, 214, 173, 0.3);
+            border-radius: 20px;
+            padding: 25px 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .selector-widget::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--accent-color);
+            box-shadow: 0 0 10px var(--accent-color);
+        }
+
+        .selector-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.3rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .selector-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group select {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(6, 214, 173, 0.2);
+            color: #fff;
+            padding: 11px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        .form-group select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px rgba(6, 214, 173, 0.1);
+        }
+
+        .btn-select {
+            background: linear-gradient(135deg, #06D6AD 0%, #049c7e 100%);
+            color: #070b19;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.95rem;
+            font-family: 'Outfit', sans-serif;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(6, 214, 173, 0.25);
+            text-align: center;
+        }
+
+        .btn-select:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(6, 214, 173, 0.4);
+            filter: brightness(1.1);
+        }
+
+        .selector-result {
+            margin-top: 10px;
+            padding: 20px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: none; /* JS 觸發 */
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .result-head {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-body {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* 比較表格區 */
+        .table-wrapper {
+            background: rgba(13, 20, 41, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
         }
 
         .comparison-table {
             width: 100%;
             border-collapse: collapse;
-            background: var(--bg-card);
-            border-radius: 15px;
-            overflow: hidden;
+            text-align: left;
         }
 
         .comparison-table th, .comparison-table td {
-            padding: 25px 20px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
+            padding: 24px 28px;
+            border-bottom: 1px solid rgba(6, 214, 173, 0.08);
             position: relative;
+            vertical-align: top;
         }
 
         .comparison-table tr {
-            transition: all 0.3s ease;
-            position: relative;
+            transition: all 0.4s ease;
         }
 
-        /* Tech hover scan effect on table rows */
-        .comparison-table tr:hover {
-            background-color: rgba(255,255,255,0.02);
-        }
-        
+        /* 雷射掃描效果 */
         .comparison-table tr::after {
             content: '';
             position: absolute;
             left: 0; top: 0;
             width: 0%; height: 100%;
             background: linear-gradient(90deg, transparent, var(--scan-color), transparent);
-            transition: 0s;
             pointer-events: none;
+            transition: 0s;
         }
 
         .comparison-table tr:hover::after {
-            animation: scanLine 1.5s linear infinite;
+            animation: scanLine 2s linear infinite;
         }
 
-        .comparison-table th {
-            font-size: 1.1rem;
+        /* 表頭樣式 */
+        .comparison-table tr.table-header {
+            background: rgba(0, 0, 0, 0.35);
+        }
+
+        .comparison-table tr.table-header th {
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            border-bottom: 2px solid var(--accent-color);
+            padding: 20px 28px;
+        }
+
+        /* 一般列樣式 */
+        .feature-name {
+            font-family: 'Outfit', sans-serif;
             color: var(--accent-color);
-            background: rgba(0,0,0,0.2);
-            width: 22%;
             font-weight: 600;
-            letter-spacing: 1px;
-            border-right: 1px solid var(--border-color);
+            font-size: 1.05rem;
+            width: 20%;
+            border-right: 1px solid rgba(6, 214, 173, 0.08);
+            background: rgba(0, 0, 0, 0.15);
+            letter-spacing: 0.5px;
         }
 
-        .comparison-table td {
-            font-size: 1.1rem;
-            width: 39%;
-            vertical-align: top;
+        .valve-col {
+            width: 40%;
             line-height: 1.7;
-            color: #ccc;
+            font-size: 0.98rem;
+            color: #d1d5db;
         }
 
-        .comparison-table td:not(:last-child) {
-            border-right: 1px solid var(--border-color);
+        .valve-col:not(:last-child) {
+            border-right: 1px solid rgba(6, 214, 173, 0.08);
         }
 
-        .comparison-table tr:last-child th,
-        .comparison-table tr:last-child td {
-            border-bottom: none;
-        }
-
+        /* 重點強調與底線展開 */
         .highlight {
             color: #fff;
             font-weight: 600;
             position: relative;
             display: inline-block;
+            padding-bottom: 2px;
         }
 
-        /* Highlight underline hover effect */
         .highlight::after {
             content: '';
             position: absolute;
-            bottom: -2px; left: 0;
+            bottom: 0; left: 0;
             width: 100%; height: 2px;
             background: var(--accent-color);
             transform: scaleX(0);
-            transform-origin: right;
-            transition: transform 0.3s ease;
+            transform-origin: center;
+            transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
         .comparison-table tr:hover .highlight::after {
             transform: scaleX(1);
-            transform-origin: left;
         }
 
-        /* Animations */
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(30px); }
+        /* 差異行特殊樣式 */
+        .comparison-table tr.diff-highlight {
+            background: rgba(255, 90, 121, 0.03);
+        }
+
+        .comparison-table tr.diff-highlight .feature-name {
+            color: var(--diff-color);
+            border-right-color: rgba(255, 90, 121, 0.15);
+        }
+
+        .comparison-table tr.diff-highlight:hover {
+            background: rgba(255, 90, 121, 0.05);
+        }
+
+        .comparison-table tr.diff-highlight.highlight-active {
+            border: 2px solid var(--diff-color);
+            box-shadow: 0 0 15px var(--diff-glow) inset;
+        }
+
+        .diff-badge {
+            background: var(--diff-color);
+            color: #070b19;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
+            vertical-align: middle;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: none;
+        }
+
+        .comparison-table tr.diff-highlight .diff-badge {
+            display: inline-block;
+        }
+
+        /* 條列清單優化 */
+        .list-item {
+            list-style: none;
+            margin-bottom: 6px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .list-item::before {
+            content: "•";
+            color: var(--accent-color);
+            position: absolute;
+            left: 6px;
+            font-weight: 800;
+        }
+
+        .comparison-table tr.diff-highlight .list-item::before {
+            color: var(--diff-color);
+        }
+
+        /* 分組行 */
+        .group-header {
+            background: rgba(6, 214, 173, 0.05) !important;
+        }
+
+        .group-header td {
+            color: var(--accent-color);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 15px 28px;
+        }
+
+        /* 動畫 */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        @keyframes popIn {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-            70% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulseVS {
+            0% { box-shadow: 0 0 25px var(--accent-glow); }
+            100% { box-shadow: 0 0 45px var(--accent-glow-strong); }
         }
 
         @keyframes scanLine {
@@ -294,115 +682,367 @@
             100% { width: 100%; transform: translateX(100%); }
         }
 
-        .slide-up {
-            animation: fadeUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        /* 頁尾 */
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            opacity: 0.6;
         }
 
-        @media (max-width: 768px) {
+        footer span {
+            color: var(--accent-color);
+        }
+
+        /* 響應式 */
+        @media (max-width: 900px) {
             .hero-section {
                 flex-direction: column;
+                gap: 50px;
             }
             .vs-badge {
-                display: none;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) scale(0.9);
+            }
+            .vs-badge:hover {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            .control-panel {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .interaction-tools {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .search-box input {
+                width: 100%;
+            }
+            .search-box input:focus {
+                width: 100%;
             }
             .comparison-table th, .comparison-table td {
                 display: block;
-                width: 100%;
+                width: 100% !important;
                 border-right: none !important;
             }
-            .comparison-table th {
+            .feature-name {
                 background: rgba(6, 214, 173, 0.1);
+                border-bottom: 1px solid rgba(6, 214, 173, 0.2);
+            }
+            .valve-col {
+                padding-left: 40px;
+            }
+            .valve-col::before {
+                font-family: 'Outfit', sans-serif;
+                font-weight: 700;
+                display: block;
+                margin-bottom: 8px;
+                color: #fff;
+            }
+            .valve-col:nth-child(2)::before {
+                content: "21000 系列 (21K)";
+            }
+            .valve-col:nth-child(3)::before {
+                content: "41000 系列 (41K)";
             }
         }
     </style>
 </head>
 <body>
-    <div class="container" id="mainContainer">
+    <div class="bg-grid"></div>
+    <div class="laser-glow" id="laserGlow"></div>
+
+    <div class="container">
+        <!-- 頁首 -->
         <header>
-            <h1>Masoneilan <span>頂級控制閥</span> 對照</h1>
-            <p class="subtitle">21K 通用型 vs 41K 嚴苛工況型</p>
+            <h1>Masoneilan 控制閥</h1>
+            <div class="subtitle">21000 Series vs 41000 Series</div>
         </header>
 
-        <div style="position: relative;">
-            <div class="hero-section" id="heroSection">
-                <div class="hero-card js-card" style="animation-delay: 0.4s;">
+        <!-- 3D 雙主圖區 -->
+        <div class="hero-wrapper">
+            <div class="hero-section">
+                <!-- 21K 卡片 -->
+                <div class="hero-card js-card" id="card21k">
+                    <div class="shiny-reflection"></div>
                     <h2>21000 系列 (21K)</h2>
-                    <img src="assets/21k.png" alt="Masoneilan 21K" class="hero-image">
+                    <img src="assets/21k.png" alt="Masoneilan 21K Top-guided Valve" class="hero-image">
                 </div>
-                <div class="hero-card js-card" style="animation-delay: 0.6s;">
+                <!-- 41K 卡片 -->
+                <div class="hero-card js-card" id="card41k">
+                    <div class="shiny-reflection"></div>
                     <h2>41000 系列 (41K)</h2>
-                    <img src="assets/41k.png" alt="Masoneilan 41K" class="hero-image">
+                    <img src="assets/41k.png" alt="Masoneilan 41K Cage-guided Valve" class="hero-image">
                 </div>
             </div>
             <div class="vs-badge">VS</div>
         </div>
 
-        <div class="table-wrapper" id="tableWrapper">
-            <table class="comparison-table">
-                <!-- 產品設計差異群組 -->
-                <tr>
-                    <th>🎯 導引機構設計</th>
-                    <td><span class="highlight">頂部導引 (Top Guided)</span><br>重型頂部導引能為閥塞提供強大支撐與穩定性</td>
-                    <td><span class="highlight">套筒導引 (Cage Guided)</span><br>大尺寸時可提供雙套筒 (Double Cage) 設計</td>
-                </tr>
-                <tr>
-                    <th>⚖️ 閥塞平衡機制</th>
-                    <td><span class="highlight">非平衡式 (Unbalanced)</span><br>結構簡單直觀，可靠度高</td>
-                    <td><span class="highlight">平衡式 (Balanced)</span><br>大幅減少在高壓差、大流量下的驅動器推力需求</td>
-                </tr>
-                <tr>
-                    <th>🧩 閥內件複雜度</th>
-                    <td><span class="highlight">標準化多用途</span><br>螺紋閥座、快拆閥座設計，並支援單級或雙級降噪防空化閥件</td>
-                    <td><span class="highlight">高階嚴苛工況專武</span><br>可搭載 VRT (可變阻力堆疊式/套筒式)、先導閥塞 (Pilot Plug) 應對極端狀態</td>
+        <!-- 互動工況選型助手 -->
+        <div class="selector-widget">
+            <div class="selector-title">
+                <span>🤖</span> 智能工況選型分析儀 (AI Valve Selector)
+            </div>
+            <div class="selector-form">
+                <div class="form-group">
+                    <label for="flowSize">📏 製程管徑 (Size)</label>
+                    <select id="flowSize">
+                        <option value="small">≤ 2" (小型口徑)</option>
+                        <option value="medium">3" ~ 8" (中型口徑)</option>
+                        <option value="large">≥ 10" (巨型口徑)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="pressDiff">⚡ 製程壓差 (Pressure Drop)</label>
+                    <select id="pressDiff">
+                        <option value="low">低/中壓差 (一般流程)</option>
+                        <option value="high">高壓降 / 易空化 / 易噪音工況</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="tempRange">🌡️ 流體溫度 (Temperature)</label>
+                    <select id="tempRange">
+                        <option value="normal">-29°C ~ 232°C (標準)</option>
+                        <option value="medium">233°C ~ 427°C (中高溫)</option>
+                        <option value="extreme">極低溫 (-196°C) 或 極高溫 (≥ 450°C)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="specialReq">🌟 特殊要求 (Special Requirement)</label>
+                    <select id="specialReq">
+                        <option value="none">無特殊要求</option>
+                        <option value="zero">有毒/易燃流體 (需波紋管零逸散)</option>
+                        <option value="stable">嚴重管道震動防範</option>
+                    </select>
+                </div>
+                <button class="btn-select" id="btnSelect">進行雷射選型</button>
+            </div>
+            <div class="selector-result" id="selectorResult">
+                <div class="result-head" id="resultHead"></div>
+                <div class="result-body" id="resultBody"></div>
+            </div>
+        </div>
+
+        <!-- 操作面板 -->
+        <div class="control-panel">
+            <!-- 分類頁籤 -->
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="all">🌐 全部維度</button>
+                <button class="tab-btn" data-tab="design">📐 核心設計</button>
+                <button class="tab-btn" data-tab="spec">📊 規格性能</button>
+                <button class="tab-btn" data-tab="process">🌟 工況應用</button>
+            </div>
+
+            <div class="interaction-tools">
+                <!-- 搜尋框 -->
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="輸入關鍵字比對...">
+                </div>
+
+                <!-- 顯著差異切換器 -->
+                <div class="toggle-container" id="diffToggle">
+                    <span class="switch-label">🔎 僅顯示顯著差異</span>
+                    <div class="switch"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 比較表格 -->
+        <div class="table-wrapper">
+            <table class="comparison-table" id="compTable">
+                <tr class="table-header">
+                    <th>比對指標</th>
+                    <th>Masoneilan 21000 系列 (21K)</th>
+                    <th>Masoneilan 41000 系列 (41K)</th>
                 </tr>
 
-                <!-- 規格性能群組 -->
-                <tr>
-                    <th>📏 尺寸涵蓋</th>
-                    <td>中小型：<span class="highlight">0.75" ~ 8"</span></td>
-                    <td>大容量：<span class="highlight">2" ~ 36" (巨型管徑)</span></td>
+                <!-- Group 1: 核心設計 -->
+                <tr class="group-header" data-group="design">
+                    <td colspan="3">📐 核心設計機構 (Design & Mechanism)</td>
                 </tr>
-                <tr>
-                    <th>💧 流量係數 (Cv)</th>
-                    <td><span class="highlight">0.008 起</span> (精準控制微小流量)<br>最大約 640</td>
-                    <td>0.2 起<br>最大可達 <span class="highlight">17,000</span> (極大吞吐量)</td>
+                <tr data-group="design" class="diff-highlight">
+                    <td class="feature-name">導引機構<span class="diff-badge">Mechanism</span></td>
+                    <td class="valve-col">
+                        <div class="highlight">頂部重型導引 (Top-guided)</div>
+                        <ul>
+                            <li class="list-item">閥塞僅由標準或延伸型閥蓋的重型襯套導引。</li>
+                            <li class="list-item">閥座內部無阻礙物，流路平滑流暢。</li>
+                        </ul>
+                    </td>
+                    <td class="valve-col">
+                        <div class="highlight">套筒精密導引 (Cage-guided)</div>
+                        <ul>
+                            <li class="list-item">閥塞由籠式套筒 (Cage) 內壁進行全行程精密導引。</li>
+                            <li class="list-item">抗震性能極強，可抑制高壓降所產生的劇烈震動。</li>
+                        </ul>
+                    </td>
                 </tr>
-                <tr>
-                    <th>🔧 壓力等級</th>
-                    <td>最高 <span class="highlight">15K PSI (API 6A)</span><br>全尺寸皆可高壓</td>
-                    <td>最高 <span class="highlight">15K PSI (API 6A)</span><br>30"以上超大尺寸受限 Class 150/300</td>
+                <tr data-group="design" class="diff-highlight">
+                    <td class="feature-name">閥塞平衡<span class="diff-badge">Balance</span></td>
+                    <td class="valve-col">
+                        <div class="highlight">非平衡式單座 (Unbalanced)</div>
+                        <ul>
+                            <li class="list-item">結構簡單，閥塞直接承受流體正面衝擊。</li>
+                            <li class="list-item">關閉緊密性極佳 (最高達 Class VI)。</li>
+                        </ul>
+                    </td>
+                    <td class="valve-col">
+                        <div class="highlight">平衡式雙座/套筒 (Balanced)</div>
+                        <ul>
+                            <li class="list-item">利用平衡孔使閥塞前後壓力平衡。</li>
+                            <li class="list-item">可大幅減小驅動器推力需求，適用大壓差。</li>
+                        </ul>
+                    </td>
                 </tr>
-                <tr>
-                    <th>🌡️ 耐溫範圍</th>
-                    <td>-196°C ~ <span class="highlight">+427°C</span></td>
-                    <td>-196°C ~ <span class="highlight">+593°C</span> (金屬/輔助先導密封)</td>
+                <tr data-group="design" class="diff-highlight">
+                    <td class="feature-name">閥內件設計<span class="diff-badge">Trim Complexity</span></td>
+                    <td class="valve-col">
+                        <div class="highlight">輪廓型閥塞 + 快拆閥座</div>
+                        <ul>
+                            <li class="list-item">標準採用螺紋鎖入式或 Quick-Change 閥座環。</li>
+                            <li class="list-item">可快速替換單級 Lo-dB (降噪) 或防空化閥內件。</li>
+                        </ul>
+                    </td>
+                    <td class="valve-col">
+                        <div class="highlight">多孔套筒 + VRT 阻力堆疊</div>
+                        <ul>
+                            <li class="list-item">標準配備多孔式套筒 (Ported Cage)。</li>
+                            <li class="list-item">可選配 VRT (可變阻力閥內件) 堆疊圓盤應對超高壓降。</li>
+                            <li class="list-item">高溫緊密關閉可選用輔助先導閥塞 (Pilot Plug)。</li>
+                        </ul>
+                    </td>
                 </tr>
-                <tr>
-                    <th>🌟 最佳適用工況</th>
-                    <td>廣泛通用製程、防空化<br><span class="highlight">波紋管零洩漏環保工況</span></td>
-                    <td><span class="highlight">高壓差、大流量、極端高低溫</span><br>最嚴苛工況 (Severe Service)</td>
+
+                <!-- Group 2: 規格性能 -->
+                <tr class="group-header" data-group="spec">
+                    <td colspan="3">📊 規格數據對決 (Technical Specifications)</td>
+                </tr>
+                <tr data-group="spec" class="diff-highlight">
+                    <td class="feature-name">尺寸範圍<span class="diff-badge">Size</span></td>
+                    <td class="valve-col">
+                        中小尺寸為主力：<br><span class="highlight">0.75" ~ 8"</span> (DN20 ~ DN200)
+                    </td>
+                    <td class="valve-col">
+                        超大尺寸與海量口徑：<br><span class="highlight">2" ~ 36"</span> (DN50 ~ DN900)
+                    </td>
+                </tr>
+                <tr data-group="spec" class="diff-highlight">
+                    <td class="feature-name">最大 Cv 值<span class="diff-badge">Flow Cap</span></td>
+                    <td class="valve-col">
+                        <div class="highlight">微小流量~中型流量</div>
+                        <ul>
+                            <li class="list-item">精細控制能力，Cv 最低可至 0.008。</li>
+                            <li class="list-item">最大 Cv 約 640 (8" 閥門)。</li>
+                        </ul>
+                    </td>
+                    <td class="valve-col">
+                        <div class="highlight">重載大型流量</div>
+                        <ul>
+                            <li class="list-item">超高吞吐量設計，最小 Cv 為 0.2。</li>
+                            <li class="list-item">最大 Cv 高達 17,000 (36" 閥門)。</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr data-group="spec">
+                    <td class="feature-name">壓力等級<span class="diff-badge">Rating</span></td>
+                    <td class="valve-col">
+                        <ul>
+                            <li class="list-item">ASME Class 150 ~ 2500。</li>
+                            <li class="list-item">API 6A 高壓井口規格 (最高 15K PSI / 1034 bar)。</li>
+                        </ul>
+                    </td>
+                    <td class="valve-col">
+                        <ul>
+                            <li class="list-item">ASME Class 150 ~ 2500。</li>
+                            <li class="list-item">API 6A 高壓規格，但大尺寸 (≥ 30") 受限於低壓力等級。</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr data-group="spec" class="diff-highlight">
+                    <td class="feature-name">耐溫極限<span class="diff-badge">Temp</span></td>
+                    <td class="valve-col">
+                        <div class="highlight">-196°C ~ +427°C</div>
+                        <ul>
+                            <li class="list-item">標準閥蓋：-29°C ~ 232°C。</li>
+                            <li class="list-item">高溫延伸型閥蓋最高支持到 +427°C。</li>
+                            <li class="list-item">超低溫閥蓋下探 -196°C。</li>
+                        </ul>
+                    </td>
+                    <td class="valve-col">
+                        <div class="highlight">-196°C ~ +593°C</div>
+                        <ul>
+                            <li class="list-item">彈性極廣，視密封環而定。</li>
+                            <li class="list-item">PTFE 密封：-100°C ~ 232°C。</li>
+                            <li class="list-item">金屬密封 / 輔助先導閥塞：-196°C ~ +593°C。</li>
+                        </ul>
+                    </td>
+                </tr>
+
+                <!-- Group 3: 工況應用 -->
+                <tr class="group-header" data-group="process">
+                    <td colspan="3">🌟 適用工況與場景 (Applications)</td>
+                </tr>
+                <tr data-group="process">
+                    <td class="feature-name">最佳工況場景<span class="diff-badge">Applications</span></td>
+                    <td class="valve-col">
+                        <ul>
+                            <li class="list-item">常規製程控制、中低壓差。</li>
+                            <li class="list-item">對洩漏率要求極嚴苛的精細化工流體。</li>
+                            <li class="list-item">微小流量精準調度。</li>
+                        </ul>
+                    </td>
+                    <td class="valve-col">
+                        <ul>
+                            <li class="list-item">嚴苛工況 (Severe Service) 專用。</li>
+                            <li class="list-item">極高溫超臨界水/蒸汽控制 (電廠主力)。</li>
+                            <li class="list-item">極端高壓降之油氣井口減壓。</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr data-group="process" class="diff-highlight">
+                    <td class="feature-name">防逸散環保選配<span class="diff-badge">Eco Friendly</span></td>
+                    <td class="valve-col">
+                        <div class="highlight">波紋管零逸散首選</div>
+                        <ul>
+                            <li class="list-item">可直接無縫選配 Bellows Seal (波紋管密封)。</li>
+                            <li class="list-item">處理有毒、易燃、貴重介質的環保利器。</li>
+                        </ul>
+                    </td>
+                    <td class="valve-col">
+                        <div class="highlight">多段填料密封</div>
+                        <ul>
+                            <li class="list-item">雖可選配 Low-E 低洩漏填料，但因套筒運動平衡結構，波紋管密封的實施複雜度與成本高於 21K。</li>
+                        </ul>
+                    </td>
                 </tr>
             </table>
         </div>
+
+        <!-- 頁尾 -->
+        <footer>
+            © 2026 <span>FCI RAG Hub</span> | Masoneilan 21K vs 41K 智能深度交叉比對系統 v2.0
+        </footer>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Initial Fade In
-            const container = document.getElementById('mainContainer');
-            container.style.opacity = '1';
+            // 1. 雷射光暈跟隨滑鼠移動
+            const glow = document.getElementById('laserGlow');
+            document.addEventListener('mousemove', (e) => {
+                // 使用 transform 動態位移，平滑且不造成 Reflow
+                glow.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
+            });
 
-            // 3D Tilt Effect on Hero Cards
+            // 2. 3D Hover 傾斜卡片特效 (防抖與 Shiny 反光調整)
             const cards = document.querySelectorAll('.js-card');
-            
-            // Trigger entry animations manually with JS
-            cards.forEach((card, index) => {
-                setTimeout(() => {
-                    card.classList.add('slide-up');
-                }, 400 + (index * 200));
-
+            cards.forEach(card => {
+                const shiny = card.querySelector('.shiny-reflection');
+                
                 card.addEventListener('mousemove', (e) => {
-                    card.style.transition = 'none'; // 移除 transition 防止游標抖動與閃爍
                     const rect = card.getBoundingClientRect();
                     const x = e.clientX - rect.left;
                     const y = e.clientY - rect.top;
@@ -410,35 +1050,193 @@
                     const centerX = rect.width / 2;
                     const centerY = rect.height / 2;
                     
-                    const rotateX = ((y - centerY) / centerY) * -10;
-                    const rotateY = ((x - centerX) / centerX) * 10;
-
+                    // 限制最大旋轉角度為 8 度，防抖
+                    const rotateX = ((y - centerY) / centerY) * -8;
+                    const rotateY = ((x - centerX) / centerX) * 8;
+                    
+                    // 動態計算反光罩的位置
+                    const percentX = (x / rect.width) * 100;
+                    const percentY = (y / rect.height) * 100;
+                    if (shiny) {
+                        shiny.style.background = `radial-gradient(circle at ${percentX}% ${percentY}%, rgba(255,255,255,0.18) 0%, transparent 60%)`;
+                    }
+                    
                     card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
                 });
 
                 card.addEventListener('mouseleave', () => {
-                    card.style.transition = 'transform 0.5s cubic-bezier(0.23, 1, 0.32, 1), border-color 0.5s, box-shadow 0.5s, opacity 0.5s';
+                    // 滑鼠離開時緩慢復位
                     card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+                    if (shiny) {
+                        shiny.style.background = `linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 50%)`;
+                    }
                 });
             });
 
-            // Table Wrapper Entry Animation
-            setTimeout(() => {
-                const tableWrapper = document.getElementById('tableWrapper');
-                tableWrapper.classList.add('slide-up');
-            }, 800);
-
-            // Stagger Table Rows
-            const rows = document.querySelectorAll('.comparison-table tr');
+            // 3. Stagger Slide-Up 交錯進場動畫 (表格行)
+            const rows = document.querySelectorAll('.comparison-table tr:not(.table-header)');
             rows.forEach((row, index) => {
                 row.style.opacity = '0';
-                row.style.transform = 'translateY(20px)';
+                row.style.transform = 'translateY(15px)';
+                row.style.transition = 'opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1)';
                 
                 setTimeout(() => {
-                    row.style.transition = 'all 0.5s ease';
                     row.style.opacity = '1';
                     row.style.transform = 'translateY(0)';
-                }, 1000 + (index * 100));
+                }, 150 + (index * 60));
+            });
+
+            // 4. 分類 Tab 互動過濾 (React-like UI)
+            const tabs = document.querySelectorAll('.tab-btn');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+
+                    const filter = tab.getAttribute('data-tab');
+                    filterRows(filter);
+                });
+            });
+
+            function filterRows(group) {
+                const trs = document.querySelectorAll('.comparison-table tr:not(.table-header)');
+                let visibleIndex = 0;
+                
+                trs.forEach(tr => {
+                    const trGroup = tr.getAttribute('data-group');
+                    const isHeader = tr.classList.contains('group-header');
+
+                    let show = false;
+                    if (group === 'all') {
+                        show = true;
+                    } else if (isHeader) {
+                        // 如果是群組頭，僅當該群組匹配時才顯示
+                        show = (tr.getAttribute('data-group') === group);
+                    } else {
+                        show = (trGroup === group);
+                    }
+
+                    if (show) {
+                        tr.style.display = '';
+                        // 重新套用淡入動畫以獲取 React-like 切換流暢感
+                        tr.style.opacity = '0';
+                        tr.style.transform = 'translateY(10px)';
+                        setTimeout(() => {
+                            tr.style.opacity = '1';
+                            tr.style.transform = 'translateY(0)';
+                        }, visibleIndex * 50);
+                        visibleIndex++;
+                    } else {
+                        tr.style.display = 'none';
+                    }
+                });
+            }
+
+            // 5. 顯著差異高亮切換
+            const diffToggle = document.getElementById('diffToggle');
+            let diffMode = false;
+            diffToggle.addEventListener('click', () => {
+                diffMode = !diffMode;
+                diffToggle.classList.toggle('active', diffMode);
+
+                const trs = document.querySelectorAll('.comparison-table tr:not(.table-header):not(.group-header)');
+                trs.forEach(tr => {
+                    const isDiff = tr.classList.contains('diff-highlight');
+                    if (diffMode) {
+                        if (isDiff) {
+                            tr.classList.add('highlight-active');
+                            tr.style.opacity = '1';
+                        } else {
+                            tr.style.opacity = '0.25';
+                        }
+                    } else {
+                        tr.classList.remove('highlight-active');
+                        tr.style.opacity = '1';
+                    }
+                });
+            });
+
+            // 6. 關鍵字搜尋比對
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase().trim();
+                const trs = document.querySelectorAll('.comparison-table tr:not(.table-header):not(.group-header)');
+                
+                trs.forEach(tr => {
+                    const text = tr.textContent.toLowerCase();
+                    if (text.includes(term)) {
+                        tr.style.display = '';
+                        tr.style.opacity = '1';
+                    } else {
+                        tr.style.display = 'none';
+                    }
+                });
+
+                // 當搜尋字串為空時，恢復當前 Tab 的狀態
+                if (term === '') {
+                    const activeTab = document.querySelector('.tab-btn.active').getAttribute('data-tab');
+                    filterRows(activeTab);
+                }
+            });
+
+            // 7. 智能工況選型助手 (Sizing Tool)
+            const btnSelect = document.getElementById('btnSelect');
+            const resultWidget = document.getElementById('selectorResult');
+            const resultHead = document.getElementById('resultHead');
+            const resultBody = document.getElementById('resultBody');
+
+            btnSelect.addEventListener('click', () => {
+                const size = document.getElementById('flowSize').value;
+                const press = document.getElementById('pressDiff').value;
+                const temp = document.getElementById('tempRange').value;
+                const special = document.getElementById('specialReq').value;
+
+                let recommend = "";
+                let reason = "";
+                let emoji = "";
+
+                // 決策樹邏輯
+                if (size === "large") {
+                    recommend = "Masoneilan 41000 系列 (41K) 控制閥";
+                    emoji = "🟢";
+                    reason = "由於製程口徑為巨型 (≥ 10\")，需要大容量流體吞吐。41K 系列具備極高的流量係數 (最大 Cv 可達 17,000)，且其平衡式閥塞設計能降低大口徑閥塞在壓差下的驅動負載。建議配備<b>多孔套筒 (Ported Cage)</b> 設計。";
+                } else if (special === "zero") {
+                    recommend = "Masoneilan 21000 系列 (21K) 控制閥";
+                    emoji = "🟢";
+                    reason = "針對易燃/有毒介質要求<b>波紋管零洩漏密封 (Bellows Seal)</b>。21K 系列做為頂部導引單座閥，能無縫整合波紋管，且其非平衡單座結構在關閉時能提供 Class V/VI 的極致關閉緊密性，是環保安全首選。";
+                } else if (press === "high" || special === "stable") {
+                    recommend = "Masoneilan 41000 系列 (41K) 控制閥";
+                    emoji = "🟢";
+                    reason = "由於存在高壓差、空化威脅或劇烈管道震動。41K 的<b>套筒導引 (Cage-guided)</b> 能全行程穩固閥塞；針對極端高壓降，推薦選配 <b>VRT (可變阻力閥內件)</b> 堆疊圓盤，逐級消能，有效消除氣蝕與高噪。";
+                } else if (temp === "extreme" && press === "high") {
+                    recommend = "Masoneilan 41000 系列 (41K) 控制閥";
+                    emoji = "🟢";
+                    reason = "製程溫度處於極端值且伴隨高壓降。41K 搭配<b>金屬密封環與輔助先導閥塞 (41405 系列)</b> 耐溫可上探 +593°C，並能在超高溫高壓下維持關閉緊密性。";
+                } else {
+                    recommend = "Masoneilan 21000 系列 (21K) 控制閥";
+                    emoji = "🟢";
+                    reason = "管徑中等 (≤ 8\")，且處於泛用製程條件。21K 頂部導引設計結構緊湊，保養極為便利，在一般工況與微小流量 (最小 Cv 0.008) 控制上最為經濟高效。";
+                }
+
+                // 顯示選型結果
+                resultHead.innerHTML = `${emoji} 系統推薦：${recommend}`;
+                resultBody.innerHTML = `🔬 <b>技術分析原因：</b><br>${reason}`;
+                resultWidget.style.display = "block";
+
+                // 自動定位並高亮表格中對應型號的規格行
+                const targetModel = recommend.includes("21000") ? "21k" : "41k";
+                const activeCard = document.getElementById(`card${targetModel}`);
+                
+                // 卡片微互動特效
+                activeCard.style.borderColor = "var(--accent-color)";
+                activeCard.style.boxShadow = "0 0 25px var(--accent-glow-strong)";
+                activeCard.style.transform = "perspective(1000px) scale(1.03) translateZ(10px)";
+                
+                setTimeout(() => {
+                    activeCard.style.borderColor = "";
+                    activeCard.style.boxShadow = "";
+                    activeCard.style.transform = "";
+                }, 2000);
             });
         });
     </script>
