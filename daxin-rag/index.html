@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>大新科技差旅規章智能查詢系統 | Daxin Travel RAG</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Markdown & Code Highlight -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-badge">DAXIN</div>
+        <div class="header-title-group">
+          <h1>大新科技 · 差旅規章智能查詢系統</h1>
+          <p class="subtitle">依據《員工差旅管理辦法 2026》與《差旅 FAQ》之雙軌權威知識庫</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="kbToggleBtn" class="btn-ghost" title="查看知識庫與規則說明">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          知識庫說明
+        </button>
+        <button id="settingsToggleBtn" class="btn-ghost" title="API Key 設定">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          設定
+        </button>
+      </div>
+    </header>
+
+    <!-- Settings Bar (Collapsible) -->
+    <div id="settingsPanel" class="settings-panel hidden">
+      <div class="settings-content">
+        <label for="customApiKey">Gemini API Key (若本機已設 .env 或 Vercel 環境變數可留空):</label>
+        <div class="api-input-group">
+          <input type="password" id="customApiKey" placeholder="AIzaSy..." autocomplete="off">
+          <button id="saveKeyBtn" class="btn-primary-sm">儲存設定</button>
+        </div>
+        <span id="keyStatus" class="key-status-text"></span>
+      </div>
+    </div>
+
+    <!-- Knowledge Base Modal/Drawer -->
+    <div id="kbModal" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>📚 系統知識庫與衝突裁決原則</h3>
+          <button id="closeKbBtn" class="btn-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="rule-box">
+            <h4>⚖️ 權威與衝突裁決規則</h4>
+            <p>1. <strong>效力優先</strong>：若條文有所差異，一律以<strong>《員工差旅管理辦法 2026 年版》</strong>為準，《差旅常見問題 FAQ》僅供參考。</p>
+            <p>2. <strong>主動標示衝突</strong>：問及住宿費上限、報帳期限等差異時，系統將主動列出兩份文件數字並說明差異。</p>
+            <p>3. <strong>嚴格防幻覺</strong>：未記載於資料庫者（如家人出差、國外出差），一律回覆「本資料庫無此項規定，請向行政部門確認」。</p>
+          </div>
+          <div class="doc-list">
+            <div class="doc-item">
+              <span class="doc-tag doc-official">正式管理辦法</span>
+              <strong>《員工差旅管理辦法 · 2026年版》 (DOC-02)</strong>
+              <p>涵蓋：交通費 (標準/商務)、住宿費 (一般2500/主管3200)、餐費600元、報帳期限 (10個工作日內)、天災特殊情況、未規定事項。</p>
+            </div>
+            <div class="doc-item">
+              <span class="doc-tag doc-faq">輔助說明</span>
+              <strong>《差旅常見問題 FAQ》 (DOC-03, 2025.06.01)</strong>
+              <p>涵蓋：7 大常見問答 (含舊版住宿2200/3000、舊版報帳14天、計程車收據、家人出差等)。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Source Article Slide-in Drawer -->
+    <div id="sourceDrawer" class="source-drawer hidden">
+      <div class="drawer-header">
+        <div class="drawer-title-group">
+          <span id="drawerBadge" class="doc-tag doc-official">正式規章</span>
+          <h3 id="drawerTitle">法規條文原文</h3>
+        </div>
+        <button id="closeDrawerBtn" class="btn-close">&times;</button>
+      </div>
+      <div class="drawer-body">
+        <div id="drawerContent" class="drawer-article-content"></div>
+      </div>
+    </div>
+
+    <!-- Main Chat Window -->
+    <main class="chat-main">
+      <div class="chat-messages" id="chatMessages">
+        <!-- System Welcome Message -->
+        <div class="message-row bot-row">
+          <div class="avatar bot-avatar">🤖</div>
+          <div class="message-bubble bot-bubble">
+            <p>您好！我是<strong>大新科技差旅規章智能助理</strong>。</p>
+            <p>我已載入並整合以下兩份官方文件：</p>
+            <ul>
+              <li><strong>《員工差旅管理辦法 2026年版》</strong>（正式規章，具最高優先效力）</li>
+              <li><strong>《差旅常見問題 FAQ》</strong>（輔助參考說明）</li>
+            </ul>
+            <p>所有回答均會標註條文出處；如遇兩份文件衝突，我會主動為您列出兩者差異並以 2026 正式辦法為準。請點選下方快捷測試題或直接輸入您的問題！</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Test Chips -->
+      <div class="quick-tests-container">
+        <div class="quick-tests-title">⚡ 自我測試快速驗收（點擊即測）：</div>
+        <div class="chips-wrapper">
+          <button class="test-chip chip-a" data-query="出差可以搭什麼交通工具？">
+            <span class="chip-badge">A類</span> 交通工具規定
+          </button>
+          <button class="test-chip chip-a" data-query="計程車能報帳嗎？">
+            <span class="chip-badge">A類</span> 計程車報帳
+          </button>
+          <button class="test-chip chip-b" data-query="一般員工住宿費上限多少？">
+            <span class="chip-badge">B類 衝突</span> 住宿費上限 (2500 vs 2200)
+          </button>
+          <button class="test-chip chip-b" data-query="報帳期限幾天？">
+            <span class="chip-badge">B類 衝突</span> 報帳期限 (10天 vs 14天)
+          </button>
+          <button class="test-chip chip-c" data-query="家人一起出差可以報帳嗎？">
+            <span class="chip-badge">C類 防幻覺</span> 家人一起出差
+          </button>
+          <button class="test-chip chip-c" data-query="國外出差住宿規定？">
+            <span class="chip-badge">C類 防幻覺</span> 國外出差住宿
+          </button>
+        </div>
+      </div>
+
+      <!-- Chat Input Area -->
+      <footer class="chat-input-area">
+        <form id="chatForm" class="input-form">
+          <textarea
+            id="userInput"
+            placeholder="請輸入關於大新科技差旅規章的問題... (按 Enter 發送，Shift+Enter 換行)"
+            rows="1"
+            required
+          ></textarea>
+          <button type="submit" id="sendBtn" class="send-btn" title="發送訊息">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </form>
+        <div class="input-footer-note">
+          <span>Powered by Gemini 2.0 Flash Lite &amp; Daxin RAG Engine</span>
+          <button id="clearChatBtn" class="btn-text">清空對話記錄</button>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

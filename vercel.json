@@ -15,6 +15,18 @@
     {
       "source": "/masoneilan-comparison",
       "destination": "/07_Mid_Year_Review/masoneilan-comparison.html"
+    },
+    {
+      "source": "/daxin-rag",
+      "destination": "/daxin-rag/index.html"
+    },
+    {
+      "source": "/travel-rag",
+      "destination": "/daxin-rag/index.html"
+    },
+    {
+      "source": "/daxin-rag/(.*)",
+      "destination": "/daxin-rag/$1"
     }
   ],
   "headers": [
