@@ -39,7 +39,6 @@ let quarterlyChart = null;
 let dealSizeChart = null;
 let matrixChart = null;
 let leaderboardChart = null;
-let mtoDoughnutChart = null;
 let salesAchDoughnut = null;
 let ebtAchDoughnut = null;
 let salesShareDoughnut = null;
@@ -72,6 +71,71 @@ function normalizeOwnerName(owner) {
     }
   }
   return owner;
+}
+
+// Department Classification Authority
+// ------------------------------------------------------------
+// Department-tier bucketing (Tier 1 group totals + Tier 2 dept comparison +
+// the group-filter-top dropdown) is now a strict 2-way split: Power / NonPower.
+// The MTO department tier has been retired (Gary's directive) -- Charlie
+// (roster group 'MTO') simply has no department-tier bucket to land in, which
+// is expected and intentional.
+//
+// Two different data sources use two different (both legitimate) mechanisms:
+//   - orders/cases: each record carries its own real, per-row Ragic
+//     "Power/NonPower" field (aliased as both 'Power/NonPower' and 'group' --
+//     same underlying field, fieldId 1033101 for Current_Cases / 1000279 for
+//     orders). Use getRecordPowerNonPower() to read it directly off the record.
+//   - targets: the target rows have no per-row Power/NonPower field, only a
+//     "Sales Person" name, so department is still resolved via the sales
+//     roster (FCI_FULL_SALES_ROSTER) using getDepartmentByOwner(). The
+//     roster's 'Power&EPC' value collapses into the 'Power' bucket via
+//     mapRosterGroupToBucket(); 'MTO' does not map to either bucket.
+
+// Map a UI group-filter value (e.g. 'Non-Power') to the canonical bucket
+// value (e.g. 'NonPower'). 'Power' / 'ALL' already match directly.
+function normalizeGroupFilterValue(filterValue) {
+  if (filterValue === 'Non-Power') return 'NonPower';
+  return filterValue;
+}
+
+// Resolve the authoritative department (Power&EPC / NonPower / MTO) for a
+// given owner name by looking them up in FCI_FULL_SALES_ROSTER. Used only
+// for targets, which have no per-row Power/NonPower field of their own.
+function getDepartmentByOwner(ownerName) {
+  const normalized = normalizeOwnerName(ownerName);
+  const member = FCI_FULL_SALES_ROSTER.find(m => m.name === normalized);
+  return member ? member.group : null;
+}
+
+// Collapse a roster department value down to the 2-way Power/NonPower
+// department-tier bucket. 'Power&EPC' -> 'Power'. 'MTO' (and null) are left
+// as-is on purpose: there is no department-tier bucket for MTO anymore, so
+// an MTO-rostered person's targets simply won't match either bucket filter.
+function mapRosterGroupToBucket(rosterGroup) {
+  if (rosterGroup === 'Power&EPC') return 'Power';
+  return rosterGroup;
+}
+
+// Read the Power/NonPower value carried directly on an order or case record
+// (Code.gs exposes the same underlying Ragic field under both the
+// 'Power/NonPower' key and the legacy 'group' alias). This is authoritative
+// per-record truth and must NOT be derived from the owner/roster -- unlike
+// targets, orders/cases always carry this field themselves.
+// Normalizes case/whitespace; the real Ragic value is often "Power&EPC" (not
+// a bare "Power"), so this matches on a "POWER" prefix rather than exact
+// equality. Any value that doesn't start with "POWER" (including blank/dirty
+// data, and "NonPower" itself) falls back to 'NonPower'.
+function getRecordPowerNonPower(record) {
+  const raw = ((record && (record['Power/NonPower'] || record.group)) || '').toString().trim().toUpperCase();
+  return raw.startsWith('POWER') ? 'Power' : 'NonPower';
+}
+
+// Shared filter predicate: does `bucket` (already a Power/NonPower bucket
+// value) satisfy the currently selected department dropdown filter?
+function matchesDepartmentFilter(bucket, selectedGroupFilter) {
+  if (!selectedGroupFilter || selectedGroupFilter === 'ALL') return true;
+  return bucket === normalizeGroupFilterValue(selectedGroupFilter);
 }
 
 function getYearFromDateStr(dateStr) {
@@ -160,6 +224,10 @@ function getFCIRealData() {
     }
     
     const fciTeam = sObj.group;
+    // Mock demo data needs its own per-record Power/NonPower value (fciTeam
+    // is the roster's 3-way group, which can be 'MTO' -- collapse that to
+    // 'Power' for demo purposes since there's no department-tier MTO bucket).
+    const powerNonPower = fciTeam === 'NonPower' ? 'NonPower' : 'Power';
     const days = (i * 5) % 70;
     const missing = i % 11 === 0;
     const amt = sample.amount + (i * 1500000) % 18000000;
@@ -171,6 +239,7 @@ function getFCIRealData() {
       customer: sample.customer,
       owner: sObj.name,
       group: fciTeam,
+      'Power/NonPower': powerNonPower,
       stage: sample.stage,
       expected_twd: missing ? 0 : amt,
       quote_amount: amt * 1.12,
@@ -232,10 +301,14 @@ function getFCIRealData() {
   });
 
   // Seed Charlie 2026 Booked
+  // MTO has no department-tier Power/NonPower bucket of its own; the record
+  // still needs a concrete Power/NonPower value for the new record-level
+  // classification, so it's set to 'Power' here as a reasonable demo default.
   mockOrders.push({
     project_id: 'ORD-CH1',
     customer: '台塑麥寮 MTO工程',
     group: 'MTO',
+    'Power/NonPower': 'Power',
     owner: 'Charlie',
     amount_twd: 35290811,
     profit_twd: Math.floor(35290811 * 0.15),
@@ -327,6 +400,9 @@ function getFCIRealData() {
     
     const sample = realCasesSample[i % realCasesSample.length];
     const fciTeam = sObj.group;
+    // See comment on the mockCases loop above: MTO collapses to 'Power' for
+    // demo purposes since there's no department-tier MTO bucket anymore.
+    const powerNonPower = fciTeam === 'NonPower' ? 'NonPower' : 'Power';
     const dateStr = `${year}-${String(month).padStart(2, '0')}-15`;
     const amt = Math.floor(Math.random() * 6000000) + 800000;
     const ebtRate = 0.1 + Math.random() * 0.15; // 10% to 25%
@@ -335,6 +411,7 @@ function getFCIRealData() {
       project_id: `ORD-${2000 + i}`,
       customer: sample.customer,
       group: fciTeam,
+      'Power/NonPower': powerNonPower,
       owner: sObj.name,
       amount_twd: amt,
       profit_twd: Math.floor(amt * ebtRate),
@@ -610,12 +687,7 @@ function populateSalesDropdown() {
   const { selectedGroupFilter } = appState;
   select.innerHTML = '<option value="ALL">全部業務員 (All Sales)</option>';
 
-  const availableSales = FCI_FULL_SALES_ROSTER.filter(member => {
-    if (selectedGroupFilter === 'Non-Power') return ['Valve', 'Instrumentation', 'Service', 'NonPower', 'Non-Power'].includes(member.group);
-    if (selectedGroupFilter === 'Power&EPC') return ['Power', 'EPC', 'Power&EPC', 'Power & EPC'].includes(member.group);
-    if (selectedGroupFilter === 'MTO') return member.group === 'MTO';
-    return true;
-  });
+  const availableSales = FCI_FULL_SALES_ROSTER.filter(member => matchesDepartmentFilter(mapRosterGroupToBucket(member.group), selectedGroupFilter));
 
   availableSales.forEach(s => {
     const opt = document.createElement('option');
@@ -634,12 +706,7 @@ function getFilteredDataset() {
     const matchYear = (!selectedYear || yr === selectedYear);
     const matchStatus = (o.status === '簽核完成');
 
-    let matchGroup = true;
-    if (selectedGroupFilter === 'Non-Power') matchGroup = ['Valve', 'Instrumentation', 'Service', 'NonPower', 'Non-Power'].includes(o.group);
-    else if (selectedGroupFilter === 'Power&EPC') matchGroup = ['Power', 'EPC', 'Power&EPC', 'Power & EPC'].includes(o.group);
-    else if (selectedGroupFilter === 'MTO') matchGroup = ['MTO'].includes(o.group);
-    else if (selectedGroupFilter !== 'ALL') matchGroup = (o.group === selectedGroupFilter);
-
+    const matchGroup = matchesDepartmentFilter(getRecordPowerNonPower(o), selectedGroupFilter);
     const matchSales = (selectedSales === 'ALL' || normalizeOwnerName(o.owner) === selectedSales);
 
     return matchYear && matchStatus && matchGroup && matchSales;
@@ -647,12 +714,7 @@ function getFilteredDataset() {
 
   // Cases remain active across multiple years (No Year Filtering per User Requirement)
   const filteredCases = appState.cases.filter(c => {
-    let matchGroup = true;
-    if (selectedGroupFilter === 'Non-Power') matchGroup = ['Valve', 'Instrumentation', 'Service', 'NonPower', 'Non-Power'].includes(c.group);
-    else if (selectedGroupFilter === 'Power&EPC') matchGroup = ['Power', 'EPC', 'Power&EPC', 'Power & EPC'].includes(c.group);
-    else if (selectedGroupFilter === 'MTO') matchGroup = ['MTO'].includes(c.group);
-    else if (selectedGroupFilter !== 'ALL') matchGroup = (c.group === selectedGroupFilter);
-
+    const matchGroup = matchesDepartmentFilter(getRecordPowerNonPower(c), selectedGroupFilter);
     const matchSales = (selectedSales === 'ALL' || normalizeOwnerName(c.owner) === selectedSales);
     return matchGroup && matchSales;
   });
@@ -661,14 +723,8 @@ function getFilteredDataset() {
     const yr = (t['年份'] || t['year'] || '').toString().trim();
     const matchYear = (!selectedYear || yr === selectedYear);
 
-    const grp = (t['列表頁Team'] || t['Team'] || '').toString().trim();
-    let matchGroup = true;
-    if (selectedGroupFilter === 'Non-Power') matchGroup = ['Valve', 'Instrumentation', 'Service', 'NonPower', 'Non-Power'].includes(grp);
-    else if (selectedGroupFilter === 'Power&EPC') matchGroup = ['Power', 'EPC', 'Power&EPC', 'Power & EPC'].includes(grp);
-    else if (selectedGroupFilter === 'MTO') matchGroup = ['MTO'].includes(grp);
-    else if (selectedGroupFilter !== 'ALL') matchGroup = (grp === selectedGroupFilter);
-
     const salesName = (t['Sales Person'] || t['salesPerson'] || '').toString().trim();
+    const matchGroup = matchesDepartmentFilter(mapRosterGroupToBucket(getDepartmentByOwner(salesName)), selectedGroupFilter);
     const matchSales = (selectedSales === 'ALL' || normalizeOwnerName(salesName) === selectedSales);
 
     return matchYear && matchGroup && matchSales;
@@ -704,10 +760,6 @@ function renderAchievementTab() {
     return !selectedYear || yr === selectedYear;
   });
 
-  const nonpowerGroupList = ['Valve', 'Instrumentation', 'Service', 'NonPower', 'Non-Power'];
-  const powerepcGroupList = ['Power', 'EPC', 'Power & EPC', 'Power&EPC'];
-  const mtoGroupList = ['MTO'];
-
   // Helper to calculate unweighted Pipeline
   const getPipeline = (casesList) => casesList.reduce((sum, c) => sum + (parseNumber(c.quote_amount) || parseNumber(c.expected_twd)), 0);
 
@@ -716,71 +768,43 @@ function renderAchievementTab() {
   const getEbtPipeline = (casesList) => casesList.reduce((sum, c) => sum + (parseNumber(c.quote_amount || c.expected_twd) * 0.15), 0); // Estimate pipeline EBT at 15%
 
   // Non-Power Metrics
-  const npOrders = filteredOrders.filter(o => nonpowerGroupList.includes(o.group));
-  const npTargets = filteredTargets.filter(t => nonpowerGroupList.includes((t['列表頁Team'] || t['Team'] || '').trim()));
-  const npCases = filteredCases.filter(c => nonpowerGroupList.includes(c.group));
+  const npOrders = filteredOrders.filter(o => getRecordPowerNonPower(o) === 'NonPower');
+  const npCases = filteredCases.filter(c => getRecordPowerNonPower(c) === 'NonPower');
 
   const npBooked = npOrders.reduce((sum, o) => sum + parseNumber(o.amount_twd), 0);
-  let npTarget = npTargets.reduce((sum, t) => sum + parseNumber(t['Sales Amount Target'] || t['salesTarget']), 0);
+  const npTarget = filteredTargets.reduce((sum, t) => sum + parseNumber(t['NonPower Sales Target']), 0);
   const npPipeline = getPipeline(npCases);
 
   const npEbtBooked = getEbtBooked(npOrders);
-  let npEbtTarget = npTargets.reduce((sum, t) => sum + parseNumber(t['EBT Target'] || t['ebtTarget']), 0);
+  const npEbtTarget = filteredTargets.reduce((sum, t) => sum + parseNumber(t['NonPower EBT Target']), 0);
   const npEbtPipeline = getEbtPipeline(npCases);
 
   // Power & EPC Metrics
-  const peOrders = filteredOrders.filter(o => powerepcGroupList.includes(o.group));
-  const peTargets = filteredTargets.filter(t => powerepcGroupList.includes((t['列表頁Team'] || t['Team'] || '').trim()));
-  const peCases = filteredCases.filter(c => powerepcGroupList.includes(c.group));
+  const peOrders = filteredOrders.filter(o => getRecordPowerNonPower(o) === 'Power');
+  const peCases = filteredCases.filter(c => getRecordPowerNonPower(c) === 'Power');
 
   const peBooked = peOrders.reduce((sum, o) => sum + parseNumber(o.amount_twd), 0);
-  let peTarget = peTargets.reduce((sum, t) => sum + parseNumber(t['Sales Amount Target'] || t['salesTarget']), 0);
+  const peTarget = filteredTargets.reduce((sum, t) => sum + parseNumber(t['Power Sales Target']), 0);
   const pePipeline = getPipeline(peCases);
 
   const peEbtBooked = getEbtBooked(peOrders);
-  let peEbtTarget = peTargets.reduce((sum, t) => sum + parseNumber(t['EBT Target'] || t['ebtTarget']), 0);
+  const peEbtTarget = filteredTargets.reduce((sum, t) => sum + parseNumber(t['Power EBT Target']), 0);
   const peEbtPipeline = getEbtPipeline(peCases);
-
-  // MTO Metrics
-  const mtoOrders = filteredOrders.filter(o => mtoGroupList.includes(o.group));
-  const mtoTargets = filteredTargets.filter(t => mtoGroupList.includes((t['列表頁Team'] || t['Team'] || '').trim()));
-  const mtoCases = filteredCases.filter(c => mtoGroupList.includes(c.group));
-
-  const mtoBooked = mtoOrders.reduce((sum, o) => sum + parseNumber(o.amount_twd), 0);
-  let mtoTarget = mtoTargets.reduce((sum, t) => sum + parseNumber(t['Sales Amount Target'] || t['salesTarget']), 0);
-  const mtoPipeline = getPipeline(mtoCases);
-
-  const mtoEbtBooked = getEbtBooked(mtoOrders);
-  let mtoEbtTarget = mtoTargets.reduce((sum, t) => sum + parseNumber(t['EBT Target'] || t['ebtTarget']), 0);
-  const mtoEbtPipeline = getEbtPipeline(mtoCases);
-
-  // Override Targets based on user specific rules for 2026
-  if (selectedYear === '2026') {
-    npTarget = 505000000;
-    peTarget = 595000000;
-    mtoTarget = 250000000;
-    
-    npEbtTarget = 75750000;
-    peEbtTarget = 89250000;
-    mtoEbtTarget = 37500000;
-  }
 
   const npPct = npTarget > 0 ? ((npBooked / npTarget) * 100).toFixed(1) : '0.0';
   const pePct = peTarget > 0 ? ((peBooked / peTarget) * 100).toFixed(1) : '0.0';
-  const mtoPct = mtoTarget > 0 ? ((mtoBooked / mtoTarget) * 100).toFixed(1) : '0.0';
 
   const npEbtPct = npEbtTarget > 0 ? ((npEbtBooked / npEbtTarget) * 100).toFixed(1) : '0.0';
   const peEbtPct = peEbtTarget > 0 ? ((peEbtBooked / peEbtTarget) * 100).toFixed(1) : '0.0';
-  const mtoEbtPct = mtoEbtTarget > 0 ? ((mtoEbtBooked / mtoEbtTarget) * 100).toFixed(1) : '0.0';
 
   // Group Totals
-  const totalBooked = npBooked + peBooked + mtoBooked;
-  const totalTarget = npTarget + peTarget + mtoTarget;
-  const totalForecast = totalBooked + npPipeline + pePipeline + mtoPipeline;
+  const totalBooked = npBooked + peBooked;
+  const totalTarget = npTarget + peTarget;
+  const totalForecast = totalBooked + npPipeline + pePipeline;
 
-  const totalEbtBooked = npEbtBooked + peEbtBooked + mtoEbtBooked;
-  const totalEbtTarget = npEbtTarget + peEbtTarget + mtoEbtTarget;
-  const totalEbtForecast = totalEbtBooked + npEbtPipeline + peEbtPipeline + mtoEbtPipeline;
+  const totalEbtBooked = npEbtBooked + peEbtBooked;
+  const totalEbtTarget = npEbtTarget + peEbtTarget;
+  const totalEbtForecast = totalEbtBooked + npEbtPipeline + peEbtPipeline;
 
   const salesBookedPct = totalTarget > 0 ? ((totalBooked / totalTarget) * 100) : 0;
   const salesForecastPct = totalTarget > 0 ? ((totalForecast / totalTarget) * 100) : 0;
@@ -806,10 +830,10 @@ function renderAchievementTab() {
   renderSingleDoughnutChart('ebt-ach-doughnut', totalEbtBooked, totalEbtTarget, (chart) => ebtAchDoughnut = chart, ebtAchDoughnut, '#a855f7');
   document.getElementById('ebt-ach-pct').textContent = `${ebtBookedPct.toFixed(1)}%`;
 
-  const shareLabels = ['NONPOWER', 'POWER EPC', 'MTO'];
-  const shareColors = ['#10b981', '#0ea5e9', '#a855f7'];
-  renderSharePieChart('sales-share-doughnut', [npBooked, peBooked, mtoBooked], shareLabels, shareColors, (chart) => salesShareDoughnut = chart, salesShareDoughnut);
-  renderSharePieChart('ebt-share-doughnut', [npEbtBooked, peEbtBooked, mtoEbtBooked], shareLabels, shareColors, (chart) => ebtShareDoughnut = chart, ebtShareDoughnut);
+  const shareLabels = ['NONPOWER', 'POWER & EPC'];
+  const shareColors = ['#10b981', '#0ea5e9'];
+  renderSharePieChart('sales-share-doughnut', [npBooked, peBooked], shareLabels, shareColors, (chart) => salesShareDoughnut = chart, salesShareDoughnut);
+  renderSharePieChart('ebt-share-doughnut', [npEbtBooked, peEbtBooked], shareLabels, shareColors, (chart) => ebtShareDoughnut = chart, ebtShareDoughnut);
 
   // 2. Department Level 2 Doughnuts & Info lists
   renderSingleDoughnutChart('nonpower-doughnut-chart', npBooked, npTarget, (chart) => nonpowerDoughnutChart = chart, nonpowerDoughnutChart, '#10b981');
@@ -833,17 +857,6 @@ function renderAchievementTab() {
   document.getElementById('dept-powerepc-ebt-booked').textContent = formatTWD(peEbtBooked);
   document.getElementById('dept-powerepc-ebt-forecast').textContent = formatTWD(peEbtBooked + peEbtPipeline);
   document.getElementById('dept-powerepc-ebt-pct').textContent = `${peEbtPct}%`;
-
-  renderSingleDoughnutChart('mto-doughnut-chart', mtoBooked, mtoTarget, (chart) => mtoDoughnutChart = chart, mtoDoughnutChart, '#a855f7');
-  document.getElementById('mto-doughnut-pct').textContent = `${mtoPct}%`;
-  document.getElementById('dept-mto-target').textContent = formatTWD(mtoTarget);
-  document.getElementById('dept-mto-booked').textContent = formatTWD(mtoBooked);
-  document.getElementById('dept-mto-forecast').textContent = formatTWD(mtoBooked + mtoPipeline);
-  document.getElementById('dept-mto-sales-pct').textContent = `${mtoPct}%`;
-  document.getElementById('dept-mto-ebt-target').textContent = formatTWD(mtoEbtTarget);
-  document.getElementById('dept-mto-ebt-booked').textContent = formatTWD(mtoEbtBooked);
-  document.getElementById('dept-mto-ebt-forecast').textContent = formatTWD(mtoEbtBooked + mtoEbtPipeline);
-  document.getElementById('dept-mto-ebt-pct').textContent = `${mtoEbtPct}%`;
 
   // 3. Individual Level 3 Leaderboard
   renderLeaderboard(filteredOrders, filteredCases, filteredTargets);
@@ -1296,12 +1309,9 @@ function renderWeeklyOverview() {
 
     // Department filtering check
     const { selectedGroupFilter } = appState;
-    const rows = Object.values(ownerMap).filter(r => {
-      if (selectedGroupFilter === 'Non-Power') return ['Valve', 'Instrumentation', 'Service', 'NonPower', 'Non-Power'].includes(r.group);
-      if (selectedGroupFilter === 'Power&EPC') return ['Power', 'EPC', 'Power&EPC', 'Power & EPC'].includes(r.group);
-      if (selectedGroupFilter === 'MTO') return r.group === 'MTO';
-      return true;
-    }).sort((a, b) => (b.booked + b.pipeline) - (a.booked + a.pipeline));
+    const rows = Object.values(ownerMap)
+      .filter(r => matchesDepartmentFilter(mapRosterGroupToBucket(r.group), selectedGroupFilter))
+      .sort((a, b) => (b.booked + b.pipeline) - (a.booked + a.pipeline));
 
     scorecardContainer.innerHTML = `
       <div class="owner-score-row header" style="grid-template-columns: 130px 110px repeat(2, 1.2fr) repeat(4, 0.8fr);">
