@@ -27,6 +27,14 @@
     {
       "source": "/travel-rag",
       "destination": "/daxin-rag/index.html"
+    },
+    {
+      "source": "/fci-sales/(.*)",
+      "destination": "/fci-sales/$1"
+    },
+    {
+      "source": "/fci-sales",
+      "destination": "/fci-sales/index.html"
     }
   ],
   "headers": [

@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FCI Sales 決策戰情室 | Executive Dashboard</title>
+  <link rel="stylesheet" href="./src/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header Navigation Bar -->
+    <header class="top-nav">
+      <div class="brand-section">
+        <div class="brand-logo">FCI</div>
+        <div>
+          <h1 class="brand-title">Sales 決策戰情室</h1>
+          <p class="brand-subtitle">Executive Performance & Actionable Intelligence</p>
+        </div>
+      </div>
+      
+      <!-- Top Level Segmented Tab Switcher -->
+      <nav class="nav-tabs">
+        <button class="tab-btn active" data-tab="tab-achievement">
+          <span class="tab-icon">🎯</span> 業績達成率 (大到小)
+        </button>
+        <button class="tab-btn" data-tab="tab-weekly">
+          <span class="tab-icon">📋</span> 週會看板與管控
+        </button>
+        <button class="tab-btn" data-tab="tab-trends">
+          <span class="tab-icon">📈</span> 歷年趨勢與 Run-Rate 預估
+        </button>
+      </nav>
+
+      <!-- Global Filter Controller Bar -->
+      <div class="controls-bar">
+        <select id="year-select" class="select-control">
+          <option value="2026">2026 年度</option>
+          <option value="2025">2025 年度</option>
+        </select>
+        <button id="refresh-btn" class="btn-primary">🔄 重新整理數據</button>
+      </div>
+    </header>
+
+    <!-- Main Views Container -->
+    <main class="main-content">
+      
+      <!-- ============================================================
+           TAB 1: 🎯 業績達成率 (大到小：全集團 ➔ 兩大部門 ➔ 全員排行榜)
+           ============================================================ -->
+      <section id="tab-achievement" class="tab-page active">
+        <!-- Hero Key Metric Banner (Group Overview) -->
+        <div class="hero-banner-grouped">
+          <!-- 業績金額群組 -->
+          <div class="hero-group-card border-emerald">
+            <div class="hero-group-header">
+              <span class="hero-group-icon">💰</span>
+              <span class="hero-group-title">銷售金額 (Sales Amount)</span>
+            </div>
+            <div class="hero-group-body">
+              <div class="hero-subitem">
+                <span class="hero-label">目標金額</span>
+                <div class="hero-value num-font" id="hero-sales-target">NT$ 0</div>
+              </div>
+              <div class="hero-subitem">
+                <span class="hero-label">累計成交</span>
+                <div class="hero-value num-font" id="hero-sales-booked">NT$ 0</div>
+              </div>
+              <div class="hero-subitem">
+                <span class="hero-label">目前達成率</span>
+                <div class="hero-value num-font" id="hero-sales-actual-pct">0.0%</div>
+              </div>
+              <div class="hero-subitem">
+                <span class="hero-label">預估達成率</span>
+                <div class="hero-value num-font" id="hero-sales-forecast-pct">0.0%</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- EBT 利潤群組 -->
+          <div class="hero-group-card border-purple">
+            <div class="hero-group-header">
+              <span class="hero-group-icon">📈</span>
+              <span class="hero-group-title">EBT 利潤 (EBT Amount)</span>
+            </div>
+            <div class="hero-group-body">
+              <div class="hero-subitem">
+                <span class="hero-label">目標金額</span>
+                <div class="hero-value num-font" id="hero-ebt-target">NT$ 0</div>
+              </div>
+              <div class="hero-subitem">
+                <span class="hero-label">累計成交</span>
+                <div class="hero-value num-font" id="hero-ebt-booked">NT$ 0</div>
+              </div>
+              <div class="hero-subitem">
+                <span class="hero-label">目前達成率</span>
+                <div class="hero-value num-font" id="hero-ebt-actual-pct">0.0%</div>
+              </div>
+              <div class="hero-subitem">
+                <span class="hero-label">預估達成率</span>
+                <div class="hero-value num-font" id="hero-ebt-forecast-pct">0.0%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 階層 1: 集團整體達成率 (Group Overall Performance) -->
+        <div class="glass-card main-hierarchy-card glow-emerald">
+          <div class="card-header">
+            <h3 class="card-title"><span class="icon-dot"></span> 🏢 階層 1：集團整體達成率 (Group Overall Performance)</h3>
+            <span style="font-size: 12px; color: var(--text-muted);">綠色: Non-Power | 藍色: Power & EPC | 紫色: MTO | 灰色: 目標缺口</span>
+          </div>
+          <div class="hierarchy-level1-charts-grid">
+            <!-- Chart 1: Sales 達成率 -->
+            <div class="chart-card">
+              <h4 class="chart-card-title">銷售金額達成率 (Sales Achievement)</h4>
+              <div class="doughnut-wrapper">
+                <canvas id="sales-ach-doughnut"></canvas>
+                <div class="doughnut-center-text">
+                  <span class="center-lbl">達成率</span>
+                  <strong class="center-val num-font" id="sales-ach-pct">0.0%</strong>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Chart 2: EBT 達成率 -->
+            <div class="chart-card">
+              <h4 class="chart-card-title">EBT 利潤達成率 (EBT Achievement)</h4>
+              <div class="doughnut-wrapper">
+                <canvas id="ebt-ach-doughnut"></canvas>
+                <div class="doughnut-center-text">
+                  <span class="center-lbl">達成率</span>
+                  <strong class="center-val num-font" id="ebt-ach-pct">0.0%</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chart 3: Sales Team 占比 -->
+            <div class="chart-card">
+              <h4 class="chart-card-title">銷售部門成交占比 (Sales Team Share)</h4>
+              <div class="doughnut-wrapper">
+                <canvas id="sales-share-doughnut"></canvas>
+              </div>
+            </div>
+
+            <!-- Chart 4: EBT Team 占比 -->
+            <div class="chart-card">
+              <h4 class="chart-card-title">EBT 部門成交占比 (EBT Team Share)</h4>
+              <div class="doughnut-wrapper">
+                <canvas id="ebt-share-doughnut"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 階層 2: 部門達成率對比 (Department Performance Contrast) -->
+        <div class="glass-card">
+          <div class="card-header">
+            <h3 class="card-title"><span class="icon-dot"></span> 🏬 階層 2：部門達成率對比 (Department Performance Contrast)</h3>
+          </div>
+          <div class="hierarchy-level2-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+            <!-- Non-Power 部門圓餅 -->
+            <div class="dept-card border-green">
+              <h4 class="dept-title" style="font-size: 18px; color: #ffffff !important;">NONPOWER</h4>
+              <div class="dept-chart-wrapper">
+                <canvas id="nonpower-doughnut-chart"></canvas>
+                <div class="doughnut-center-text">
+                  <span class="center-lbl">達成率</span>
+                  <strong class="center-val num-font" id="nonpower-doughnut-pct" style="color: #ffffff !important;">0%</strong>
+                </div>
+              </div>
+              <div class="dept-stats-list">
+                <div class="dept-stats-group">
+                  <div class="stats-group-title">銷售金額 (Sales Amount)</div>
+                  <div><span>目標:</span> <strong class="num-font" id="dept-nonpower-target">NT$ 0</strong></div>
+                  <div><span>成交:</span> <strong class="num-font" id="dept-nonpower-booked">NT$ 0</strong></div>
+                  <div><span>預估:</span> <strong class="num-font" id="dept-nonpower-forecast">NT$ 0</strong></div>
+                  <div><span>達成率:</span> <strong class="num-font" id="dept-nonpower-sales-pct">0.0%</strong></div>
+                </div>
+                <div class="dept-stats-group" style="border-left: 1px solid rgba(255,255,255,0.08); padding-left: 16px; margin-left: 16px;">
+                  <div class="stats-group-title">EBT 利潤 (EBT Amount)</div>
+                  <div><span>目標:</span> <strong class="num-font" id="dept-nonpower-ebt-target">NT$ 0</strong></div>
+                  <div><span>成交:</span> <strong class="num-font" id="dept-nonpower-ebt-booked">NT$ 0</strong></div>
+                  <div><span>預估:</span> <strong class="num-font" id="dept-nonpower-ebt-forecast">NT$ 0</strong></div>
+                  <div><span>達成率:</span> <strong class="num-font" id="dept-nonpower-ebt-pct">0.0%</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Power & EPC 部門圓餅 -->
+            <div class="dept-card border-blue">
+              <h4 class="dept-title" style="font-size: 18px; color: #ffffff !important;">POWER EPC</h4>
+              <div class="dept-chart-wrapper">
+                <canvas id="powerepc-doughnut-chart"></canvas>
+                <div class="doughnut-center-text">
+                  <span class="center-lbl">達成率</span>
+                  <strong class="center-val num-font" id="powerepc-doughnut-pct" style="color: #ffffff !important;">0%</strong>
+                </div>
+              </div>
+              <div class="dept-stats-list">
+                <div class="dept-stats-group">
+                  <div class="stats-group-title">銷售金額 (Sales Amount)</div>
+                  <div><span>目標:</span> <strong class="num-font" id="dept-powerepc-target">NT$ 0</strong></div>
+                  <div><span>成交:</span> <strong class="num-font" id="dept-powerepc-booked">NT$ 0</strong></div>
+                  <div><span>預估:</span> <strong class="num-font" id="dept-powerepc-forecast">NT$ 0</strong></div>
+                  <div><span>達成率:</span> <strong class="num-font" id="dept-powerepc-sales-pct">0.0%</strong></div>
+                </div>
+                <div class="dept-stats-group" style="border-left: 1px solid rgba(255,255,255,0.08); padding-left: 16px; margin-left: 16px;">
+                  <div class="stats-group-title">EBT 利潤 (EBT Amount)</div>
+                  <div><span>目標:</span> <strong class="num-font" id="dept-powerepc-ebt-target">NT$ 0</strong></div>
+                  <div><span>成交:</span> <strong class="num-font" id="dept-powerepc-ebt-booked">NT$ 0</strong></div>
+                  <div><span>預估:</span> <strong class="num-font" id="dept-powerepc-ebt-forecast">NT$ 0</strong></div>
+                  <div><span>達成率:</span> <strong class="num-font" id="dept-powerepc-ebt-pct">0.0%</strong></div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- MTO 部門圓餅 -->
+            <div class="dept-card border-purple">
+              <h4 class="dept-title" style="font-size: 18px; color: #ffffff !important;">MTO</h4>
+              <div class="dept-chart-wrapper">
+                <canvas id="mto-doughnut-chart"></canvas>
+                <div class="doughnut-center-text">
+                  <span class="center-lbl">達成率</span>
+                  <strong class="center-val num-font" id="mto-doughnut-pct" style="color: #ffffff !important;">0%</strong>
+                </div>
+              </div>
+              <div class="dept-stats-list">
+                <div class="dept-stats-group">
+                  <div class="stats-group-title">銷售金額 (Sales Amount)</div>
+                  <div><span>目標:</span> <strong class="num-font" id="dept-mto-target">NT$ 0</strong></div>
+                  <div><span>成交:</span> <strong class="num-font" id="dept-mto-booked">NT$ 0</strong></div>
+                  <div><span>預估:</span> <strong class="num-font" id="dept-mto-forecast">NT$ 0</strong></div>
+                  <div><span>達成率:</span> <strong class="num-font" id="dept-mto-sales-pct">0.0%</strong></div>
+                </div>
+                <div class="dept-stats-group" style="border-left: 1px solid rgba(255,255,255,0.08); padding-left: 16px; margin-left: 16px;">
+                  <div class="stats-group-title">EBT 利潤 (EBT Amount)</div>
+                  <div><span>目標:</span> <strong class="num-font" id="dept-mto-ebt-target">NT$ 0</strong></div>
+                  <div><span>成交:</span> <strong class="num-font" id="dept-mto-ebt-booked">NT$ 0</strong></div>
+                  <div><span>預估:</span> <strong class="num-font" id="dept-mto-ebt-forecast">NT$ 0</strong></div>
+                  <div><span>達成率:</span> <strong class="num-font" id="dept-mto-ebt-pct">0.0%</strong></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 階層 3: 業務個人業績排行榜 (Individual Sales Leaderboard) -->
+        <div class="glass-card">
+          <div class="card-header">
+            <h3 class="card-title"><span class="icon-dot"></span> 👤 階層 3：業務個人業績排行榜 (Individual Sales Leaderboard)</h3>
+            <span style="font-size: 12px; color: var(--text-muted);">全公司全員統一由達成率高到低排名</span>
+          </div>
+          <div class="chart-container" style="height: 450px;">
+            <canvas id="leaderboard-chart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           TAB 2: 📋 週會看板與管控 (比照 nonpower-sales-dashboard.html 口徑)
+           ============================================================ -->
+      <section id="tab-weekly" class="tab-page">
+        <!-- 週會控制工具列 (Subnav + Department & Sales Filter) -->
+        <div class="weekly-subnav-bar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div class="weekly-subnav-group">
+            <button class="weekly-subtab-btn active" data-subtab="subtab-weekly-overview">📋 週會總覽</button>
+            <button class="weekly-subtab-btn" data-subtab="weekly-cases-subtab">▤ 逐案管考與處置</button>
+            <button class="weekly-subtab-btn" data-subtab="weekly-compare-subtab">↗ 週次異動比較 (WoW)</button>
+          </div>
+          <div class="weekly-toolbar-filters" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <!-- 部門篩選 -->
+            <select id="group-filter-top" class="select-control" style="min-width: 170px; height: 38px; font-size: 13px;">
+              <option value="ALL">🏢 全部部門 (All Depts)</option>
+              <option value="Non-Power">Non-Power 業務群</option>
+              <option value="Power&EPC">Power & EPC 業務群</option>
+              <option value="MTO">MTO 專案</option>
+            </select>
+
+            <!-- 業務員篩選 -->
+            <select id="sales-select" class="select-control" style="min-width: 160px; height: 38px; font-size: 13px;">
+              <option value="ALL">👤 全部業務員 (All Sales)</option>
+            </select>
+
+            <!-- 快照時間對比 -->
+            <div class="weekly-snapshot-picker" style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">快照對比：</span>
+              <select id="weekly-snapshot-select" class="select-control" style="min-width: 160px; padding: 4px 8px; height: 38px; font-size: 12px;"></select>
+            </div>
+
+            <!-- 低調 Hover 說明 Tooltip (連動子分頁動態切換) -->
+            <span class="help-tooltip-wrapper">❓
+              <div class="help-tooltip-popup" id="weekly-help-tooltip-popup">
+                <div style="font-weight: 700; color: #38bdf8; margin-bottom: 6px;">📋 週會總覽 — 開會重點</div>
+                <b>・🚨 風險金額</b>：優先檢討金額下調、階段倒退與卡關停滯案。<br>
+                <b>・🎯 主管處置</b>：直接裁示 6 大關鍵卡關案之跨部門資源。<br>
+                <b>・👤 人員管考</b>：評估下屬業務之案件分佈與髒資料比例。
+              </div>
+            </span>
+          </div>
+        </div>
+
+        <!-- ==================== Subtab 1: 週會總覽 ==================== -->
+        <div id="subtab-weekly-overview" class="weekly-subtab-content active">
+
+          <!-- Top Weekly Key Metrics Banner -->
+          <div class="hero-banner weekly-hero">
+            <div class="hero-item border-red">
+              <span class="hero-label">🚨 本週風險異動總金額</span>
+              <div class="hero-value num-font text-red" id="weekly-risk-amount">NT$ 0</div>
+              <span class="hero-sub">金額下調 + 階段倒退 + 停滯案</span>
+            </div>
+            <div class="hero-item border-emerald">
+              <span class="hero-label">🎉 本週推進/成交總金額</span>
+              <div class="hero-value num-font text-emerald" id="weekly-win-amount">NT$ 0</div>
+              <span class="hero-sub">新成案 + 進入談判/報價案</span>
+            </div>
+            <div class="hero-item border-amber">
+              <span class="hero-label">⚠️ 卡關停滯率 (Stale Rate)</span>
+              <div class="hero-value num-font text-amber" id="weekly-stale-rate">0.0%</div>
+              <span class="hero-sub">超過 30 天未更新案件比例</span>
+            </div>
+            <div class="hero-item border-purple">
+              <span class="hero-label">📝 髒資料與待修件數</span>
+              <div class="hero-value num-font" id="weekly-dirty-count">0 案</div>
+              <span class="hero-sub">成案金額為0 或 敷衍更新&lt;5字</span>
+            </div>
+          </div>
+
+          <!-- Split Grid: 本週案件流動 + 主管本週處置 -->
+          <div class="grid-2col" style="margin-top: 20px;">
+            <!-- 本週案件流動 -->
+            <div class="glass-card">
+              <div class="card-header">
+                <h3 class="card-title"><span class="icon-dot"></span> 🔄 本週案件流動 (WoW Case Movement)</h3>
+                <span style="font-size: 12px; color: var(--text-muted);">依商機編號對比上週變化</span>
+              </div>
+              <div id="weekly-movement-grid" class="movement-grid"></div>
+            </div>
+
+            <!-- 主管本週處置 (Management Focus) -->
+            <div class="glass-card">
+              <div class="card-header">
+                <h3 class="card-title"><span class="icon-dot"></span> 🎯 主管本週處置 (Management Focus)</h3>
+                <span style="font-size: 12px; color: var(--text-muted);">只列真正需要決策的關鍵事項</span>
+              </div>
+              <ol id="weekly-management-actions" class="management-action-list"></ol>
+            </div>
+          </div>
+
+          <!-- 業務員狀態 Scorecard (Owner Scorecard) -->
+          <div class="glass-card" style="margin-top: 20px;">
+            <div class="card-header">
+              <h3 class="card-title"><span class="icon-dot"></span> 👤 各業務管轄狀態 (Owner Scorecard)</h3>
+              <span style="font-size: 12px; color: var(--text-muted);">點選業務列可直接進入逐案分析</span>
+            </div>
+            <div id="weekly-owner-scorecard" class="owner-scorecard-table-wrapper"></div>
+          </div>
+        </div>
+
+        <!-- ==================== Subtab 2: 逐案管考與處置 (Case Cards Wall) ==================== -->
+        <div id="weekly-cases-subtab" class="weekly-subtab-content" style="display: none;">
+          <!-- 業務員選單 Tabs -->
+          <div id="weekly-owner-tabs" class="owner-tabs-container"></div>
+
+          <!-- 多重過濾與搜尋 Bar -->
+          <div class="glass-card" style="margin-bottom: 20px; padding: 16px;">
+            <div class="filters-grid" style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
+              <input type="text" id="weekly-case-search" placeholder="搜尋案件代號、名稱或客戶..." class="select-control" style="flex: 1; min-width: 260px;">
+              <select id="weekly-stage-filter" class="select-control" style="min-width: 160px;">
+                <option value="全部">全部階段</option>
+              </select>
+              <select id="weekly-focus-filter" class="select-control" style="min-width: 180px;">
+                <option value="all">全部案件</option>
+                <option value="focus">🔥 只看重點關注</option>
+                <option value="stale">⚠️ 只看卡關老化 (>30天)</option>
+                <option value="missing">❓ 只看零金額案件</option>
+              </select>
+              <div id="weekly-case-count" style="font-weight: 700; color: var(--emerald-400); white-space: nowrap;">0 件案件</div>
+            </div>
+          </div>
+
+          <!-- 卡片牆容器 -->
+          <div id="weekly-case-cards-wall" class="case-cards-grid"></div>
+        </div>
+
+        <!-- ==================== Subtab 3: 週次異動比較 (WoW Compare Scanner) ==================== -->
+        <div id="weekly-compare-subtab" class="weekly-subtab-content" style="display: none;">
+          <div class="glass-card">
+            <div class="card-header">
+              <h3 class="card-title"><span class="icon-dot"></span> 🔄 週會專用「WoW 快照異動掃描器」 (Weekly Scanner)</h3>
+              <span style="font-size: 12px; color: var(--text-muted);">對比本週一 vs 選定歷史快照</span>
+            </div>
+            <div class="scanner-grid">
+              <div class="scanner-card border-left-red">
+                <div class="scanner-title text-red">
+                  <span>🚨 風險警示 (金額下調/階段倒退/停滯)</span>
+                </div>
+                <div id="wow-risk-list"></div>
+              </div>
+
+              <div class="scanner-card border-left-green">
+                <div class="scanner-title text-emerald">
+                  <span>🎉 本週戰果 (新成案 / 階段推進)</span>
+                </div>
+                <div id="wow-wins-list"></div>
+              </div>
+
+              <div class="scanner-card border-left-blue">
+                <div class="scanner-title text-cyan">
+                  <span>➕ 新增商機漏斗</span>
+                </div>
+                <div id="wow-new-list"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           TAB 3: 📈 歷年趨勢與 Run-Rate 斜率預估模型 (全支援動態篩選)
+           ============================================================ -->
+      <section id="tab-trends" class="tab-page">
+        <!-- Top Run-Rate Slope Model Hero Banner -->
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
+          <!-- 低調 Hover 說明 Tooltip -->
+          <span class="help-tooltip-wrapper">❓
+            <div class="help-tooltip-popup">
+              <div style="font-weight: 700; color: #38bdf8; margin-bottom: 6px;">📈 歷年趨勢使用說明</div>
+              <b>・營收走勢</b>：分析月度/季度營收累積走勢，預測封關營收軌跡。<br>
+              <b>・規模分布</b>：分析 Deal Size 專案規模分布，優化產品與大客戶資源。
+            </div>
+          </span>
+        </div>
+        <div class="hero-banner trends-hero">
+          <div class="hero-item border-emerald">
+            <span class="hero-label">YTD 累計成交實績</span>
+            <div class="hero-value num-font text-emerald" id="runrate-ytd-actual">NT$ 0</div>
+          </div>
+          <div class="hero-item border-cyan">
+            <span class="hero-label">前幾個月平均成交斜率 (Monthly Slope)</span>
+            <div class="hero-value num-font text-cyan" id="runrate-monthly-slope">NT$ 0 /月</div>
+          </div>
+          <div class="hero-item border-amber">
+            <span class="hero-label">年底 Run-Rate 斜率預估總額</span>
+            <div class="hero-value num-font text-amber" id="runrate-projected-year">NT$ 0</div>
+          </div>
+          <div class="hero-item border-purple">
+            <span class="hero-label">Run-Rate 斜率預估達成率</span>
+            <div class="hero-value num-font text-purple" id="runrate-projected-pct">0.0%</div>
+          </div>
+        </div>
+
+        <!-- 顯性 Run-rate 曲線圖表 -->
+        <div class="glass-card">
+          <div class="card-header">
+            <h3 class="card-title"><span class="icon-dot"></span> 📊 歷年累計營收與 Run-Rate 斜率預估走勢曲線 (Pacing Trajectory)</h3>
+            <span style="font-size: 12px; color: var(--text-muted);">實線: YTD 實際營收 | 螢光虛線: Run-Rate 斜率延伸預估 | 紅色點線: 年度目標平準線</span>
+          </div>
+          <div class="chart-container" style="height: 380px;">
+            <canvas id="cumulative-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- 主要客戶群營收消長對比趨勢圖 -->
+        <div class="glass-card">
+          <div class="card-header">
+            <h3 class="card-title"><span class="icon-dot"></span> 🏢 主要客戶群營收消長對比趨勢 (Customer Group Growth & Shift)</h3>
+            <span style="font-size: 12px; color: var(--text-muted);">觀察主要 Key Accounts 月度營收變化與比例</span>
+          </div>
+          <div class="chart-container" style="height: 360px;">
+            <canvas id="customer-trend-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- 趨勢圖表區 (Grid Layout) -->
+        <div class="grid-2col">
+          <!-- 1. 月度成交雙軸趨勢圖 (Bar + Line) -->
+          <div class="glass-card">
+            <div class="card-header">
+              <h3 class="card-title"><span class="icon-dot"></span> 📈 月度成交雙軸趨勢 (金額 vs 件數)</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="yoy-combo-chart"></canvas>
+            </div>
+          </div>
+
+          <!-- 2. 季度 (Q1-Q4) QoQ 滾動成長與季目標對比 -->
+          <div class="glass-card">
+            <div class="card-header">
+              <h3 class="card-title"><span class="icon-dot"></span> 🗓️ 季度 (Q1-Q4) 營收與季目標對比</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="quarterly-chart"></canvas>
+            </div>
+          </div>
+
+          <!-- 3. 平均單案成交金額 (Average Deal Size) 歷年走勢 -->
+          <div class="glass-card">
+            <div class="card-header">
+              <h3 class="card-title"><span class="icon-dot"></span> 💎 平均單案成交金額走勢 (Average Deal Size)</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="dealsize-chart"></canvas>
+            </div>
+          </div>
+
+          <!-- 4. 業務員動態矩陣 (Sales Growth Quadrant) -->
+          <div class="glass-card">
+            <div class="card-header">
+              <h3 class="card-title"><span class="icon-dot"></span> 🎯 Sales 業務成長動能矩陣 (成交金額 vs 成交件數)</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="matrix-chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="./src/app.js"></script>
+</body>
+</html>
