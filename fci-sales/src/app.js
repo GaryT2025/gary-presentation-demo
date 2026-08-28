@@ -2109,7 +2109,7 @@ function renderTrendsTab() {
     });
   }
 
-  // 10. Sales 業務成長動能矩陣 (成交金額 vs 成交筆數 象限圖 + 4象限獨立色彩 + 點旁人名標籤)
+  // 10. Sales 業務成長動能矩陣 (以去年度業務平均個人實績為 4 象限切分基準線)
   const salesMap = {};
   fciTwCurrentYearSales.forEach(s => {
     salesMap[s] = { count: 0, amount: 0 };
@@ -2129,14 +2129,30 @@ function renderTrendsTab() {
     salesName: s
   }));
 
+  // 計算黃金切分基準線：去年度總筆數 / 當前業務人數, 去年度總金額 / 當前業務人數
+  const prevCountTotal = prevYearOrders.length;
+  const prevAmtTotalM = prevYearOrders.reduce((sum, o) => sum + parseNumber(o.amount_twd), 0) / 1000000;
+  const salesCount = fciTwCurrentYearSales.length || 1;
+
+  let xCut = prevCountTotal > 0 ? (prevCountTotal / salesCount) : (scatterData.reduce((s, p) => s + p.x, 0) / salesCount);
+  let yCut = prevAmtTotalM > 0 ? (prevAmtTotalM / salesCount) : (scatterData.reduce((s, p) => s + p.y, 0) / salesCount);
+
+  if (xCut <= 0) xCut = 3;
+  if (yCut <= 0) yCut = 5;
+
   const quadrantLinesPlugin = {
     id: 'quadrantLines',
     beforeDraw: (chart) => {
-      const { ctx, chartArea: { left, top, right, bottom } } = chart;
-      if (!left || !right || !top || !bottom) return;
+      const { ctx, chartArea: { left, top, right, bottom }, scales: { x, y } } = chart;
+      if (!left || !right || !top || !bottom || !x || !y) return;
 
-      const xCenter = (left + right) / 2;
-      const yCenter = (top + bottom) / 2;
+      // 依據動態切分基準值 (xCut, yCut) 計算真正的 Canvas Pixel 座標
+      let xCenter = x.getPixelForValue(xCut);
+      let yCenter = y.getPixelForValue(yCut);
+
+      // 安全卡位防止爆出畫布範圍
+      xCenter = Math.max(left + 20, Math.min(right - 20, xCenter));
+      yCenter = Math.max(top + 20, Math.min(bottom - 20, yCenter));
 
       ctx.save();
 
@@ -2153,8 +2169,8 @@ function renderTrendsTab() {
       ctx.fillStyle = 'rgba(245, 158, 11, 0.06)'; // 右下: 基層耕耘
       ctx.fillRect(xCenter, yCenter, right - xCenter, bottom - yCenter);
 
-      // 2. 繪製十字分隔虛線
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+      // 2. 繪製十字分隔虛線 (黃金基準線)
+      ctx.strokeStyle = 'rgba(245, 158, 11, 0.6)';
       ctx.lineWidth = 1.5;
       ctx.setLineDash([6, 6]);
 
@@ -2168,29 +2184,38 @@ function renderTrendsTab() {
       ctx.lineTo(right, yCenter);
       ctx.stroke();
 
-      // 3. 繪製 4 象限浮水印文字
+      // 3. 在 4 個角落標註象限說明文字
       ctx.font = 'bold 12px system-ui, sans-serif';
 
-      ctx.fillStyle = 'rgba(52, 211, 153, 0.9)';
-      ctx.fillText('🌟 明星主力 (高金額/高筆數)', right - 190, top + 22);
+      // 右上角落
+      ctx.fillStyle = 'rgba(52, 211, 153, 0.95)';
+      ctx.fillText('🌟 明星主力 (高金額/高筆數)', right - 195, top + 22);
 
-      ctx.fillStyle = 'rgba(56, 189, 248, 0.9)';
+      // 左上角落
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.95)';
       ctx.fillText('🐋 獵鯨專家 (高金額/低筆數)', left + 12, top + 22);
 
-      ctx.fillStyle = 'rgba(248, 113, 113, 0.9)';
+      // 左下角落
+      ctx.fillStyle = 'rgba(248, 113, 113, 0.95)';
       ctx.fillText('🌱 待輔導/新進 (低金額/低筆數)', left + 12, bottom - 14);
 
-      ctx.fillStyle = 'rgba(251, 191, 36, 0.9)';
-      ctx.fillText('🐝 基層耕耘 (低金額/高筆數)', right - 190, bottom - 14);
+      // 右下角落
+      ctx.fillStyle = 'rgba(251, 191, 36, 0.95)';
+      ctx.fillText('🐝 基層耕耘 (低金額/高筆數)', right - 195, bottom - 14);
+
+      // 中心基準線標註說明
+      ctx.font = '10px system-ui, sans-serif';
+      ctx.fillStyle = 'rgba(245, 158, 11, 0.8)';
+      ctx.fillText(`去年人均基準: ${xCut.toFixed(1)}筆 / NT$${yCut.toFixed(1)}M`, xCenter + 6, yCenter - 6);
 
       ctx.restore();
     },
     afterDatasetsDraw: (chart) => {
-      const { ctx, chartArea: { left, top, right, bottom } } = chart;
-      if (!left || !right || !top || !bottom) return;
+      const { ctx, chartArea: { left, top, right, bottom }, scales: { x, y } } = chart;
+      if (!left || !right || !top || !bottom || !x || !y) return;
 
-      const xCenter = (left + right) / 2;
-      const yCenter = (top + bottom) / 2;
+      const xCenter = Math.max(left + 20, Math.min(right - 20, x.getPixelForValue(xCut)));
+      const yCenter = Math.max(top + 20, Math.min(bottom - 20, y.getPixelForValue(yCut)));
 
       const meta = chart.getDatasetMeta(0);
       if (!meta || !meta.data) return;
@@ -2208,14 +2233,12 @@ function renderTrendsTab() {
         const labelText = `👤 ${pt.salesName} (${pt.x}筆/NT$${pt.y.toFixed(1)}M)`;
         const textWidth = ctx.measureText(labelText).width;
 
-        // 計算文字浮籤擺放位置，避免超出圖表右邊線
         let posX = ptX + 12;
         let posY = ptY + 4;
         if (posX + textWidth > right - 10) {
           posX = ptX - textWidth - 16;
         }
 
-        // 半透明暗色護甲背景
         ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
         ctx.beginPath();
         if (ctx.roundRect) {
@@ -2227,12 +2250,12 @@ function renderTrendsTab() {
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
         ctx.stroke();
 
-        // 人名文字顏色依象限區分
-        if (ptX >= xCenter && ptY <= yCenter) {
+        // 人名文字顏色依與黃金基準線 (xCut, yCut) 的比較判斷
+        if (pt.x >= xCut && pt.y >= yCut) {
           ctx.fillStyle = '#34d399'; // 明星主力: 亮綠
-        } else if (ptX < xCenter && ptY <= yCenter) {
+        } else if (pt.x < xCut && pt.y >= yCut) {
           ctx.fillStyle = '#38bdf8'; // 獵鯨專家: 亮藍
-        } else if (ptX >= xCenter && ptY > yCenter) {
+        } else if (pt.x >= xCut && pt.y < yCut) {
           ctx.fillStyle = '#fbbf24'; // 基層耕耘: 亮黃
         } else {
           ctx.fillStyle = '#f87171'; // 待輔導區: 亮紅
@@ -2244,25 +2267,14 @@ function renderTrendsTab() {
     }
   };
 
-  // 依 4 大象限動態為 Scatter Data Point 計算專屬顏色
   const ctxMatrix = document.getElementById('matrix-chart')?.getContext('2d');
   if (ctxMatrix) {
     if (matrixChart) matrixChart.destroy();
 
-    // 預先估算中心點
-    const counts = scatterData.map(d => d.x);
-    const amounts = scatterData.map(d => d.y);
-    const xMin = Math.min(...counts, 0);
-    const xMax = Math.max(...counts, 10);
-    const yMin = Math.min(...amounts, 0);
-    const yMax = Math.max(...amounts, 10);
-    const xMidVal = (xMin + xMax) / 2;
-    const yMidVal = (yMin + yMax) / 2;
-
     const pointColors = scatterData.map(pt => {
-      if (pt.x >= xMidVal && pt.y >= yMidVal) return '#10b981'; // 明星主力: 翡翠綠
-      if (pt.x < xMidVal && pt.y >= yMidVal) return '#38bdf8';  // 獵鯨專家: 天空藍
-      if (pt.x >= xMidVal && pt.y < yMidVal) return '#f59e0b';  // 基層耕耘: 琥珀黃
+      if (pt.x >= xCut && pt.y >= yCut) return '#10b981'; // 明星主力: 翡翠綠
+      if (pt.x < xCut && pt.y >= yCut) return '#38bdf8';  // 獵鯨專家: 天空藍
+      if (pt.x >= xCut && pt.y < yCut) return '#f59e0b';  // 基層耕耘: 琥珀黃
       return '#ef4444'; // 待輔導區: 珊瑚紅
     });
 
