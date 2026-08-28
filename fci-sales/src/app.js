@@ -1603,7 +1603,7 @@ function renderTrendsTab() {
   const countDiff = curTotalCount - prevTotalCount;
   const countGrowthPct = prevTotalCount > 0 ? (((countDiff) / prevTotalCount) * 100).toFixed(1) : (curTotalCount > 0 ? '100.0' : '0.0');
 
-  // Banner 卡片 1: 接單金額 YoY 成長
+  // Banner 卡片 1: 接單金額 YoY 成長 (含去年數值)
   const amountElem = document.getElementById('yoy-amount-growth');
   if (amountElem) {
     amountElem.textContent = `${amountGrowthPct >= 0 ? '+' : ''}${amountGrowthPct}%`;
@@ -1614,7 +1614,7 @@ function renderTrendsTab() {
     amountDiffElem.textContent = `去年: ${formatTWD(prevTotalAmount)} | 增減: ${amountDiff >= 0 ? '+' : ''}${formatTWD(amountDiff)}`;
   }
 
-  // Banner 卡片 2: 接單筆數 YoY 成長
+  // Banner 卡片 2: 接單筆數 YoY 成長 (含去年數值)
   const countElem = document.getElementById('yoy-count-growth');
   if (countElem) {
     countElem.textContent = `${countGrowthPct >= 0 ? '+' : ''}${countGrowthPct}% (${curTotalCount} 筆)`;
@@ -1644,19 +1644,20 @@ function renderTrendsTab() {
   }).filter(item => item.curAmt > 0 || item.prevAmt > 0).sort((a, b) => b.diffAmt - a.diffAmt);
 
   const topInd = industryYoYStats[0];
+  const indElem = document.getElementById('yoy-top-industry');
+  const indAmtElem = document.getElementById('yoy-top-industry-amt');
   if (topInd) {
-    const indElem = document.getElementById('yoy-top-industry');
     if (indElem) indElem.textContent = topInd.ind;
-    const indAmtElem = document.getElementById('yoy-top-industry-amt');
     if (indAmtElem) indAmtElem.textContent = `去年: ${formatTWD(topInd.prevAmt)} | 增減: ${topInd.diffAmt >= 0 ? '+' : ''}${formatTWD(topInd.diffAmt)}`;
+  } else {
+    if (indElem) indElem.textContent = '無';
+    if (indAmtElem) indAmtElem.textContent = '去年: NT$ 0 | 增減: NT$ 0';
   }
 
-  // 鎖定 FCI-TW 當年度名條 (從當年度 targets 及當年度有成案的 FCI-TW 業務)
-  const fciTwCurrentYearSales = Array.from(new Set([
-    ...appState.targets.filter(t => (t['年份'] || t['year'] || '').toString().trim() === selectedYear)
-                      .map(t => normalizeOwnerName(t['Sales Person'] || t['salesPerson'])),
-    ...curYearOrders.map(o => normalizeOwnerName(o.owner))
-  ])).filter(n => n && n !== '未指派');
+  // 鎖定與「階層 3：業務個人業績排行榜」完全一模一樣的 FCI-TW 業務名單
+  const fciTwCurrentYearSales = FCI_FULL_SALES_ROSTER
+    .filter(m => matchesDepartmentFilter(mapRosterGroupToBucket(m.group), selectedGroupFilter))
+    .map(m => m.name);
 
   // 最佳成長業務
   const salesYoYStats = fciTwCurrentYearSales.map(salesName => {
@@ -1670,11 +1671,14 @@ function renderTrendsTab() {
   }).sort((a, b) => b.diffAmt - a.diffAmt);
 
   const topSales = salesYoYStats[0];
+  const topElem = document.getElementById('yoy-top-sales');
+  const topAmtElem = document.getElementById('yoy-top-sales-amt');
   if (topSales) {
-    const topElem = document.getElementById('yoy-top-sales');
     if (topElem) topElem.textContent = topSales.salesName;
-    const topAmtElem = document.getElementById('yoy-top-sales-amt');
     if (topAmtElem) topAmtElem.textContent = `去年: ${formatTWD(topSales.prevAmt)} | 增減: ${topSales.diffAmt >= 0 ? '+' : ''}${formatTWD(topSales.diffAmt)}`;
+  } else {
+    if (topElem) topElem.textContent = '無';
+    if (topAmtElem) topAmtElem.textContent = '去年: NT$ 0 | 增減: NT$ 0';
   }
 
   // 3. 圖表一：歷年累計營收與 Run-Rate 斜率預估走勢曲線 (Banner 下首張圖表)
@@ -1821,7 +1825,7 @@ function renderTrendsTab() {
     });
   }
 
-  // 5. 圖表三：客戶與產業別 (Industry (新)) 年度消長對比趨勢圖 (年度金額比較)
+  // 5. 圖表三：客戶與產業別 (Industry (新)) 跨年度總金額曲線圖 (Line Chart)
   const industryAnnualMap = {};
   allSignedOrders.forEach(o => {
     const yr = getYearFromDateStr(o.created_date);
@@ -1839,15 +1843,18 @@ function renderTrendsTab() {
   const indAnnualDatasets = sortedTopIndustries.map((ind, idx) => ({
     label: ind,
     data: availableYears.map(yr => industryAnnualMap[ind][yr] || 0),
+    borderColor: indColors[idx % indColors.length],
     backgroundColor: indColors[idx % indColors.length],
-    borderRadius: 6
+    tension: 0.3,
+    pointRadius: 5,
+    borderWidth: 2.5
   }));
 
   const ctxInd = document.getElementById('industry-trend-chart')?.getContext('2d');
   if (ctxInd) {
     if (industryTrendChart) industryTrendChart.destroy();
     industryTrendChart = new Chart(ctxInd, {
-      type: 'bar',
+      type: 'line',
       data: { labels: availableYears.map(y => `${y}年`), datasets: indAnnualDatasets },
       options: {
         responsive: true,
@@ -1855,7 +1862,7 @@ function renderTrendsTab() {
         plugins: { legend: { labels: { color: '#94a3b8' } } },
         scales: {
           x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
-          y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' }, title: { display: true, text: '年度接單金額 (M NT$)', color: '#94a3b8' } }
+          y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' }, title: { display: true, text: '跨年度接單總金額 (M NT$)', color: '#94a3b8' } }
         }
       }
     });
