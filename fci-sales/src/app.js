@@ -2109,7 +2109,7 @@ function renderTrendsTab() {
     });
   }
 
-  // 10. Sales 業務成長動能矩陣 (成交金額 vs 成交筆數 象限圖 + 十字分割與象限標籤)
+  // 10. Sales 業務成長動能矩陣 (成交金額 vs 成交筆數 象限圖 + 4象限獨立色彩 + 點旁人名標籤)
   const salesMap = {};
   fciTwCurrentYearSales.forEach(s => {
     salesMap[s] = { count: 0, amount: 0 };
@@ -2184,21 +2184,97 @@ function renderTrendsTab() {
       ctx.fillText('🐝 基層耕耘 (低金額/高筆數)', right - 190, bottom - 14);
 
       ctx.restore();
+    },
+    afterDatasetsDraw: (chart) => {
+      const { ctx, chartArea: { left, top, right, bottom } } = chart;
+      if (!left || !right || !top || !bottom) return;
+
+      const xCenter = (left + right) / 2;
+      const yCenter = (top + bottom) / 2;
+
+      const meta = chart.getDatasetMeta(0);
+      if (!meta || !meta.data) return;
+
+      meta.data.forEach((element, idx) => {
+        const pt = scatterData[idx];
+        if (!pt) return;
+
+        const ptX = element.x;
+        const ptY = element.y;
+
+        ctx.save();
+        ctx.font = 'bold 11px system-ui, sans-serif';
+
+        const labelText = `👤 ${pt.salesName} (${pt.x}筆/NT$${pt.y.toFixed(1)}M)`;
+        const textWidth = ctx.measureText(labelText).width;
+
+        // 計算文字浮籤擺放位置，避免超出圖表右邊線
+        let posX = ptX + 12;
+        let posY = ptY + 4;
+        if (posX + textWidth > right - 10) {
+          posX = ptX - textWidth - 16;
+        }
+
+        // 半透明暗色護甲背景
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(posX - 4, posY - 12, textWidth + 8, 16, 4);
+        } else {
+          ctx.rect(posX - 4, posY - 12, textWidth + 8, 16);
+        }
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.stroke();
+
+        // 人名文字顏色依象限區分
+        if (ptX >= xCenter && ptY <= yCenter) {
+          ctx.fillStyle = '#34d399'; // 明星主力: 亮綠
+        } else if (ptX < xCenter && ptY <= yCenter) {
+          ctx.fillStyle = '#38bdf8'; // 獵鯨專家: 亮藍
+        } else if (ptX >= xCenter && ptY > yCenter) {
+          ctx.fillStyle = '#fbbf24'; // 基層耕耘: 亮黃
+        } else {
+          ctx.fillStyle = '#f87171'; // 待輔導區: 亮紅
+        }
+
+        ctx.fillText(labelText, posX, posY);
+        ctx.restore();
+      });
     }
   };
 
+  // 依 4 大象限動態為 Scatter Data Point 計算專屬顏色
   const ctxMatrix = document.getElementById('matrix-chart')?.getContext('2d');
   if (ctxMatrix) {
     if (matrixChart) matrixChart.destroy();
+
+    // 預先估算中心點
+    const counts = scatterData.map(d => d.x);
+    const amounts = scatterData.map(d => d.y);
+    const xMin = Math.min(...counts, 0);
+    const xMax = Math.max(...counts, 10);
+    const yMin = Math.min(...amounts, 0);
+    const yMax = Math.max(...amounts, 10);
+    const xMidVal = (xMin + xMax) / 2;
+    const yMidVal = (yMin + yMax) / 2;
+
+    const pointColors = scatterData.map(pt => {
+      if (pt.x >= xMidVal && pt.y >= yMidVal) return '#10b981'; // 明星主力: 翡翠綠
+      if (pt.x < xMidVal && pt.y >= yMidVal) return '#38bdf8';  // 獵鯨專家: 天空藍
+      if (pt.x >= xMidVal && pt.y < yMidVal) return '#f59e0b';  // 基層耕耘: 琥珀黃
+      return '#ef4444'; // 待輔導區: 珊瑚紅
+    });
+
     matrixChart = new Chart(ctxMatrix, {
       type: 'scatter',
       data: {
         datasets: [{
           label: `${selectedYear} 業務成員銷售動能 (筆數 vs 金額)`,
           data: scatterData,
-          backgroundColor: '#10b981',
+          backgroundColor: pointColors,
           borderColor: '#ffffff',
-          borderWidth: 1.5,
+          borderWidth: 2,
           pointRadius: 10,
           pointHoverRadius: 14
         }]
