@@ -1,0 +1,29 @@
+# NonPower 業務週會儀表板 - Ragic 表單欄位與 ID 對照表
+# 欄位對應已由 AntiGravity 自動透過 Ragic API 解析完成
+
+[基本設定]
+RAGIC_FORM_URL = https://ap7.ragic.com/FCIGroup/crm2/1
+FILTER_ID = 106
+
+[欄位對照]
+# 儀表板欄位名稱 = Ragic 欄位名稱 : Ragic 欄位 ID
+opportunity_id = 商機編號 : 1032519
+stage = 商機階段 : 1032520
+rfq = 顧客詢價單號 : 1032566
+name = 銷售機會名稱 : 1032555
+customer = 顧客名稱 : 1032556
+brand = 品牌 : 1032568
+owner = 責任業務 : 1033103
+progress = 最新進度更新內容 : 1111111216
+currency = 交易幣別 : 1032572
+quote_amount = 最新報價金額 : 1111111217
+expected_amount = 預計成案金額 : 1048050
+expected_twd = 預計成案金額 (台幣) : 1048833
+status = 案件狀態 : 1041584
+quarter = 預計成案季度 : 1048048
+focus =重點關注 : 1048374
+action = Management : 1037899
+
+# 備註：
+# 1. 更新日期 (updated_date) 會自動取 Ragic 內建的修改時間 (_mdate) 或「最後更新日期」 (ID: 1034289)，GAS 中預設使用最後更新日期。
+# 2. 老化天數 (days)、是否老化 (stale)、金額未估 (missing_amount) 將由 GAS 計算得出，不需填寫 ID。

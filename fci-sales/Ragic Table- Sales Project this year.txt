@@ -1,0 +1,78 @@
+[
+  {
+    "118543": {
+      "_ragicId": 118543,
+      "_star": false,
+      "_dataTimestamp": 1787643473315,
+      "業務組別": "NonPower",
+      "_index_title_": "NonPower",
+      "責任業務": "Jason Chen 陳盈傑",
+      "顧客簡稱": "FPCC塑化",
+      "專案金額(台幣)": "104000",
+      "預估利潤(台幣)": "104000",
+      "EBT Rate": "1",
+      "建檔日期": "2026/08/25",
+      "_index_calDates_": "d1000294 2026/08/25",
+      "接單月份": "08",
+      "簽核狀態": "N",
+      "Sales Person": "Jason Chen 陳盈傑",
+      "Sales BU (c)": "FCI-TW",
+      "Sales Amt Booked": "0",
+      "EBT Booked": "0",
+      "專案年份": "2026",
+      "Industry": "FPG",
+      "專案類型 (2)": "MRO - Parts and existing valve replacement",
+      "_index_": "",
+      "_seq": 1
+    }
+  }
+]
+
+[
+  {
+    "118543": {
+      "_ragicId": 118543,
+      "_star": false,
+      "_dataTimestamp": 1787643542486,
+      "Quote Uniq. No.": "",
+      "建檔日期": "2026/08/25",
+      "_index_calDates_": "d1000294 2026/08/25",
+      "接單公司": "富迪斯股份有限公司",
+      "Quote Uniq. No. (1)": "",
+      "專案編號": "2604501",
+      "業務組別": "NonPower",
+      "_index_title_": "NonPower",
+      "顧客訂單編號": "04-2LLTR4-00,04-2LLTS2-00",
+      "責任業務": "Jason Chen 陳盈傑",
+      "匯入顧客訂單編號": "",
+      "專案幣別": "NTD",
+      "專案編號類型": "專案",
+      "專案金額 (原幣)": "104000",
+      "Industry (新)": "FPG",
+      "預估利潤 (原幣)": "104000",
+      "EBT Rate": "1",
+      "專案金額(台幣)": "104000",
+      "Sales Amt Booked (F)": "0",
+      "預估利潤(台幣)": "104000",
+      "EBT Booked (F)": "0",
+      "顧客簡稱": "FPCC塑化",
+      "顧客名稱": "台塑石化股份有限公司",
+      "專案年份": "2026",
+      "接單月份": "08",
+      "Sales Person": "Jason Chen 陳盈傑",
+      "專案類型 (2)": "MRO - Parts and existing valve replacement",
+      "Sales BU": "FCI-TW",
+      "專案年份+週數": "2635",
+      "Sales BU (c)": "FCI-TW",
+      "接單周數": "35",
+      "簽核狀態": "N",
+      "Power/NonPower": "NonPower",
+      "成本出超異常單": "",
+      "業績計算Valid": "",
+      "預購案號": "",
+      "簽核狀態2": "未簽核",
+      "_index_": "",
+      "_seq": 1
+    }
+  }
+]

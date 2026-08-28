@@ -561,6 +561,9 @@ const orderMapping = {
   'amount_twd': 'amount_twd',
   'created_date': 'created_date',
   'group': 'group',
+  'power/nonpower': 'Power/NonPower',
+  'industry (新)': 'Industry (新)',
+  '專案類型 (2)': '專案類型 (2)',
   'project_id': 'project_id',
   'profit_twd': 'profit_twd',
   'ebt_rate': 'ebt_rate'
@@ -1730,9 +1733,12 @@ function renderTrendsTab() {
     }
   });
 
-  // Chart 1: Double-Axis Combo Chart
+  // Chart 1: Double-Axis YoY Combo Chart (支援今年 vs 去年的真實 YoY 對比與業務個人 YoY 分析)
+  const prevYear = (parseInt(selectedYear) - 1).toString();
   const monthlyAmounts = new Array(12).fill(0);
   const monthlyCounts = new Array(12).fill(0);
+  const prevMonthlyAmounts = new Array(12).fill(0);
+
   filteredOrders.forEach(o => {
     if (o.created_date) {
       const m = new Date(o.created_date).getMonth();
@@ -1743,21 +1749,51 @@ function renderTrendsTab() {
     }
   });
 
+  // 抓取同篩選條件 (組別、個人、業務) 下前一年 (prevYear) 的資料以計算真正的 YoY
+  const { selectedGroupFilter, selectedSales } = appState;
+  appState.orders.filter(o => {
+    const yr = getYearFromDateStr(o.created_date);
+    const matchYear = (yr === prevYear);
+    const matchStatus = (o.status === '簽核完成');
+    const matchGroup = matchesDepartmentFilter(getRecordPowerNonPower(o), selectedGroupFilter);
+    const matchSales = (selectedSales === 'ALL' || normalizeOwnerName(o.owner) === selectedSales);
+    return matchYear && matchStatus && matchGroup && matchSales;
+  }).forEach(o => {
+    if (o.created_date) {
+      const m = new Date(o.created_date).getMonth();
+      if (m >= 0 && m < 12) {
+        prevMonthlyAmounts[m] += parseNumber(o.amount_twd) / 1000000;
+      }
+    }
+  });
+
   const ctx1 = document.getElementById('yoy-combo-chart').getContext('2d');
   if (yoyChart) yoyChart.destroy();
+  const salesTag = selectedSales !== 'ALL' ? ` [${selectedSales}]` : '';
   yoyChart = new Chart(ctx1, {
     type: 'bar',
     data: {
       labels: labels,
       datasets: [
         {
-          label: `${selectedYear} 成交金額 (M TWD)`,
+          label: `${selectedYear}${salesTag} 成交金額 (M TWD)`,
           data: monthlyAmounts,
           backgroundColor: 'rgba(16, 185, 129, 0.7)',
           borderColor: '#10b981',
           borderWidth: 1,
           yAxisID: 'yAmount',
           borderRadius: 6
+        },
+        {
+          label: `${prevYear}${salesTag} 同期對比 (M TWD)`,
+          data: prevMonthlyAmounts,
+          type: 'line',
+          borderColor: '#f59e0b',
+          backgroundColor: '#f59e0b',
+          borderDash: [5, 5],
+          pointRadius: 4,
+          tension: 0.3,
+          yAxisID: 'yAmount'
         },
         {
           label: `${selectedYear} 開案/接單件數`,
