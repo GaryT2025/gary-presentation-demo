@@ -35,6 +35,9 @@ let powerepcDoughnutChart = null;
 let customerTrendChart = null;
 let salesMultiYearChart = null;
 let industryTrendChart = null;
+let monthlyAmountChart = null;
+let monthlyCountChart = null;
+let quarterlyDealSizeChart = null;
 let yoyChart = null;
 let cumulativeChart = null;
 let quarterlyChart = null;
@@ -1572,7 +1575,7 @@ function populateSnapshotDropdown() {
 }
 
 // ------------------------------------------------------------
-// TAB 3: 歷年趨勢與 Run-Rate 斜率預估模型 (包含顯性 Run-rate 曲線)
+// TAB 3: 歷年趨勢與 Run-Rate 斜率預估模型 (全支援動態篩選)
 // ------------------------------------------------------------
 function renderTrendsTab() {
   const { selectedYear, selectedGroupFilter, selectedSales } = appState;
@@ -1589,7 +1592,7 @@ function renderTrendsTab() {
   const curYearOrders = allSignedOrders.filter(o => getYearFromDateStr(o.created_date) === selectedYear);
   const prevYearOrders = allSignedOrders.filter(o => getYearFromDateStr(o.created_date) === prevYear);
 
-  // 2. 計算全體 YoY 核心指標
+  // 2. 計算全體 YoY 核心指標 (填寫 Top 4 Hero Banner)
   const curTotalAmount = curYearOrders.reduce((sum, o) => sum + parseNumber(o.amount_twd), 0);
   const prevTotalAmount = prevYearOrders.reduce((sum, o) => sum + parseNumber(o.amount_twd), 0);
   const amountDiff = curTotalAmount - prevTotalAmount;
@@ -1600,7 +1603,7 @@ function renderTrendsTab() {
   const countDiff = curTotalCount - prevTotalCount;
   const countGrowthPct = prevTotalCount > 0 ? (((countDiff) / prevTotalCount) * 100).toFixed(1) : (curTotalCount > 0 ? '100.0' : '0.0');
 
-  // 填寫 4 大 Key Metrics Banner
+  // Banner 卡片 1: 接單金額 YoY 成長
   const amountElem = document.getElementById('yoy-amount-growth');
   if (amountElem) {
     amountElem.textContent = `${amountGrowthPct >= 0 ? '+' : ''}${amountGrowthPct}%`;
@@ -1608,131 +1611,61 @@ function renderTrendsTab() {
   }
   const amountDiffElem = document.getElementById('yoy-amount-diff');
   if (amountDiffElem) {
-    amountDiffElem.textContent = `增減: ${amountDiff >= 0 ? '+' : ''}${formatTWD(amountDiff)}`;
+    amountDiffElem.textContent = `去年: ${formatTWD(prevTotalAmount)} | 增減: ${amountDiff >= 0 ? '+' : ''}${formatTWD(amountDiff)}`;
   }
 
+  // Banner 卡片 2: 接單筆數 YoY 成長
   const countElem = document.getElementById('yoy-count-growth');
   if (countElem) {
     countElem.textContent = `${countGrowthPct >= 0 ? '+' : ''}${countGrowthPct}% (${curTotalCount} 筆)`;
   }
   const countDiffElem = document.getElementById('yoy-count-diff');
   if (countDiffElem) {
-    countDiffElem.textContent = `增減: ${countDiff >= 0 ? '+' : ''}${countDiff} 筆 (去年: ${prevTotalCount} 筆)`;
+    countDiffElem.textContent = `去年: ${prevTotalCount} 筆 | 增減: ${countDiff >= 0 ? '+' : ''}${countDiff} 筆`;
   }
 
-  // 3. 業務人員歷年成長軌跡圖 (Sales Multi-Year Trend)
-  const availableYears = Array.from(new Set(allSignedOrders.map(o => getYearFromDateStr(o.created_date))))
-    .filter(y => y >= '2022' && y <= '2030').sort();
-  if (!availableYears.includes(selectedYear)) availableYears.push(selectedYear);
-  availableYears.sort();
-
-  const activeRosterNames = Array.from(new Set(allSignedOrders.map(o => normalizeOwnerName(o.owner))))
-    .filter(n => n !== '未指派');
-
-  const salesColors = ['#10b981', '#38bdf8', '#f59e0b', '#a855f7', '#ec4899', '#3b82f6', '#14b8a6', '#f97316', '#6366f1', '#84cc16'];
-
-  const salesDatasets = activeRosterNames.map((salesName, idx) => {
-    const yearData = availableYears.map(yr => {
-      const yrSalesOrders = allSignedOrders.filter(o => getYearFromDateStr(o.created_date) === yr && normalizeOwnerName(o.owner) === salesName);
-      return yrSalesOrders.reduce((sum, o) => sum + parseNumber(o.amount_twd), 0) / 1000000;
-    });
-
-    return {
-      label: salesName,
-      data: yearData,
-      borderColor: salesColors[idx % salesColors.length],
-      backgroundColor: salesColors[idx % salesColors.length],
-      tension: 0.3,
-      pointRadius: 5,
-      borderWidth: 2.5
-    };
-  });
-
-  const ctxSalesMulti = document.getElementById('sales-multiyear-chart')?.getContext('2d');
-  if (ctxSalesMulti) {
-    if (salesMultiYearChart) salesMultiYearChart.destroy();
-    salesMultiYearChart = new Chart(ctxSalesMulti, {
-      type: 'line',
-      data: { labels: availableYears.map(y => `${y}年`), datasets: salesDatasets },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'top', labels: { color: '#94a3b8' } } },
-        scales: {
-          x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
-          y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' }, title: { display: true, text: '年度接單金額 (M NT$)', color: '#94a3b8' } }
-        }
-      }
-    });
-  }
-
-  // 4. 客戶與產業別 (Industry (新)) 歷年消長對比圖 (Industry Multi-Year Shift)
+  // Helper: 讀取 Industry (新)
   const getIndustry = (o) => {
     const ind = (o['Industry (新)'] || o['industry (新)'] || o['顧客簡稱'] || o['customer'] || '').toString().trim();
     if (!ind || ind === 'undefined') return '其他產業';
     return ind;
   };
 
-  const industryMap = {};
-  curYearOrders.forEach(o => {
-    const ind = getIndustry(o);
-    industryMap[ind] = (industryMap[ind] || 0) + parseNumber(o.amount_twd);
-  });
+  // 最佳成長產業
+  const allIndustries = Array.from(new Set(allSignedOrders.map(o => getIndustry(o))));
+  const industryYoYStats = allIndustries.map(ind => {
+    const curAmt = curYearOrders.filter(o => getIndustry(o) === ind).reduce((sum, o) => sum + parseNumber(o.amount_twd), 0);
+    const prevAmt = prevYearOrders.filter(o => getIndustry(o) === ind).reduce((sum, o) => sum + parseNumber(o.amount_twd), 0);
+    const curCnt = curYearOrders.filter(o => getIndustry(o) === ind).length;
+    const prevCnt = prevYearOrders.filter(o => getIndustry(o) === ind).length;
+    const diffAmt = curAmt - prevAmt;
+    const growthPct = prevAmt > 0 ? ((diffAmt / prevAmt) * 100) : (curAmt > 0 ? 100 : 0);
+    return { ind, curAmt, prevAmt, curCnt, prevCnt, diffAmt, growthPct };
+  }).filter(item => item.curAmt > 0 || item.prevAmt > 0).sort((a, b) => b.diffAmt - a.diffAmt);
 
-  const sortedIndustries = Object.keys(industryMap).sort((a, b) => industryMap[b] - industryMap[a]).slice(0, 7);
-  if (!sortedIndustries.includes('其他產業')) sortedIndustries.push('其他產業');
-
-  const monthLabels = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
-  const indColors = ['#10b981', '#0ea5e9', '#f59e0b', '#a855f7', '#ec4899', '#6366f1', '#64748b', '#14b8a6'];
-
-  const indDatasets = sortedIndustries.map((ind, idx) => {
-    const mData = new Array(12).fill(0);
-    curYearOrders.forEach(o => {
-      if (o.created_date) {
-        const m = new Date(o.created_date).getMonth();
-        const oInd = getIndustry(o);
-        const matchInd = (ind === '其他產業') ? (!sortedIndustries.slice(0, 6).includes(oInd)) : (oInd === ind);
-        if (matchInd && m >= 0 && m < 12) {
-          mData[m] += parseNumber(o.amount_twd) / 1000000;
-        }
-      }
-    });
-    return {
-      label: ind,
-      data: mData,
-      backgroundColor: indColors[idx % indColors.length],
-      borderRadius: 4
-    };
-  });
-
-  const ctxInd = document.getElementById('industry-trend-chart')?.getContext('2d');
-  if (ctxInd) {
-    if (industryTrendChart) industryTrendChart.destroy();
-    industryTrendChart = new Chart(ctxInd, {
-      type: 'bar',
-      data: { labels: monthLabels, datasets: indDatasets },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: '#94a3b8' } } },
-        scales: {
-          x: { stacked: true, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
-          y: { stacked: true, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' }, title: { display: true, text: `${selectedYear} 月度營收 (M NT$)`, color: '#94a3b8' } }
-        }
-      }
-    });
+  const topInd = industryYoYStats[0];
+  if (topInd) {
+    const indElem = document.getElementById('yoy-top-industry');
+    if (indElem) indElem.textContent = topInd.ind;
+    const indAmtElem = document.getElementById('yoy-top-industry-amt');
+    if (indAmtElem) indAmtElem.textContent = `去年: ${formatTWD(topInd.prevAmt)} | 增減: ${topInd.diffAmt >= 0 ? '+' : ''}${formatTWD(topInd.diffAmt)}`;
   }
 
-  // 5. 業務人員 YoY 成長排行榜與對比表格
-  const salesYoYStats = activeRosterNames.map(salesName => {
+  // 鎖定 FCI-TW 當年度名條 (從當年度 targets 及當年度有成案的 FCI-TW 業務)
+  const fciTwCurrentYearSales = Array.from(new Set([
+    ...appState.targets.filter(t => (t['年份'] || t['year'] || '').toString().trim() === selectedYear)
+                      .map(t => normalizeOwnerName(t['Sales Person'] || t['salesPerson'])),
+    ...curYearOrders.map(o => normalizeOwnerName(o.owner))
+  ])).filter(n => n && n !== '未指派');
+
+  // 最佳成長業務
+  const salesYoYStats = fciTwCurrentYearSales.map(salesName => {
     const curAmt = curYearOrders.filter(o => normalizeOwnerName(o.owner) === salesName).reduce((sum, o) => sum + parseNumber(o.amount_twd), 0);
     const prevAmt = prevYearOrders.filter(o => normalizeOwnerName(o.owner) === salesName).reduce((sum, o) => sum + parseNumber(o.amount_twd), 0);
     const curCnt = curYearOrders.filter(o => normalizeOwnerName(o.owner) === salesName).length;
     const prevCnt = prevYearOrders.filter(o => normalizeOwnerName(o.owner) === salesName).length;
-
     const diffAmt = curAmt - prevAmt;
     const growthPct = prevAmt > 0 ? ((diffAmt / prevAmt) * 100) : (curAmt > 0 ? 100 : 0);
-
     return { salesName, curAmt, prevAmt, curCnt, prevCnt, diffAmt, growthPct };
   }).sort((a, b) => b.diffAmt - a.diffAmt);
 
@@ -1741,182 +1674,11 @@ function renderTrendsTab() {
     const topElem = document.getElementById('yoy-top-sales');
     if (topElem) topElem.textContent = topSales.salesName;
     const topAmtElem = document.getElementById('yoy-top-sales-amt');
-    if (topAmtElem) topAmtElem.textContent = `增減: ${topSales.diffAmt >= 0 ? '+' : ''}${formatTWD(topSales.diffAmt)}`;
+    if (topAmtElem) topAmtElem.textContent = `去年: ${formatTWD(topSales.prevAmt)} | 增減: ${topSales.diffAmt >= 0 ? '+' : ''}${formatTWD(topSales.diffAmt)}`;
   }
 
-  const salesYoYContainer = document.getElementById('sales-yoy-container');
-  if (salesYoYContainer) {
-    salesYoYContainer.innerHTML = `
-      <table class="yoy-table">
-        <thead>
-          <tr>
-            <th>業務責任</th>
-            <th>${selectedYear} 金額</th>
-            <th>${prevYear} 金額</th>
-            <th>${selectedYear} 筆數</th>
-            <th>YoY 成長 %</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${salesYoYStats.map(s => {
-            const isUp = s.diffAmt >= 0;
-            return `
-              <tr>
-                <td><b>${s.salesName}</b></td>
-                <td style="font-weight:700; color:#10b981;">${formatTWD(s.curAmt)}</td>
-                <td style="color:#94a3b8;">${formatTWD(s.prevAmt)}</td>
-                <td>${s.curCnt} 筆 <span style="font-size:11px; color:#64748b;">(前:${s.prevCnt})</span></td>
-                <td>
-                  <span class="yoy-badge ${isUp ? 'yoy-badge-up' : 'yoy-badge-down'}">
-                    ${isUp ? '▲' : '▼'} ${s.growthPct.toFixed(1)}%
-                  </span>
-                </td>
-              </tr>
-            `;
-          }).join('')}
-        </tbody>
-      </table>
-    `;
-  }
-
-  // 6. 產業別 (Industry (新)) YoY 年對年對比排行榜與表格
-  const allIndustries = Array.from(new Set(allSignedOrders.map(o => getIndustry(o))));
-
-  const industryYoYStats = allIndustries.map(ind => {
-    const curAmt = curYearOrders.filter(o => getIndustry(o) === ind).reduce((sum, o) => sum + parseNumber(o.amount_twd), 0);
-    const prevAmt = prevYearOrders.filter(o => getIndustry(o) === ind).reduce((sum, o) => sum + parseNumber(o.amount_twd), 0);
-    const curCnt = curYearOrders.filter(o => getIndustry(o) === ind).length;
-    const prevCnt = prevYearOrders.filter(o => getIndustry(o) === ind).length;
-
-    const diffAmt = curAmt - prevAmt;
-    const growthPct = prevAmt > 0 ? ((diffAmt / prevAmt) * 100) : (curAmt > 0 ? 100 : 0);
-
-    return { ind, curAmt, prevAmt, curCnt, prevCnt, diffAmt, growthPct };
-  }).filter(item => item.curAmt > 0 || item.prevAmt > 0)
-    .sort((a, b) => b.diffAmt - a.diffAmt);
-
-  const topInd = industryYoYStats[0];
-  if (topInd) {
-    const indElem = document.getElementById('yoy-top-industry');
-    if (indElem) indElem.textContent = topInd.ind;
-    const indAmtElem = document.getElementById('yoy-top-industry-amt');
-    if (indAmtElem) indAmtElem.textContent = `增減: ${topInd.diffAmt >= 0 ? '+' : ''}${formatTWD(topInd.diffAmt)}`;
-  }
-
-  const indYoYContainer = document.getElementById('industry-yoy-container');
-  if (indYoYContainer) {
-    indYoYContainer.innerHTML = `
-      <table class="yoy-table">
-        <thead>
-          <tr>
-            <th>Industry (新)</th>
-            <th>${selectedYear} 金額</th>
-            <th>${prevYear} 金額</th>
-            <th>${selectedYear} 筆數</th>
-            <th>YoY 成長 %</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${industryYoYStats.map(s => {
-            const isUp = s.diffAmt >= 0;
-            return `
-              <tr>
-                <td><b>${s.ind}</b></td>
-                <td style="font-weight:700; color:#10b981;">${formatTWD(s.curAmt)}</td>
-                <td style="color:#94a3b8;">${formatTWD(s.prevAmt)}</td>
-                <td>${s.curCnt} 筆 <span style="font-size:11px; color:#64748b;">(前:${s.prevCnt})</span></td>
-                <td>
-                  <span class="yoy-badge ${isUp ? 'yoy-badge-up' : 'yoy-badge-down'}">
-                    ${isUp ? '▲' : '▼'} ${s.growthPct.toFixed(1)}%
-                  </span>
-                </td>
-              </tr>
-            `;
-          }).join('')}
-        </tbody>
-      </table>
-    `;
-  }
-
-  // 7. 月度成交雙軸趨勢圖 (yoy-combo-chart)
-  const monthlyAmounts = new Array(12).fill(0);
-  const monthlyCounts = new Array(12).fill(0);
-  const prevMonthlyAmounts = new Array(12).fill(0);
-
-  curYearOrders.forEach(o => {
-    if (o.created_date) {
-      const m = new Date(o.created_date).getMonth();
-      if (m >= 0 && m < 12) {
-        monthlyAmounts[m] += parseNumber(o.amount_twd) / 1000000;
-        monthlyCounts[m] += 1;
-      }
-    }
-  });
-
-  prevYearOrders.forEach(o => {
-    if (o.created_date) {
-      const m = new Date(o.created_date).getMonth();
-      if (m >= 0 && m < 12) {
-        prevMonthlyAmounts[m] += parseNumber(o.amount_twd) / 1000000;
-      }
-    }
-  });
-
-  const ctx1 = document.getElementById('yoy-combo-chart')?.getContext('2d');
-  if (ctx1) {
-    if (yoyChart) yoyChart.destroy();
-    const salesTag = selectedSales !== 'ALL' ? ` [${selectedSales}]` : '';
-    yoyChart = new Chart(ctx1, {
-      type: 'bar',
-      data: {
-        labels: monthLabels,
-        datasets: [
-          {
-            label: `${selectedYear}${salesTag} 成交金額 (M TWD)`,
-            data: monthlyAmounts,
-            backgroundColor: 'rgba(16, 185, 129, 0.7)',
-            borderColor: '#10b981',
-            borderWidth: 1,
-            yAxisID: 'yAmount',
-            borderRadius: 6
-          },
-          {
-            label: `${prevYear}${salesTag} 同期對比 (M TWD)`,
-            data: prevMonthlyAmounts,
-            type: 'line',
-            borderColor: '#f59e0b',
-            backgroundColor: '#f59e0b',
-            borderDash: [5, 5],
-            pointRadius: 4,
-            tension: 0.3,
-            yAxisID: 'yAmount'
-          },
-          {
-            label: `${selectedYear} 開案/接單件數`,
-            data: monthlyCounts,
-            type: 'line',
-            borderColor: '#38bdf8',
-            backgroundColor: '#38bdf8',
-            pointRadius: 4,
-            tension: 0.3,
-            yAxisID: 'yCount'
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: '#94a3b8' } } },
-        scales: {
-          x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
-          yAmount: { type: 'linear', position: 'left', ticks: { color: '#10b981' }, title: { display: true, text: '金額 (M NT$)', color: '#10b981' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
-          yCount: { type: 'linear', position: 'right', ticks: { color: '#38bdf8', precision: 0 }, title: { display: true, text: '案件數', color: '#38bdf8' }, grid: { drawOnChartArea: false } }
-        }
-      }
-    });
-  }
-
-  // 8. Run-Rate 斜率預估曲線與季度 QoQ (累計曲線)
+  // 3. 圖表一：歷年累計營收與 Run-Rate 斜率預估走勢曲線 (Banner 下首張圖表)
+  const monthLabels = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
   const { filteredTargets } = getFilteredDataset();
   const targetAmount = filteredTargets.reduce((sum, t) => sum + parseNumber(t['Sales Amount Target'] || t['salesTarget']), 0);
   const currentMonth = new Date().getMonth() + 1;
@@ -1943,10 +1705,10 @@ function renderTrendsTab() {
     projectedCumulative[m] = actualCumulative[ytdMonths - 1] + (monthlySlope / 1000000) * (m - (ytdMonths - 1));
   }
 
-  const ctx2 = document.getElementById('cumulative-chart')?.getContext('2d');
-  if (ctx2) {
+  const ctxCum = document.getElementById('cumulative-chart')?.getContext('2d');
+  if (ctxCum) {
     if (cumulativeChart) cumulativeChart.destroy();
-    cumulativeChart = new Chart(ctx2, {
+    cumulativeChart = new Chart(ctxCum, {
       type: 'line',
       data: {
         labels: monthLabels,
@@ -1994,125 +1756,347 @@ function renderTrendsTab() {
     });
   }
 
-  // 9. 季度 QoQ 與 Average Deal Size
-  const qData = [0, 0, 0, 0];
-  curYearOrders.forEach(o => {
-    if (o.created_date) {
-      const m = new Date(o.created_date).getMonth();
-      const q = Math.floor(m / 3);
-      if (q >= 0 && q < 4) qData[q] += parseNumber(o.amount_twd) / 1000000;
-    }
-  });
+  // 4. 圖表二：業務人員歷年成長軌跡圖 (Sales Multi-Year Trend + 點擊聚焦高亮變淡)
+  const availableYears = Array.from(new Set(allSignedOrders.map(o => getYearFromDateStr(o.created_date))))
+    .filter(y => y >= '2022' && y <= '2030').sort();
+  if (!availableYears.includes(selectedYear)) availableYears.push(selectedYear);
+  availableYears.sort();
 
-  const ctx3 = document.getElementById('quarterly-chart')?.getContext('2d');
-  if (ctx3) {
-    if (quarterlyChart) quarterlyChart.destroy();
-    quarterlyChart = new Chart(ctx3, {
-      type: 'bar',
-      data: {
-        labels: ['Q1 第一季', 'Q2 第二季', 'Q3 第三季', 'Q4 第四季'],
-        datasets: [{
-          label: `${selectedYear} 季度成交額 (M TWD)`,
-          data: qData,
-          backgroundColor: ['rgba(59, 130, 246, 0.7)', 'rgba(16, 185, 129, 0.7)', 'rgba(245, 158, 11, 0.7)', 'rgba(168, 85, 247, 0.7)'],
-          borderRadius: 8
-        }]
-      },
+  const salesColors = ['#10b981', '#38bdf8', '#f59e0b', '#a855f7', '#ec4899', '#3b82f6', '#14b8a6', '#f97316', '#6366f1', '#84cc16'];
+
+  let highlightedSalesIdx = -1; // 紀錄點選聚焦的高亮業務索引
+
+  const buildSalesDatasets = (focusIdx = -1) => {
+    return fciTwCurrentYearSales.map((salesName, idx) => {
+      const yearData = availableYears.map(yr => {
+        const yrSalesOrders = allSignedOrders.filter(o => getYearFromDateStr(o.created_date) === yr && normalizeOwnerName(o.owner) === salesName);
+        return yrSalesOrders.reduce((sum, o) => sum + parseNumber(o.amount_twd), 0) / 1000000;
+      });
+
+      const baseColor = salesColors[idx % salesColors.length];
+      const isFocused = (focusIdx === -1 || focusIdx === idx);
+
+      return {
+        label: salesName,
+        data: yearData,
+        borderColor: isFocused ? baseColor : 'rgba(148, 163, 184, 0.18)',
+        backgroundColor: isFocused ? baseColor : 'rgba(148, 163, 184, 0.18)',
+        tension: 0.3,
+        pointRadius: isFocused ? 5 : 2,
+        borderWidth: isFocused ? 3 : 1
+      };
+    });
+  };
+
+  const ctxSalesMulti = document.getElementById('sales-multiyear-chart')?.getContext('2d');
+  if (ctxSalesMulti) {
+    if (salesMultiYearChart) salesMultiYearChart.destroy();
+    salesMultiYearChart = new Chart(ctxSalesMulti, {
+      type: 'line',
+      data: { labels: availableYears.map(y => `${y}年`), datasets: buildSalesDatasets(-1) },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { color: '#94a3b8' },
+            onClick: (e, legendItem, legend) => {
+              const index = legendItem.datasetIndex;
+              if (highlightedSalesIdx === index) {
+                highlightedSalesIdx = -1; // 再次點擊取消聚焦
+              } else {
+                highlightedSalesIdx = index; // 聚焦特定業務
+              }
+              legend.chart.data.datasets = buildSalesDatasets(highlightedSalesIdx);
+              legend.chart.update();
+            }
+          }
+        },
         scales: {
-          x: { ticks: { color: '#94a3b8' } },
-          y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } }
+          x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
+          y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' }, title: { display: true, text: '年度接單金額 (M NT$)', color: '#94a3b8' } }
         }
       }
     });
   }
 
-  const monthlyAvgDeal = new Array(12).fill(0);
-  for (let m = 0; m < 12; m++) {
-    const count = monthlyCounts[m];
-    const amtM = monthlyAmounts[m];
-    monthlyAvgDeal[m] = count > 0 ? (amtM * 1000000 / count / 10000) : 0;
+  // 5. 圖表三：客戶與產業別 (Industry (新)) 年度消長對比趨勢圖 (年度金額比較)
+  const industryAnnualMap = {};
+  allSignedOrders.forEach(o => {
+    const yr = getYearFromDateStr(o.created_date);
+    const ind = getIndustry(o);
+    if (!industryAnnualMap[ind]) industryAnnualMap[ind] = {};
+    industryAnnualMap[ind][yr] = (industryAnnualMap[ind][yr] || 0) + parseNumber(o.amount_twd) / 1000000;
+  });
+
+  const sortedTopIndustries = Object.keys(industryAnnualMap)
+    .sort((a, b) => ((industryAnnualMap[b][selectedYear] || 0) - (industryAnnualMap[a][selectedYear] || 0)))
+    .slice(0, 6);
+
+  const indColors = ['#10b981', '#0ea5e9', '#f59e0b', '#a855f7', '#ec4899', '#6366f1', '#64748b'];
+
+  const indAnnualDatasets = sortedTopIndustries.map((ind, idx) => ({
+    label: ind,
+    data: availableYears.map(yr => industryAnnualMap[ind][yr] || 0),
+    backgroundColor: indColors[idx % indColors.length],
+    borderRadius: 6
+  }));
+
+  const ctxInd = document.getElementById('industry-trend-chart')?.getContext('2d');
+  if (ctxInd) {
+    if (industryTrendChart) industryTrendChart.destroy();
+    industryTrendChart = new Chart(ctxInd, {
+      type: 'bar',
+      data: { labels: availableYears.map(y => `${y}年`), datasets: indAnnualDatasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#94a3b8' } } },
+        scales: {
+          x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
+          y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' }, title: { display: true, text: '年度接單金額 (M NT$)', color: '#94a3b8' } }
+        }
+      }
+    });
   }
 
-  const ctx4 = document.getElementById('dealsize-chart')?.getContext('2d');
-  if (ctx4) {
-    if (dealSizeChart) dealSizeChart.destroy();
-    dealSizeChart = new Chart(ctx4, {
-      type: 'line',
+  // 6. 業務人員 YoY 成長排行榜與對比表格 (FCI-TW 當年度名冊)
+  const salesYoYContainer = document.getElementById('sales-yoy-container');
+  if (salesYoYContainer) {
+    salesYoYContainer.innerHTML = `
+      <table class="yoy-table">
+        <thead>
+          <tr>
+            <th>FCI-TW 業務責任</th>
+            <th>${selectedYear} 金額</th>
+            <th>${prevYear} 金額</th>
+            <th>${selectedYear} 筆數</th>
+            <th>YoY 成長 %</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${salesYoYStats.map(s => {
+            const isUp = s.diffAmt >= 0;
+            return `
+              <tr>
+                <td><b>${s.salesName}</b></td>
+                <td style="font-weight:700; color:#10b981;">${formatTWD(s.curAmt)}</td>
+                <td style="color:#94a3b8;">${formatTWD(s.prevAmt)}</td>
+                <td>${s.curCnt} 筆 <span style="font-size:11px; color:#64748b;">(前:${s.prevCnt})</span></td>
+                <td>
+                  <span class="yoy-badge ${isUp ? 'yoy-badge-up' : 'yoy-badge-down'}">
+                    ${isUp ? '▲' : '▼'} ${s.growthPct.toFixed(1)}%
+                  </span>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  // 7. 產業別 (Industry (新)) YoY 年對年對比排行榜與表格
+  const indYoYContainer = document.getElementById('industry-yoy-container');
+  if (indYoYContainer) {
+    indYoYContainer.innerHTML = `
+      <table class="yoy-table">
+        <thead>
+          <tr>
+            <th>Industry (新)</th>
+            <th>${selectedYear} 金額</th>
+            <th>${prevYear} 金額</th>
+            <th>${selectedYear} 筆數</th>
+            <th>YoY 成長 %</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${industryYoYStats.map(s => {
+            const isUp = s.diffAmt >= 0;
+            return `
+              <tr>
+                <td><b>${s.ind}</b></td>
+                <td style="font-weight:700; color:#10b981;">${formatTWD(s.curAmt)}</td>
+                <td style="color:#94a3b8;">${formatTWD(s.prevAmt)}</td>
+                <td>${s.curCnt} 筆 <span style="font-size:11px; color:#64748b;">(前:${s.prevCnt})</span></td>
+                <td>
+                  <span class="yoy-badge ${isUp ? 'yoy-badge-up' : 'yoy-badge-down'}">
+                    ${isUp ? '▲' : '▼'} ${s.growthPct.toFixed(1)}%
+                  </span>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  // 8. 月度對比圖表拆分 (A: 月度成交金額對比, B: 月度成交筆數對比)
+  const monthlyAmounts = new Array(12).fill(0);
+  const prevMonthlyAmounts = new Array(12).fill(0);
+  const monthlyCounts = new Array(12).fill(0);
+  const prevMonthlyCounts = new Array(12).fill(0);
+
+  curYearOrders.forEach(o => {
+    if (o.created_date) {
+      const m = new Date(o.created_date).getMonth();
+      if (m >= 0 && m < 12) {
+        monthlyAmounts[m] += parseNumber(o.amount_twd) / 1000000;
+        monthlyCounts[m] += 1;
+      }
+    }
+  });
+
+  prevYearOrders.forEach(o => {
+    if (o.created_date) {
+      const m = new Date(o.created_date).getMonth();
+      if (m >= 0 && m < 12) {
+        prevMonthlyAmounts[m] += parseNumber(o.amount_twd) / 1000000;
+        prevMonthlyCounts[m] += 1;
+      }
+    }
+  });
+
+  // (A) 月度成交金額對比圖
+  const ctxMamt = document.getElementById('monthly-amount-chart')?.getContext('2d');
+  if (ctxMamt) {
+    if (monthlyAmountChart) monthlyAmountChart.destroy();
+    monthlyAmountChart = new Chart(ctxMamt, {
+      type: 'bar',
       data: {
         labels: monthLabels,
-        datasets: [{
-          label: '平均單案成交金額 (萬 TWD)',
-          data: monthlyAvgDeal,
-          borderColor: '#f59e0b',
-          backgroundColor: 'rgba(245, 158, 11, 0.15)',
-          tension: 0.3,
-          fill: true
-        }]
+        datasets: [
+          {
+            label: `${selectedYear} 成交金額 (M TWD)`,
+            data: monthlyAmounts,
+            backgroundColor: 'rgba(16, 185, 129, 0.7)',
+            borderColor: '#10b981',
+            borderRadius: 6
+          },
+          {
+            label: `${prevYear} 成交金額 (M TWD)`,
+            data: prevMonthlyAmounts,
+            backgroundColor: 'rgba(245, 158, 11, 0.4)',
+            borderColor: '#f59e0b',
+            borderRadius: 6
+          }
+        ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: { legend: { labels: { color: '#94a3b8' } } },
         scales: {
-          x: { ticks: { color: '#94a3b8' } },
-          y: { ticks: { color: '#f59e0b' }, grid: { color: 'rgba(255, 255, 255, 0.05)' }, title: { display: true, text: '單案均價 (萬 NT$)', color: '#f59e0b' } }
+          x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
+          y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' }, title: { display: true, text: '金額 (M NT$)', color: '#94a3b8' } }
         }
       }
     });
   }
 
-  // Chart 5: Sales Growth Quadrant Scatter Chart
-  const { filteredOrders } = getFilteredDataset();
-  const salesMap = {};
-  filteredOrders.forEach(o => {
-    const s = o.owner || '未指派';
-    if (!salesMap[s]) salesMap[s] = { count: 0, amount: 0 };
-    salesMap[s].count += 1;
-    salesMap[s].amount += parseNumber(o.amount_twd) / 1000000;
-  });
-
-  const scatterData = Object.keys(salesMap).map(s => ({
-    x: salesMap[s].count,
-    y: salesMap[s].amount,
-    salesName: s
-  }));
-
-  const ctx5 = document.getElementById('matrix-chart').getContext('2d');
-  if (matrixChart) matrixChart.destroy();
-  matrixChart = new Chart(ctx5, {
-    type: 'scatter',
-    data: {
-      datasets: [{
-        label: '業務成員 (件數 vs 金額)',
-        data: scatterData,
-        backgroundColor: '#10b981',
-        pointRadius: 8,
-        pointHoverRadius: 12
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              const raw = context.raw;
-              return ` ${raw.salesName}: ${raw.x} 件, ${raw.y.toFixed(2)} M TWD`;
-            }
+  // (B) 月度成交件數對比圖
+  const ctxMcnt = document.getElementById('monthly-count-chart')?.getContext('2d');
+  if (ctxMcnt) {
+    if (monthlyCountChart) monthlyCountChart.destroy();
+    monthlyCountChart = new Chart(ctxMcnt, {
+      type: 'line',
+      data: {
+        labels: monthLabels,
+        datasets: [
+          {
+            label: `${selectedYear} 成交筆數 (筆)`,
+            data: monthlyCounts,
+            borderColor: '#38bdf8',
+            backgroundColor: '#38bdf8',
+            tension: 0.3,
+            pointRadius: 5
+          },
+          {
+            label: `${prevYear} 成交筆數 (筆)`,
+            data: prevMonthlyCounts,
+            borderColor: '#a855f7',
+            backgroundColor: '#a855f7',
+            borderDash: [5, 5],
+            tension: 0.3,
+            pointRadius: 4
           }
-        }
+        ]
       },
-      scales: {
-        x: { ticks: { color: '#94a3b8' }, title: { display: true, text: '成交案件數量 (件)', color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
-        y: { ticks: { color: '#94a3b8' }, title: { display: true, text: '成交總金額 (M TWD)', color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#94a3b8' } } },
+        scales: {
+          x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
+          y: { ticks: { color: '#94a3b8', precision: 0 }, grid: { color: 'rgba(255, 255, 255, 0.05)' }, title: { display: true, text: '件數 (筆)', color: '#94a3b8' } }
+        }
+      }
+    });
+  }
+
+  // 9. 季度營收 (條狀 Bar) 與平均單案金額 (曲線 Line) 整合雙軸圖表
+  const qAmounts = [0, 0, 0, 0];
+  const qCounts = [0, 0, 0, 0];
+
+  curYearOrders.forEach(o => {
+    if (o.created_date) {
+      const m = new Date(o.created_date).getMonth();
+      const q = Math.floor(m / 3);
+      if (q >= 0 && q < 4) {
+        qAmounts[q] += parseNumber(o.amount_twd) / 1000000;
+        qCounts[q] += 1;
       }
     }
   });
+
+  const qAvgDealSizes = qAmounts.map((amtM, idx) => {
+    const cnt = qCounts[idx];
+    return cnt > 0 ? (amtM * 1000000 / cnt / 10000) : 0;
+  });
+
+  const ctxQDeal = document.getElementById('quarterly-dealsize-chart')?.getContext('2d');
+  if (ctxQDeal) {
+    if (quarterlyDealSizeChart) quarterlyDealSizeChart.destroy();
+    quarterlyDealSizeChart = new Chart(ctxQDeal, {
+      type: 'bar',
+      data: {
+        labels: ['Q1 第一季', 'Q2 第二季', 'Q3 第三季', 'Q4 第四季'],
+        datasets: [
+          {
+            label: `${selectedYear} 季度成交額 (M NT$)`,
+            data: qAmounts,
+            backgroundColor: 'rgba(59, 130, 246, 0.7)',
+            borderColor: '#3b82f6',
+            borderRadius: 8,
+            yAxisID: 'yAmount'
+          },
+          {
+            label: `${selectedYear} 平均單案金額 (萬 NT$)`,
+            data: qAvgDealSizes,
+            type: 'line',
+            borderColor: '#f59e0b',
+            backgroundColor: '#f59e0b',
+            tension: 0.3,
+            pointRadius: 6,
+            borderWidth: 3,
+            yAxisID: 'yAvg'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#94a3b8' } } },
+        scales: {
+          x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
+          yAmount: { type: 'linear', position: 'left', ticks: { color: '#3b82f6' }, title: { display: true, text: '季度總額 (M NT$)', color: '#3b82f6' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
+          yAvg: { type: 'linear', position: 'right', ticks: { color: '#f59e0b' }, title: { display: true, text: '平均單案金額 (萬 NT$)', color: '#f59e0b' }, grid: { drawOnChartArea: false } }
+        }
+      }
+    });
+  }
 }
 
 // Kickstart

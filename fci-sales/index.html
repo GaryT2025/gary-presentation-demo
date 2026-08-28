@@ -398,9 +398,10 @@
           <span class="help-tooltip-wrapper">❓
             <div class="help-tooltip-popup">
               <div style="font-weight: 700; color: #38bdf8; margin-bottom: 6px;">📈 歷年趨勢與 YoY 全方位分析說明</div>
-              <b>・業務歷年曲線</b>：跨年份分析每位 Sales 責任業務之成案金額動態。<br>
-              <b>・產業/客戶別消長</b>：基於 Ragic `Industry (新)` 欄位分析產業領域轉移。<br>
-              <b>・YoY 年對年分析</b>：選定年份對比前一年同期的金額、筆數與成長排行榜。
+              <b>・Run-Rate 斜率預估</b>：預測封關營收軌跡與 YTD 累計進度。<br>
+              <b>・業務歷年曲線</b>：分析 FCI-TW 業務人員歷年接單金額成長與動態。<br>
+              <b>・產業/客戶別消長</b>：基於 Ragic `Industry (新)` 欄位進行年度金額比較。<br>
+              <b>・YoY 年對年對比</b>：拆解月度金額、月度筆數、業務與產業排行榜。
             </div>
           </span>
         </div>
@@ -410,54 +411,65 @@
           <div class="hero-item border-emerald">
             <span class="hero-label">接單金額 YoY 成長</span>
             <div class="hero-value num-font text-emerald" id="yoy-amount-growth">--</div>
-            <span class="sub-label" id="yoy-amount-diff">增減金額: --</span>
+            <span class="sub-label" id="yoy-amount-diff">去年: -- | 增減: --</span>
           </div>
           <div class="hero-item border-cyan">
             <span class="hero-label">接單筆數 YoY 成長</span>
             <div class="hero-value num-font text-cyan" id="yoy-count-growth">--</div>
-            <span class="sub-label" id="yoy-count-diff">增減筆數: --</span>
+            <span class="sub-label" id="yoy-count-diff">去年: -- | 增減: --</span>
           </div>
           <div class="hero-item border-amber">
             <span class="hero-label">最佳成長產業 (Industry (新))</span>
             <div class="hero-value num-font text-amber" style="font-size: 1.2rem;" id="yoy-top-industry">--</div>
-            <span class="sub-label" id="yoy-top-industry-amt">成長金額: --</span>
+            <span class="sub-label" id="yoy-top-industry-amt">去年: -- | 增減: --</span>
           </div>
           <div class="hero-item border-purple">
             <span class="hero-label">最佳成長業務 (Top Sales YoY)</span>
             <div class="hero-value num-font text-purple" style="font-size: 1.2rem;" id="yoy-top-sales">--</div>
-            <span class="sub-label" id="yoy-top-sales-amt">成長金額: --</span>
+            <span class="sub-label" id="yoy-top-sales-amt">去年: -- | 增減: --</span>
           </div>
         </div>
 
-        <!-- 2. 業務人員歷年成長軌跡圖 (Sales Multi-Year Trend Chart) -->
+        <!-- 2. 圖表一：歷年累計營收與 Run-Rate 斜率預估走勢曲線 (Banner 後首張圖表) -->
+        <div class="glass-card">
+          <div class="card-header">
+            <h3 class="card-title"><span class="icon-dot"></span> 📊 歷年累計營收與 Run-Rate 斜率預估走勢曲線 (Pacing Trajectory)</h3>
+            <span style="font-size: 12px; color: var(--text-muted);">實線: YTD 實際營收 | 螢光虛線: Run-Rate 斜率延伸預估 | 紅色點線: 年度目標平準線</span>
+          </div>
+          <div class="chart-container" style="height: 380px;">
+            <canvas id="cumulative-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- 3. 圖表二：業務人員歷年成長軌跡圖 (Sales Multi-Year Trend Chart) -->
         <div class="glass-card">
           <div class="card-header">
             <h3 class="card-title"><span class="icon-dot"></span> 👨‍💼 業務人員歷年接單成長曲線 (Sales Multi-Year Trend)</h3>
-            <span style="font-size: 12px; color: var(--text-muted);">跨年份比較各 Sales 責任業務業績動能與金額曲線</span>
+            <span style="font-size: 12px; color: var(--text-muted);">點擊圖例特定業務可亮色高亮，其餘業務線變淡半透明</span>
           </div>
           <div class="chart-container" style="height: 380px;">
             <canvas id="sales-multiyear-chart"></canvas>
           </div>
         </div>
 
-        <!-- 3. 客戶/產業別 (Industry (新)) 歷年消長對比趨勢圖 -->
+        <!-- 4. 圖表三：客戶與產業別 (Industry (新)) 年度消長對比趨勢圖 -->
         <div class="glass-card">
           <div class="card-header">
-            <h3 class="card-title"><span class="icon-dot"></span> 🏭 客戶與產業別歷年消長對比趨勢 (Industry (新) Multi-Year Shift)</h3>
-            <span style="font-size: 12px; color: var(--text-muted);">基於 Ragic `Industry (新)` 欄位分析各大產業歷年月度/年度營收消長</span>
+            <h3 class="card-title"><span class="icon-dot"></span> 🏭 客戶與產業別年度消長對比趨勢 (Industry (新) Annual Shift)</h3>
+            <span style="font-size: 12px; color: var(--text-muted);">基於 Ragic `Industry (新)` 欄位分析各大產業年度接單總金額消長</span>
           </div>
           <div class="chart-container" style="height: 360px;">
             <canvas id="industry-trend-chart"></canvas>
           </div>
         </div>
 
-        <!-- 4. YoY 全方位深入比較看板 (2-Column Grid) -->
+        <!-- 5. 業務與產業 YoY 成長對比排行榜 (2-Column Grid) -->
         <div class="grid-2col" style="margin-bottom: 24px;">
           <!-- 業務人員 YoY 年對年對比排行榜與表格 -->
           <div class="glass-card">
             <div class="card-header">
               <h3 class="card-title"><span class="icon-dot"></span> 🏆 業務人員 YoY 成長排行榜與金額/筆數對比</h3>
-              <span style="font-size: 12px; color: var(--text-muted);">選定年份 vs 前一年同期個人實績對比</span>
+              <span style="font-size: 12px; color: var(--text-muted);">選定年份 vs 前一年同期個人實績對比 (FCI-TW 當年度名冊)</span>
             </div>
             <div id="sales-yoy-container" style="max-height: 420px; overflow-y: auto; padding: 4px;">
               <!-- JS 動態渲染業務 YoY 表格 -->
@@ -476,45 +488,36 @@
           </div>
         </div>
 
-        <!-- 5. 月度成交與 Run-rate 走勢 (Grid Layout) -->
+        <!-- 6. 月度趨勢與季度整合圖表 (Grid Layout) -->
         <div class="grid-2col">
-          <!-- 月度成交雙軸趨勢圖 (Bar + Line) -->
+          <!-- (A) 月度成交金額對比圖 (今年 vs 去年) -->
           <div class="glass-card">
             <div class="card-header">
-              <h3 class="card-title"><span class="icon-dot"></span> 📈 月度成交雙軸趨勢 (今年 vs 去年對比)</h3>
+              <h3 class="card-title"><span class="icon-dot"></span> 💵 月度成交金額對比 (今年 vs 去年)</h3>
             </div>
             <div class="chart-container">
-              <canvas id="yoy-combo-chart"></canvas>
+              <canvas id="monthly-amount-chart"></canvas>
             </div>
           </div>
 
-          <!-- 顯性 Run-rate 曲線圖表 -->
+          <!-- (B) 月度成交筆數對比圖 (今年 vs 去年) -->
           <div class="glass-card">
             <div class="card-header">
-              <h3 class="card-title"><span class="icon-dot"></span> 📊 歷年累計營收與 Run-Rate 斜率預估走勢曲線</h3>
+              <h3 class="card-title"><span class="icon-dot"></span> 🔢 月度成交件數對比 (今年 vs 去年)</h3>
             </div>
             <div class="chart-container">
-              <canvas id="cumulative-chart"></canvas>
+              <canvas id="monthly-count-chart"></canvas>
             </div>
           </div>
 
-          <!-- 季度 (Q1-Q4) 營收對比 -->
-          <div class="glass-card">
+          <!-- (C) 季度營收與平均單案金額整合圖表 (雙軸 Bar + Line) -->
+          <div class="glass-card" style="grid-column: span 2;">
             <div class="card-header">
-              <h3 class="card-title"><span class="icon-dot"></span> 🗓️ 季度 (Q1-Q4) 營收與季目標對比</h3>
+              <h3 class="card-title"><span class="icon-dot"></span> 🗓️ 季度營收 (條狀) 與平均單案金額 (曲線) 整合分析</h3>
+              <span style="font-size: 12px; color: var(--text-muted);">左軸: 季度接單總額 (M NT$) | 右軸: 季度平均單案金額 (萬 NT$)</span>
             </div>
-            <div class="chart-container">
-              <canvas id="quarterly-chart"></canvas>
-            </div>
-          </div>
-
-          <!-- 平均單案成交金額 (Average Deal Size) 走勢 -->
-          <div class="glass-card">
-            <div class="card-header">
-              <h3 class="card-title"><span class="icon-dot"></span> 💎 平均單案成交金額走勢 (Average Deal Size)</h3>
-            </div>
-            <div class="chart-container">
-              <canvas id="dealsize-chart"></canvas>
+            <div class="chart-container" style="height: 350px;">
+              <canvas id="quarterly-dealsize-chart"></canvas>
             </div>
           </div>
         </div>
