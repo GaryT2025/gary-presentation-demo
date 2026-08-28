@@ -1966,28 +1966,32 @@ function renderTrendsTab() {
     }
   });
 
-  // (A) 月度成交金額對比圖
+  // (A) 月度成交金額對比圖 (曲線圖)
   const ctxMamt = document.getElementById('monthly-amount-chart')?.getContext('2d');
   if (ctxMamt) {
     if (monthlyAmountChart) monthlyAmountChart.destroy();
     monthlyAmountChart = new Chart(ctxMamt, {
-      type: 'bar',
+      type: 'line',
       data: {
         labels: monthLabels,
         datasets: [
           {
             label: `${selectedYear} 成交金額 (M TWD)`,
             data: monthlyAmounts,
-            backgroundColor: 'rgba(16, 185, 129, 0.7)',
             borderColor: '#10b981',
-            borderRadius: 6
+            backgroundColor: '#10b981',
+            tension: 0.3,
+            pointRadius: 5,
+            borderWidth: 3
           },
           {
             label: `${prevYear} 成交金額 (M TWD)`,
             data: prevMonthlyAmounts,
-            backgroundColor: 'rgba(245, 158, 11, 0.4)',
             borderColor: '#f59e0b',
-            borderRadius: 6
+            backgroundColor: '#f59e0b',
+            borderDash: [5, 5],
+            tension: 0.3,
+            pointRadius: 2
           }
         ]
       },
