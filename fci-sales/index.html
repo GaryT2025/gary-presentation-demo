@@ -524,11 +524,20 @@
 
         <!-- 7. Sales 業務成長動能矩陣 (成交金額 vs 成交件數 象限圖) -->
         <div class="glass-card" style="margin-top: 24px;">
-          <div class="card-header">
-            <h3 class="card-title"><span class="icon-dot"></span> 🎯 Sales 業務成長動能矩陣 (成交金額 vs 成交筆數 象限圖)</h3>
-            <span style="font-size: 12px; color: var(--text-muted);">橫軸: 成交案件數量 (件) | 縱軸: 成交總金額 (M NT$) | 分析業務成員銷售動能與客群型態</span>
+          <div class="card-header" style="flex-direction: column; align-items: flex-start; gap: 6px;">
+            <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+              <h3 class="card-title"><span class="icon-dot"></span> 🎯 Sales 業務成長動能矩陣 (成交金額 vs 成交筆數 4 象限分佈)</h3>
+              <span style="font-size: 12px; color: var(--text-muted);">橫軸: 成交筆數 (件) | 縱軸: 成交總金額 (M NT$)</span>
+            </div>
+            <!-- 觀看重點 4 象限標籤列 -->
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; font-size: 11px;">
+              <span style="background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); padding: 3px 8px; border-radius: 6px; font-weight: 600;">🌟 明星主力 (高金額/高筆數)：團隊營收核心</span>
+              <span style="background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); padding: 3px 8px; border-radius: 6px; font-weight: 600;">🐋 獵鯨專家 (高金額/低筆數)：大案專精/關注時程</span>
+              <span style="background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); padding: 3px 8px; border-radius: 6px; font-weight: 600;">🐝 基層耕耘 (低金額/高筆數)：高動能/建議單價升級</span>
+              <span style="background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); padding: 3px 8px; border-radius: 6px; font-weight: 600;">🌱 待輔導區 (低金額/低筆數)：輔導/盤點案源</span>
+            </div>
           </div>
-          <div class="chart-container" style="height: 380px;">
+          <div class="chart-container" style="height: 420px;">
             <canvas id="matrix-chart"></canvas>
           </div>
         </div>

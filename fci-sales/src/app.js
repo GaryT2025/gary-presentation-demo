@@ -2109,7 +2109,7 @@ function renderTrendsTab() {
     });
   }
 
-  // 10. Sales 業務成長動能矩陣 (成交金額 vs 成交筆數 象限圖)
+  // 10. Sales 業務成長動能矩陣 (成交金額 vs 成交筆數 象限圖 + 十字分割與象限標籤)
   const salesMap = {};
   fciTwCurrentYearSales.forEach(s => {
     salesMap[s] = { count: 0, amount: 0 };
@@ -2129,6 +2129,64 @@ function renderTrendsTab() {
     salesName: s
   }));
 
+  const quadrantLinesPlugin = {
+    id: 'quadrantLines',
+    beforeDraw: (chart) => {
+      const { ctx, chartArea: { left, top, right, bottom } } = chart;
+      if (!left || !right || !top || !bottom) return;
+
+      const xCenter = (left + right) / 2;
+      const yCenter = (top + bottom) / 2;
+
+      ctx.save();
+
+      // 1. 繪製 4 大象限柔和背景底圖
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.06)'; // 右上: 明星主力
+      ctx.fillRect(xCenter, top, right - xCenter, yCenter - top);
+
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.06)'; // 左上: 獵鯨專家
+      ctx.fillRect(left, top, xCenter - left, yCenter - top);
+
+      ctx.fillStyle = 'rgba(239, 68, 68, 0.06)'; // 左下: 待輔導區
+      ctx.fillRect(left, yCenter, xCenter - left, bottom - yCenter);
+
+      ctx.fillStyle = 'rgba(245, 158, 11, 0.06)'; // 右下: 基層耕耘
+      ctx.fillRect(xCenter, yCenter, right - xCenter, bottom - yCenter);
+
+      // 2. 繪製十字分隔虛線
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([6, 6]);
+
+      ctx.beginPath();
+      ctx.moveTo(xCenter, top);
+      ctx.lineTo(xCenter, bottom);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(left, yCenter);
+      ctx.lineTo(right, yCenter);
+      ctx.stroke();
+
+      // 3. 繪製 4 象限浮水印文字
+      ctx.font = 'bold 12px system-ui, sans-serif';
+
+      ctx.fillStyle = 'rgba(52, 211, 153, 0.9)';
+      ctx.fillText('🌟 明星主力 (高金額/高筆數)', right - 190, top + 22);
+
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.9)';
+      ctx.fillText('🐋 獵鯨專家 (高金額/低筆數)', left + 12, top + 22);
+
+      ctx.fillStyle = 'rgba(248, 113, 113, 0.9)';
+      ctx.fillText('🌱 待輔導/新進 (低金額/低筆數)', left + 12, bottom - 14);
+
+      ctx.fillStyle = 'rgba(251, 191, 36, 0.9)';
+      ctx.fillText('🐝 基層耕耘 (低金額/高筆數)', right - 190, bottom - 14);
+
+      ctx.restore();
+    }
+  };
+
   const ctxMatrix = document.getElementById('matrix-chart')?.getContext('2d');
   if (ctxMatrix) {
     if (matrixChart) matrixChart.destroy();
@@ -2139,19 +2197,23 @@ function renderTrendsTab() {
           label: `${selectedYear} 業務成員銷售動能 (筆數 vs 金額)`,
           data: scatterData,
           backgroundColor: '#10b981',
-          pointRadius: 9,
-          pointHoverRadius: 13
+          borderColor: '#ffffff',
+          borderWidth: 1.5,
+          pointRadius: 10,
+          pointHoverRadius: 14
         }]
       },
+      plugins: [quadrantLinesPlugin],
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
+          legend: { display: false },
           tooltip: {
             callbacks: {
               label: function(context) {
                 const raw = context.raw;
-                return ` 👤 ${raw.salesName}: ${raw.x} 筆, ${raw.y.toFixed(2)} M NT$`;
+                return ` 👤 ${raw.salesName}: ${raw.x} 筆成案, 金額 ${raw.y.toFixed(2)} M NT$`;
               }
             }
           }
