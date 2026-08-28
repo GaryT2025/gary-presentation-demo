@@ -2108,6 +2108,61 @@ function renderTrendsTab() {
       }
     });
   }
+
+  // 10. Sales 業務成長動能矩陣 (成交金額 vs 成交筆數 象限圖)
+  const salesMap = {};
+  fciTwCurrentYearSales.forEach(s => {
+    salesMap[s] = { count: 0, amount: 0 };
+  });
+
+  curYearOrders.forEach(o => {
+    const s = normalizeOwnerName(o.owner);
+    if (salesMap[s]) {
+      salesMap[s].count += 1;
+      salesMap[s].amount += parseNumber(o.amount_twd) / 1000000;
+    }
+  });
+
+  const scatterData = Object.keys(salesMap).map(s => ({
+    x: salesMap[s].count,
+    y: salesMap[s].amount,
+    salesName: s
+  }));
+
+  const ctxMatrix = document.getElementById('matrix-chart')?.getContext('2d');
+  if (ctxMatrix) {
+    if (matrixChart) matrixChart.destroy();
+    matrixChart = new Chart(ctxMatrix, {
+      type: 'scatter',
+      data: {
+        datasets: [{
+          label: `${selectedYear} 業務成員銷售動能 (筆數 vs 金額)`,
+          data: scatterData,
+          backgroundColor: '#10b981',
+          pointRadius: 9,
+          pointHoverRadius: 13
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const raw = context.raw;
+                return ` 👤 ${raw.salesName}: ${raw.x} 筆, ${raw.y.toFixed(2)} M NT$`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: { ticks: { color: '#94a3b8', precision: 0 }, title: { display: true, text: '成交案件數量 (件)', color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
+          y: { ticks: { color: '#94a3b8' }, title: { display: true, text: '成交總金額 (M NT$)', color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } }
+        }
+      }
+    });
+  }
 }
 
 // Kickstart
