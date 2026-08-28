@@ -1603,11 +1603,11 @@ function renderTrendsTab() {
   const countDiff = curTotalCount - prevTotalCount;
   const countGrowthPct = prevTotalCount > 0 ? (((countDiff) / prevTotalCount) * 100).toFixed(1) : (curTotalCount > 0 ? '100.0' : '0.0');
 
-  // Banner 卡片 1: 接單金額 YoY 成長 (含去年數值)
+  // Banner 卡片 1: 接單金額 YoY 成長 (台灣慣例：正成長為紅色)
   const amountElem = document.getElementById('yoy-amount-growth');
   if (amountElem) {
     amountElem.textContent = `${amountGrowthPct >= 0 ? '+' : ''}${amountGrowthPct}%`;
-    amountElem.className = `hero-value num-font ${amountGrowthPct >= 0 ? 'text-emerald' : 'text-rose-500'}`;
+    amountElem.className = `hero-value num-font ${amountGrowthPct >= 0 ? 'text-rose-500' : 'text-emerald'}`;
   }
   const amountDiffElem = document.getElementById('yoy-amount-diff');
   if (amountDiffElem) {
@@ -1888,7 +1888,7 @@ function renderTrendsTab() {
             return `
               <tr>
                 <td><b>${s.salesName}</b></td>
-                <td style="font-weight:700; color:#10b981;">${formatTWD(s.curAmt)}</td>
+                <td style="font-weight:700; color:#f87171;">${formatTWD(s.curAmt)}</td>
                 <td style="color:#94a3b8;">${formatTWD(s.prevAmt)}</td>
                 <td>${s.curCnt} 筆 <span style="font-size:11px; color:#64748b;">(前:${s.prevCnt})</span></td>
                 <td>
@@ -1924,7 +1924,7 @@ function renderTrendsTab() {
             return `
               <tr>
                 <td><b>${s.ind}</b></td>
-                <td style="font-weight:700; color:#10b981;">${formatTWD(s.curAmt)}</td>
+                <td style="font-weight:700; color:#f87171;">${formatTWD(s.curAmt)}</td>
                 <td style="color:#94a3b8;">${formatTWD(s.prevAmt)}</td>
                 <td>${s.curCnt} 筆 <span style="font-size:11px; color:#64748b;">(前:${s.prevCnt})</span></td>
                 <td>
