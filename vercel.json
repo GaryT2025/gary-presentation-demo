@@ -35,6 +35,14 @@
     {
       "source": "/fci-sales",
       "destination": "/fci-sales/index.html"
+    },
+    {
+      "source": "/badminton/(.*)",
+      "destination": "/badminton/$1"
+    },
+    {
+      "source": "/badminton",
+      "destination": "/badminton/index.html"
     }
   ],
   "headers": [
