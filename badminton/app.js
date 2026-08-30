@@ -180,11 +180,27 @@ function renderPrepaidCyclesBoard() {
     if (filteredCycles.length === 0) {
       cyclesListDiv.innerHTML = `<p class="text-slate-500 text-center py-3">該年份無儲值期別紀錄</p>`;
     } else {
-      [...filteredCycles].reverse().forEach(c => {
-        const cycleItem = document.createElement('div');
-        cycleItem.className = `p-3 rounded-lg border ${
-          c.isCompleted ? 'bg-slate-800/40 border-slate-700/60' : 'bg-amber-500/10 border-amber-500/40 ring-1 ring-amber-500/30'
-        }`;
+        // Plain text fallback for title attribute & Rich HTML custom tooltip
+        const datesTitleText = c.items.map(it => `第 ${it.sessionNo} 次: ${it.date}`).join('\n');
+        
+        const tooltipBoxHtml = `
+          <div class="custom-tooltip-box bg-slate-900/95 border border-amber-500/60 text-slate-100 rounded-xl p-3 text-xs shadow-2xl backdrop-blur-md">
+            <div class="font-extrabold text-amber-400 border-b border-slate-800 pb-1.5 mb-2 flex items-center justify-between gap-3">
+              <span><i class="fa-solid fa-calendar-days mr-1.5 text-amber-400"></i>第 ${c.cycleNum} 期 出席日期</span>
+              <span class="text-[10px] ${c.isCompleted ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'} px-1.5 py-0.5 rounded font-bold">
+                ${c.isCompleted ? '✅ 已完卡 (10/10)' : `⏳ 進行中 (${c.items.length}/10)`}
+              </span>
+            </div>
+            <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+              ${c.items.length > 0 ? c.items.map(it => `
+                <div class="flex items-center justify-between text-[11px] hover:bg-slate-800/80 px-2 py-1 rounded transition border border-slate-800/50">
+                  <span class="text-slate-400 font-medium">第 ${it.sessionNo} 次</span>
+                  <span class="font-mono text-emerald-400 font-bold">📅 ${it.date}</span>
+                </div>
+              `).join('') : '<div class="text-slate-500 text-center py-1">尚無打球紀錄</div>'}
+            </div>
+          </div>
+        `;
 
         const dateRangeStr = c.isCompleted 
           ? `<span class="text-emerald-300 font-extrabold">${c.startDate}</span> ➔ <span class="text-emerald-300 font-extrabold">${c.endDate}</span> <span class="text-slate-400 font-normal">(歷時 ${c.totalDays} 天)</span>`
@@ -210,16 +226,20 @@ function renderPrepaidCyclesBoard() {
 
         cycleItem.innerHTML = `
           <div class="flex items-center justify-between mb-1.5">
-            <span class="font-extrabold ${c.isCompleted ? 'text-slate-200' : 'text-amber-400'}">
-              <i class="fa-solid fa-bookmark mr-1"></i> 第 ${c.cycleNum} 期 ${c.isCompleted ? '✅ 已完卡' : '⏳ 進行中'}
-            </span>
+            <div class="custom-tooltip-container" title="${datesTitleText}">
+              <span class="font-extrabold ${c.isCompleted ? 'text-slate-200' : 'text-amber-400'} cursor-help hover:underline decoration-amber-400/50">
+                <i class="fa-solid fa-bookmark mr-1"></i> 第 ${c.cycleNum} 期 ${c.isCompleted ? '✅ 已完卡' : '⏳ 進行中'}
+              </span>
+              ${tooltipBoxHtml}
+            </div>
             <button onclick="toggleCycleDetail('${collapseId}')" class="text-[10px] font-bold text-amber-400 hover:underline">
               <i class="fa-solid fa-calendar-check mr-1"></i> 對帳日期 (10次明細)
             </button>
           </div>
 
-          <div class="text-[11px] mb-2">
+          <div class="text-[11px] mb-2 custom-tooltip-container w-full" title="${datesTitleText}">
             ${dateRangeStr}
+            ${tooltipBoxHtml}
           </div>
 
           <!-- Detailed 10 Attendance Dates Grid -->
@@ -457,12 +477,45 @@ function createCardElement(item) {
     `;
   }
 
+  // Generate Floating Tooltip for Prepaid Member Cycles on Kanban Card
+  let memberTooltipHtml = '';
+  let memberTitleText = '';
+  if (item.planType === '儲值' || item.planType === '預繳10次') {
+    const userCycles = (currentData.prepaidCyclesMap && currentData.prepaidCyclesMap[item.name]) || [];
+    if (userCycles.length > 0) {
+      const activeCycle = userCycles.find(c => !c.isCompleted) || userCycles[userCycles.length - 1];
+      const itemsList = activeCycle.items || [];
+      memberTitleText = `【${item.name} 第 ${activeCycle.cycleNum} 期 (已打 ${itemsList.length}/10 次)】\n` + 
+        itemsList.map(it => `第 ${it.sessionNo} 次: ${it.date}`).join('\n');
+
+      memberTooltipHtml = `
+        <div class="custom-tooltip-box bg-slate-900/95 border border-amber-500/60 text-slate-100 rounded-xl p-2.5 text-xs shadow-2xl backdrop-blur-md">
+          <div class="font-extrabold text-amber-400 border-b border-slate-800 pb-1 mb-1.5 flex items-center justify-between gap-2">
+            <span><i class="fa-solid fa-bookmark mr-1 text-amber-400"></i>第 ${activeCycle.cycleNum} 期出席明細</span>
+            <span class="text-[10px] text-amber-300 font-bold">${itemsList.length}/10 次</span>
+          </div>
+          <div class="space-y-1 max-h-40 overflow-y-auto pr-1">
+            ${itemsList.length > 0 ? itemsList.map(it => `
+              <div class="flex items-center justify-between gap-2 text-[11px] hover:bg-slate-800/80 px-1.5 py-0.5 rounded">
+                <span class="text-slate-400 font-medium">第 ${it.sessionNo} 次</span>
+                <span class="font-mono text-emerald-400 font-bold">${it.date}</span>
+              </div>
+            `).join('') : '<div class="text-slate-500 text-center text-[10px] py-0.5">尚無打球紀錄</div>'}
+          </div>
+        </div>
+      `;
+    }
+  }
+
   card.innerHTML = `
     <div class="flex items-center justify-between gap-1">
       <div class="flex items-center gap-1.5 overflow-hidden">
         <input type="checkbox" onchange="handleCardCheckChange()" class="card-checkbox w-3.5 h-3.5 rounded border-slate-700 bg-slate-800 text-emerald-400 focus:ring-0 cursor-pointer shrink-0" data-id="${item.id}" data-memberpageid="${item.memberPageId || ''}" data-status="${item.status}">
         ${planStyle.dot}
-        <span onclick="openMemberModal('${item.name}')" class="font-extrabold text-slate-100 text-xs truncate max-w-[110px] hover:text-emerald-400 cursor-pointer underline decoration-slate-700 underline-offset-2">${item.name}</span>
+        <div class="custom-tooltip-container inline-block truncate max-w-[110px]" title="${memberTitleText}">
+          <span onclick="openMemberModal('${item.name}')" class="font-extrabold text-slate-100 text-xs truncate hover:text-emerald-400 cursor-pointer underline decoration-slate-700 underline-offset-2">${item.name}</span>
+          ${memberTooltipHtml}
+        </div>
         ${blacklistBadge}
       </div>
       <div class="flex items-center gap-1 shrink-0">
