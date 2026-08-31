@@ -1,3 +1,5 @@
+import crypto from 'node:crypto';
+
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const ATTENDANCE_DB_ID = process.env.NOTION_ATTENDANCE_DB_ID;
 const MEMBERS_DB_ID = process.env.NOTION_MEMBERS_DB_ID;
@@ -167,6 +169,39 @@ function calculatePrepaidCycles(attendanceHistory) {
   return cycles;
 }
 
+// Admin auth helpers (D-03, D-10). Env reads happen at call time inside these
+// functions or their callers — never as module-level consts — so a trailing
+// space in a dashboard-pasted value or a runtime env mutation (as the test
+// harness does) is always picked up fresh.
+
+function constantTimeEqual(a, b) {
+  const hashA = crypto.createHash('sha256').update(String(a)).digest();
+  const hashB = crypto.createHash('sha256').update(String(b)).digest();
+  return crypto.timingSafeEqual(hashA, hashB);
+}
+
+function signExpiry(expiryStr, secret) {
+  return crypto.createHmac('sha256', secret).update(expiryStr).digest('hex');
+}
+
+function verifyAdminToken(req) {
+  const secret = (process.env.ADMIN_TOKEN_SECRET || '').trim();
+  if (!secret) return false;
+
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return false;
+
+  const token = authHeader.slice('Bearer '.length);
+  const parts = token.split('.');
+  if (parts.length !== 2) return false;
+
+  const [expiryStr, sig] = parts;
+  if (!Number.isInteger(Number(expiryStr))) return false;
+  if (Number(expiryStr) <= Date.now()) return false;
+
+  return constantTimeEqual(signExpiry(expiryStr, secret), sig);
+}
+
 export default async function handler(req, res) {
   // CORS Headers
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -184,6 +219,48 @@ export default async function handler(req, res) {
   const { path } = req.query;
 
   try {
+    // 0a. POST api/badminton?path=login — issues a stateless HMAC-signed admin
+    // token. Every failure path returns the identical generic body so nothing
+    // leaks about wrong-password vs unconfigured-env (D-10, T-wjq-07).
+    if (req.method === 'POST' && path === 'login') {
+      const adminPassword = (process.env.ADMIN_PASSWORD || '').trim();
+      if (!adminPassword) {
+        console.error('[badminton auth] login attempted but ADMIN_PASSWORD is not configured');
+        return res.status(401).json({ success: false, error: '登入失敗' });
+      }
+
+      const body = req.body || {};
+      const password = typeof body.password === 'string' ? body.password : '';
+      if (!password) {
+        return res.status(401).json({ success: false, error: '登入失敗' });
+      }
+
+      if (!constantTimeEqual(password, adminPassword)) {
+        return res.status(401).json({ success: false, error: '登入失敗' });
+      }
+
+      const secret = (process.env.ADMIN_TOKEN_SECRET || '').trim();
+      if (!secret) {
+        return res.status(401).json({ success: false, error: '登入失敗' });
+      }
+
+      const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000;
+      const expiryStr = String(expiry);
+      const token = `${expiryStr}.${signExpiry(expiryStr, secret)}`;
+
+      return res.status(200).json({ success: true, token, expiresAt: expiry });
+    }
+
+    // 0b. Fail-closed guard on every other POST route (D-04). Deliberately
+    // "every POST except login" rather than an allow-list of the five known
+    // write paths, so a future route is protected by default. Sits above all
+    // route blocks so it precedes both body validation and any Notion call.
+    if (req.method === 'POST' && path !== 'login') {
+      if (!verifyAdminToken(req)) {
+        return res.status(401).json({ success: false, error: '需要管理者權限，請重新登入' });
+      }
+    }
+
     // 1. GET api/attendance
     if (req.method === 'GET' && path === 'attendance') {
       const targetDate = req.query.date || '';

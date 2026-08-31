@@ -14,3 +14,7 @@ material/
 # OS
 .DS_Store
 Thumbs.db
+
+# Vercel project link (never commit — a stray project.json can turn a local
+# `vercel deploy --prod` into an outage across every site on the shared project)
+.vercel/
