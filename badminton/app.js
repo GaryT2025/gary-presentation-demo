@@ -131,9 +131,8 @@ function renderFunBanners() {
   }
 
   const elFastestCasual = document.getElementById('bannerFastestCasual');
-  if (fb.fastestCasual && fb.fastestCasual.name) {
-    const timeStr = fb.fastestCasual.time ? new Date(fb.fastestCasual.time).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }) : '';
-    elFastestCasual.innerHTML = `<span class="text-cyan-400 font-black">${fb.fastestCasual.name}</span> (${timeStr} PM 8點零打首殺)`;
+  if (fb.fastestCasual && fb.fastestCasual.name && fb.fastestCasual.wins > 0) {
+    elFastestCasual.innerHTML = `<span class="text-cyan-400 font-black">${fb.fastestCasual.name}</span> (年度累計 <span class="underline">${fb.fastestCasual.wins}</span> 場最速報名)`;
   } else {
     elFastestCasual.innerText = '尚無紀錄';
   }

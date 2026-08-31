@@ -223,6 +223,7 @@ export default async function handler(req, res) {
       const noshowCounts = {};
       const dateCounts = {};
       const playerStatsMap = {};
+      const casualWinnerByDate = {};
 
       attendanceResults.forEach(p => {
         const attendanceStatus = getPlainText(p.properties['出席情況']);
@@ -255,6 +256,18 @@ export default async function handler(req, res) {
         const officialPlan = getOfficialPlan(name);
         const mInfo = memberPlanMap[uId] || memberNameMap[name] || { planType: officialPlan, remainingCount: 10 };
         const resolvedPlan = mInfo.planType || officialPlan;
+
+        // D-02/D-03: per-session-date 零打 race, computed year-wide (not from the
+        // date-filtered `list` below). Eligible = no real Members-DB record at all
+        // (mInfo.memberPageId is undefined for the fallback object above — that IS
+        // the falsy-memberPageId signal). Cancelled records already `return` above,
+        // so they are excluded for free. Keep the earliest-created_time record per date.
+        if (!mInfo.memberPageId && finalDate && finalDate.startsWith(currentYear)) {
+          const existing = casualWinnerByDate[finalDate];
+          if (!existing || new Date(p.created_time) < new Date(existing.createdTime)) {
+            casualWinnerByDate[finalDate] = { name, createdTime: p.created_time };
+          }
+        }
 
         if (!playerStatsMap[name]) {
           playerStatsMap[name] = {
@@ -367,10 +380,26 @@ export default async function handler(req, res) {
       const sortedYear = [...allPlayersList].sort((a, b) => b.year2026Count - a.year2026Count);
       const year2026King = sortedYear[0] && sortedYear[0].year2026Count > 0 ? sortedYear[0] : null;
 
-      const casualRegistrars = list
-        .filter(item => (item.planType === '儲值' || item.planType === '預繳10次' || !item.planType) && item.date.startsWith(currentYear))
-        .sort((a, b) => new Date(a.createdTime) - new Date(b.createdTime));
-      const fastestCasualPlayer = casualRegistrars[0] || null;
+      // D-02/D-03/D-04: tally per-date 零打 race wins (from casualWinnerByDate,
+      // populated year-wide above), tie-break most wins -> most recent lastWinDate
+      // -> name.localeCompare, for determinism.
+      const casualWinTally = {};
+      Object.values(casualWinnerByDate).forEach(entry => {
+        if (!casualWinTally[entry.name]) {
+          casualWinTally[entry.name] = { name: entry.name, wins: 0, lastWinDate: '' };
+        }
+        casualWinTally[entry.name].wins += 1;
+      });
+      Object.entries(casualWinnerByDate).forEach(([date, entry]) => {
+        const t = casualWinTally[entry.name];
+        if (date > t.lastWinDate) t.lastWinDate = date;
+      });
+      const sortedCasualTally = Object.values(casualWinTally).sort((a, b) => {
+        if (b.wins !== a.wins) return b.wins - a.wins;
+        if (b.lastWinDate !== a.lastWinDate) return b.lastWinDate.localeCompare(a.lastWinDate);
+        return a.name.localeCompare(b.name);
+      });
+      const fastestCasualLeader = sortedCasualTally[0] && sortedCasualTally[0].wins > 0 ? sortedCasualTally[0] : null;
 
       const sortedStreak = [...allPlayersList].sort((a, b) => b.streakCount - a.streakCount);
       const streakKing = sortedStreak[0] && sortedStreak[0].streakCount > 0 ? sortedStreak[0] : null;
@@ -380,7 +409,7 @@ export default async function handler(req, res) {
 
       const funBanners = {
         year2026King: year2026King ? { name: year2026King.name, count: year2026King.year2026Count, planType: year2026King.planType } : null,
-        fastestCasual: fastestCasualPlayer ? { name: fastestCasualPlayer.name, time: fastestCasualPlayer.createdTime } : null,
+        fastestCasual: fastestCasualLeader ? { name: fastestCasualLeader.name, wins: fastestCasualLeader.wins, lastWinDate: fastestCasualLeader.lastWinDate } : null,
         streakKing: streakKing ? { name: streakKing.name, streak: streakKing.streakCount, planType: streakKing.planType } : null,
         monthLeader: monthLeader ? { name: monthLeader.name, count: monthLeader.monthCount, planType: monthLeader.planType } : null
       };
