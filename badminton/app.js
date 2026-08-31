@@ -180,6 +180,10 @@ function renderPrepaidCyclesBoard() {
     if (filteredCycles.length === 0) {
       cyclesListDiv.innerHTML = `<p class="text-slate-500 text-center py-3">該年份無儲值期別紀錄</p>`;
     } else {
+      filteredCycles.forEach(c => {
+        const cycleItem = document.createElement('div');
+        cycleItem.className = 'bg-slate-800/50 border border-slate-700/50 rounded-lg p-2.5';
+
         // Plain text fallback for title attribute & Rich HTML custom tooltip
         const datesTitleText = c.items.map(it => `第 ${it.sessionNo} 次: ${it.date}`).join('\n');
         
