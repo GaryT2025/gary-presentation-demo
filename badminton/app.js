@@ -13,6 +13,84 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchAttendance();
 });
 
+// ===== Tap-to-toggle fixed-position tooltip portal =====
+// Replaces the old CSS :hover mechanism, which does not meaningfully exist
+// on touch and was clipped by scrolling/truncating ancestors regardless of z-index.
+let tooltipPortalEl = null;
+let tooltipPortalOpenTrigger = null;
+
+function getTooltipPortal() {
+  if (!tooltipPortalEl) {
+    tooltipPortalEl = document.createElement('div');
+    tooltipPortalEl.id = 'tooltipPortal';
+    document.body.appendChild(tooltipPortalEl);
+  }
+  return tooltipPortalEl;
+}
+
+function showTooltipPortal(triggerEl) {
+  const container = triggerEl.closest('.custom-tooltip-container');
+  if (!container) return;
+  const box = container.querySelector('.custom-tooltip-box');
+  if (!box) return;
+
+  const portal = getTooltipPortal();
+  // outerHTML (not innerHTML) preserves the box's own border/background/padding classes.
+  portal.innerHTML = box.outerHTML;
+
+  const rect = triggerEl.getBoundingClientRect();
+  const margin = 12;
+  portal.style.display = 'block';
+
+  // Measure after content is in the DOM so offsetHeight/offsetWidth are accurate.
+  const portalWidth = portal.offsetWidth;
+  const portalHeight = portal.offsetHeight;
+
+  // Prefer above the trigger, flip below when there is not enough room above.
+  let top;
+  if (rect.top - portalHeight - margin > 0) {
+    top = rect.top - portalHeight - margin;
+  } else {
+    top = rect.bottom + margin;
+  }
+
+  let left = rect.left + rect.width / 2 - portalWidth / 2;
+  const maxLeft = window.innerWidth - portalWidth - margin;
+  left = Math.max(margin, Math.min(left, maxLeft));
+
+  portal.style.top = `${Math.max(margin, top)}px`;
+  portal.style.left = `${left}px`;
+
+  tooltipPortalOpenTrigger = triggerEl;
+}
+
+function hideTooltipPortal() {
+  if (!tooltipPortalEl) return;
+  tooltipPortalEl.style.display = 'none';
+  tooltipPortalEl.innerHTML = '';
+  tooltipPortalOpenTrigger = null;
+}
+
+document.addEventListener('click', (e) => {
+  if (tooltipPortalEl && tooltipPortalEl.contains(e.target)) {
+    // Click is inside the portal itself (e.g. scrolling the date list) — do nothing.
+    return;
+  }
+
+  const trigger = e.target.closest('[data-tooltip-trigger]');
+  if (trigger) {
+    if (tooltipPortalOpenTrigger === trigger) {
+      // Tapping the same trigger again closes it.
+      hideTooltipPortal();
+    } else {
+      showTooltipPortal(trigger);
+    }
+    return;
+  }
+
+  hideTooltipPortal();
+});
+
 // Fetch Attendance and Member Data from Express API
 async function fetchAttendance(selectedDate = '') {
   const refreshIcon = document.getElementById('refreshIcon');
@@ -24,6 +102,7 @@ async function fetchAttendance(selectedDate = '') {
 
     if (data.success) {
       currentData = data;
+      hideTooltipPortal();
       renderDateDropdown();
       renderKanban();
       renderFunBanners();
@@ -231,7 +310,7 @@ function renderPrepaidCyclesBoard() {
         cycleItem.innerHTML = `
           <div class="flex items-center justify-between mb-1.5">
             <div class="custom-tooltip-container" title="${datesTitleText}">
-              <span class="font-extrabold ${c.isCompleted ? 'text-slate-200' : 'text-amber-400'} cursor-help hover:underline decoration-amber-400/50">
+              <span class="font-extrabold ${c.isCompleted ? 'text-slate-200' : 'text-amber-400'} cursor-help hover:underline decoration-amber-400/50" data-tooltip-trigger>
                 <i class="fa-solid fa-bookmark mr-1"></i> 第 ${c.cycleNum} 期 ${c.isCompleted ? '✅ 已完卡' : '⏳ 進行中'}
               </span>
               ${tooltipBoxHtml}
@@ -241,7 +320,7 @@ function renderPrepaidCyclesBoard() {
             </button>
           </div>
 
-          <div class="text-[11px] mb-2 custom-tooltip-container w-full" title="${datesTitleText}">
+          <div class="text-[11px] mb-2 custom-tooltip-container w-full" data-tooltip-trigger title="${datesTitleText}">
             ${dateRangeStr}
             ${tooltipBoxHtml}
           </div>
@@ -511,13 +590,24 @@ function createCardElement(item) {
     }
   }
 
+  // Restructure: `truncate max-w-[110px]` moved off the container onto the name span
+  // (so the name truncates on its own, keeping the info icon always visible), the
+  // container itself becomes inline-flex, and the info icon (the actual trigger) sits
+  // inside the container immediately after the name span so closest('.custom-tooltip-container')
+  // still resolves. The name span keeps its openMemberModal onclick and does NOT carry
+  // data-tooltip-trigger; only the icon does.
+  const infoIconHtml = memberTooltipHtml
+    ? `<i class="fa-solid fa-circle-info text-amber-400/80 hover:text-amber-300 text-[11px] cursor-pointer shrink-0" data-tooltip-trigger></i>`
+    : '';
+
   card.innerHTML = `
     <div class="flex items-center justify-between gap-1">
       <div class="flex items-center gap-1.5 overflow-hidden">
         <input type="checkbox" onchange="handleCardCheckChange()" class="card-checkbox w-3.5 h-3.5 rounded border-slate-700 bg-slate-800 text-emerald-400 focus:ring-0 cursor-pointer shrink-0" data-id="${item.id}" data-memberpageid="${item.memberPageId || ''}" data-status="${item.status}">
         ${planStyle.dot}
-        <div class="custom-tooltip-container inline-block truncate max-w-[110px]" title="${memberTitleText}">
-          <span onclick="openMemberModal('${item.name}')" class="font-extrabold text-slate-100 text-xs truncate hover:text-emerald-400 cursor-pointer underline decoration-slate-700 underline-offset-2">${item.name}</span>
+        <div class="custom-tooltip-container inline-flex items-center gap-1" title="${memberTitleText}">
+          <span onclick="openMemberModal('${item.name}')" class="font-extrabold text-slate-100 text-xs truncate max-w-[110px] hover:text-emerald-400 cursor-pointer underline decoration-slate-700 underline-offset-2">${item.name}</span>
+          ${infoIconHtml}
           ${memberTooltipHtml}
         </div>
         ${blacklistBadge}
