@@ -58,7 +58,10 @@ function showTooltipPortal(triggerEl) {
   const maxLeft = window.innerWidth - portalWidth - margin;
   left = Math.max(margin, Math.min(left, maxLeft));
 
-  portal.style.top = `${Math.max(margin, top)}px`;
+  const maxTop = window.innerHeight - portalHeight - margin;
+  top = Math.max(margin, Math.min(top, maxTop));
+
+  portal.style.top = `${top}px`;
   portal.style.left = `${left}px`;
 
   tooltipPortalOpenTrigger = triggerEl;
