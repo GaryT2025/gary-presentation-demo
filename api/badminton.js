@@ -132,7 +132,7 @@ function toTaiwanDateStr(isoString) {
 
 function calculatePrepaidCycles(attendanceHistory) {
   const validAttendances = attendanceHistory
-    .filter(h => h.isAttended || (h.attendanceStatus === '已出席' && h.originStatus === '報名成功'))
+    .filter(h => h.isValid || h.originStatus === '報名成功' || h.attendanceStatus === '已出席')
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 
   const cycles = [];
@@ -361,18 +361,19 @@ export default async function handler(req, res) {
           };
         }
 
-        const isAttended = attendanceStatus === '已出席' && originStatus === '報名成功';
+        const isValid = originStatus === '報名成功' || attendanceStatus === '已出席';
 
         playerStatsMap[name].history.push({
           date: finalDate,
           status,
           attendanceStatus,
           originStatus,
-          isAttended,
+          isValid,
+          isAttended: attendanceStatus === '已出席',
           id: p.id
         });
 
-        if (isAttended) {
+        if (isValid) {
           if (finalDate.startsWith(currentYear)) {
             playerStatsMap[name].year2026Count += 1;
             if (mInfo) mInfo.year2026Count = (mInfo.year2026Count || 0) + 1;
@@ -394,7 +395,7 @@ export default async function handler(req, res) {
           .sort((a, b) => new Date(a.date) - new Date(b.date));
 
         sorted2026Hist.forEach(h => {
-          if (h.isAttended) {
+          if (h.isValid) {
             currentStreak += 1;
             if (currentStreak > maxStreak) maxStreak = currentStreak;
           } else if (h.status === '未到') {
