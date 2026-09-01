@@ -37,6 +37,34 @@
       "destination": "/fci-sales/index.html"
     },
     {
+      "source": "/api/attendance",
+      "destination": "/api/badminton?path=attendance"
+    },
+    {
+      "source": "/badminton/api/attendance",
+      "destination": "/api/badminton?path=attendance"
+    },
+    {
+      "source": "/badminton/api/members/add",
+      "destination": "/api/badminton?path=members/add"
+    },
+    {
+      "source": "/badminton/api/members/renew",
+      "destination": "/api/badminton?path=members/renew"
+    },
+    {
+      "source": "/badminton/api/attendance/update",
+      "destination": "/api/badminton?path=attendance/update"
+    },
+    {
+      "source": "/badminton/api/attendance/batch-update",
+      "destination": "/api/badminton?path=attendance/batch-update"
+    },
+    {
+      "source": "/badminton/api/attendance/update-date",
+      "destination": "/api/badminton?path=attendance/update-date"
+    },
+    {
       "source": "/badminton/(.*)",
       "destination": "/badminton/$1"
     },
