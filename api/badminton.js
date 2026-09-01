@@ -374,7 +374,7 @@ export default async function handler(req, res) {
         });
 
         if (isValid) {
-          if (finalDate.startsWith(currentYear)) {
+          if (finalDate && finalDate.startsWith(currentYear)) {
             playerStatsMap[name].year2026Count += 1;
             if (mInfo) mInfo.year2026Count = (mInfo.year2026Count || 0) + 1;
             if (finalDate.startsWith(currentMonthPrefix)) {
@@ -391,7 +391,7 @@ export default async function handler(req, res) {
         let currentStreak = 0;
         let maxStreak = 0;
         const sorted2026Hist = [...p.history]
-          .filter(h => h.date.startsWith(currentYear))
+          .filter(h => h.date && h.date.startsWith(currentYear))
           .sort((a, b) => new Date(a.date) - new Date(b.date));
 
         sorted2026Hist.forEach(h => {
