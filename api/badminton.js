@@ -450,7 +450,7 @@ export default async function handler(req, res) {
         const isPaid = p.properties['繳費?']?.checkbox || false;
 
         const officialPlan = getOfficialPlan(name);
-        const mInfo = memberPlanMap[uId] || memberNameMap[name] || { planType: officialPlan, remainingCount: 10, memberPageId: null };
+        const mInfo = memberNameMap[name] || memberPlanMap[uId] || { planType: officialPlan, remainingCount: 10, memberPageId: null };
         const resolvedPlan = mInfo.planType || officialPlan;
 
         if (activeDate === 'all' || (finalDate && finalDate.startsWith(activeDate))) {
