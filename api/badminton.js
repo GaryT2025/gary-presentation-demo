@@ -132,7 +132,7 @@ function toTaiwanDateStr(isoString) {
 
 function calculatePrepaidCycles(attendanceHistory) {
   const validAttendances = attendanceHistory
-    .filter(h => h.status === '已出席' || h.status === '報名成功' || h.status === '已報名')
+    .filter(h => h.isAttended || (h.attendanceStatus === '已出席' && h.originStatus === '報名成功'))
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 
   const cycles = [];
@@ -287,7 +287,9 @@ export default async function handler(req, res) {
           userId,
           name,
           planType,
-          remainingCount: count
+          remainingCount: count,
+          year2026Count: 0,
+          monthCount: 0
         };
 
         if (userId) memberPlanMap[userId] = memberInfo;
@@ -359,17 +361,24 @@ export default async function handler(req, res) {
           };
         }
 
+        const isAttended = attendanceStatus === '已出席' && originStatus === '報名成功';
+
         playerStatsMap[name].history.push({
           date: finalDate,
           status,
+          attendanceStatus,
+          originStatus,
+          isAttended,
           id: p.id
         });
 
-        if (status === '已出席' || status === '報名成功' || status === '已報名') {
+        if (isAttended) {
           if (finalDate.startsWith(currentYear)) {
             playerStatsMap[name].year2026Count += 1;
+            if (mInfo) mInfo.year2026Count = (mInfo.year2026Count || 0) + 1;
             if (finalDate.startsWith(currentMonthPrefix)) {
               playerStatsMap[name].monthCount += 1;
+              if (mInfo) mInfo.monthCount = (mInfo.monthCount || 0) + 1;
             }
           }
         }
@@ -385,7 +394,7 @@ export default async function handler(req, res) {
           .sort((a, b) => new Date(a.date) - new Date(b.date));
 
         sorted2026Hist.forEach(h => {
-          if (h.status === '已出席' || h.status === '報名成功' || h.status === '已報名') {
+          if (h.isAttended) {
             currentStreak += 1;
             if (currentStreak > maxStreak) maxStreak = currentStreak;
           } else if (h.status === '未到') {
