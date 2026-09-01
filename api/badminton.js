@@ -143,14 +143,15 @@ function calculatePrepaidCycles(attendanceHistory) {
     const positionInCycle = (index % 10) + 1;
 
     if (positionInCycle === 1) {
+      const itemYear = (item.date && item.date.length >= 4) ? item.date.slice(0, 4) : '2026';
       currentCycle = {
         cycleNum: cycleIndex,
-        startDate: item.date,
+        startDate: item.date || '',
         endDate: null,
         isCompleted: false,
         totalDays: 0,
-        year: item.date.slice(0, 4),
-        items: [{ sessionNo: 1, date: item.date, status: item.status, id: item.id }]
+        year: itemYear,
+        items: [{ sessionNo: 1, date: item.date || '', status: item.status, id: item.id }]
       };
       cycles.push(currentCycle);
     } else {
