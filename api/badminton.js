@@ -404,7 +404,7 @@ export default async function handler(req, res) {
         });
         p.streakCount = maxStreak;
 
-        const mInfo = memberPlanMap[p.userId] || memberNameMap[p.name];
+        const mInfo = (p.userId && memberPlanMap[p.userId]) || memberNameMap[p.name];
         const resolvedPlan = p.planType;
 
         // 僅限會員名冊內 (有 Notion 會員 Page) 且繳費類型為「儲值」者才列入儲值期別履歷看板
