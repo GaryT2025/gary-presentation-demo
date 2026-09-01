@@ -12,7 +12,13 @@ const NOTION_HEADERS = {
 
 const OFFICIAL_YEARLY = ['小鄭', '阿峻', '蘇聯', '賴董', '誠仁'];
 const OFFICIAL_MONTHLY = ['富哥', '福哥', '光廷', '阿娟', '小洪', '年興'];
-const OFFICIAL_PREPAID = ['糖果寶', '淑湘', '賓哥', 'Sam', '小潘', '小卉', '銘仁', '為欽', '羽辰', '世昌', '文和', '智文', '浩騰', 'Justin', '進宗', '庭偉', '柏村', '昆疆', '牧民', 'Gary', '弘峻', '慶鴻'];
+const OFFICIAL_PREPAID = ['糖果寶', '淑湘', '賓哥', 'Sam', '小潘', '小卉', '銘仁', '為欽', '羽辰', '世昌', '文和', '智文', '浩騰', 'Justin', '進宗', '庭偉', '柏村', '昆疆', '牧民', 'Gary', '弘峻', '慶鴻', '柳大神'];
+
+const NAME_ALIASES = { '黃羽辰': '羽辰', '柳大俠': '柳大神' };
+
+function normalizeName(rawName) {
+  return NAME_ALIASES[rawName] || rawName;
+}
 
 function getOfficialPlan(name) {
   if (OFFICIAL_YEARLY.includes(name)) return '年繳';
@@ -313,7 +319,7 @@ export default async function handler(req, res) {
         if (status === '放鳥') status = '未到';
         if (status === '取消報名' || status === '報名取消') return;
 
-        const name = (getPlainText(p.properties['姓名(Name)'])).trim();
+        const name = normalizeName((getPlainText(p.properties['姓名(Name)'])).trim());
         if (!name || name === '5' || !isNaN(name)) return;
 
         const uId = getPlainText(p.properties['userId']);
@@ -334,7 +340,7 @@ export default async function handler(req, res) {
         }
 
         const officialPlan = getOfficialPlan(name);
-        const mInfo = memberPlanMap[uId] || memberNameMap[name] || { planType: officialPlan, remainingCount: 10 };
+        const mInfo = memberNameMap[name] || memberPlanMap[uId] || { planType: officialPlan, remainingCount: 10 };
         const resolvedPlan = mInfo.planType || officialPlan;
 
         // D-02/D-03: per-session-date 零打 race, computed year-wide (not from the
@@ -405,11 +411,10 @@ export default async function handler(req, res) {
         });
         p.streakCount = maxStreak;
 
-        const mInfo = (p.userId && memberPlanMap[p.userId]) || memberNameMap[p.name];
         const resolvedPlan = p.planType;
 
-        // 僅限會員名冊內 (有 Notion 會員 Page) 且繳費類型為「儲值」者才列入儲值期別履歷看板
-        if ((mInfo && mInfo.memberPageId && resolvedPlan === '儲值') || (OFFICIAL_PREPAID.includes(p.name) && resolvedPlan === '儲值')) {
+        // 僅限官方儲值名單 (OFFICIAL_PREPAID) 且繳費類型為「儲值」者才列入儲值期別履歷看板
+        if (OFFICIAL_PREPAID.includes(p.name) && resolvedPlan === '儲值') {
           prepaidCyclesMap[p.name] = calculatePrepaidCycles(p.history);
         }
       });
@@ -435,7 +440,7 @@ export default async function handler(req, res) {
         if (status === '放鳥') status = '未到';
         if (status === '取消報名' || status === '報名取消') return;
 
-        const name = (getPlainText(p.properties['姓名(Name)'])).trim();
+        const name = normalizeName((getPlainText(p.properties['姓名(Name)'])).trim());
         if (!name || name === '5' || !isNaN(name)) return;
 
         const uId = getPlainText(p.properties['userId']);
