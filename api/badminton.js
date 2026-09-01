@@ -413,6 +413,7 @@ export default async function handler(req, res) {
         .sort((a, b) => new Date(b) - new Date(a))
         .map(d => ({ date: d, count: dateCounts[d] }));
 
+      // 優先顯示「今天」，若今天無開局，則自動倒退顯示最近一個「最後開場日期」
       let defaultDate = availableDates[0]?.date || realTodayStr;
       if (availableDates.find(d => d.date === realTodayStr)) {
         defaultDate = realTodayStr;

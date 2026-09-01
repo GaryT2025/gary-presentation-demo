@@ -174,14 +174,30 @@ function renderPrepaidCyclesBoard() {
     const totalSessions = allCycles.reduce((sum, c) => sum + (c.items ? c.items.length : 0), 0);
     const yearCount = mInfo ? mInfo.year2026Count || 0 : 0;
 
+    // Dynamic Warning border colors (8次: cyan/blue, 9次: amber/orange, 10次: rose/red)
+    let warningBorderClass = 'border-slate-800';
+    let warningBadgeBg = '';
+    if (isWarning) {
+      if (activeCount >= 10) {
+        warningBorderClass = 'border-rose-500/90 ring-1 ring-rose-500/50 shadow-rose-950/50';
+        warningBadgeBg = 'bg-rose-500 text-white';
+      } else if (activeCount === 9) {
+        warningBorderClass = 'border-amber-500/90 ring-1 ring-amber-500/50 shadow-amber-950/50';
+        warningBadgeBg = 'bg-amber-500 text-slate-950';
+      } else {
+        warningBorderClass = 'border-cyan-500/90 ring-1 ring-cyan-500/50 shadow-cyan-950/50';
+        warningBadgeBg = 'bg-cyan-500 text-slate-950';
+      }
+    }
+
     const card = document.createElement('div');
-    card.className = `glass-card bg-slate-900/90 border ${isWarning ? 'border-amber-500/80 ring-1 ring-amber-500/40 shadow-amber-950/40' : 'border-slate-800'} rounded-xl p-4 space-y-3 shadow-lg relative group transition-all duration-200`;
+    card.className = `glass-card bg-slate-900/90 border ${warningBorderClass} rounded-xl p-4 space-y-3 shadow-lg relative group transition-all duration-200`;
 
     const memberPageId = mInfo ? mInfo.memberPageId : '';
 
     const warningBadge = isWarning
-      ? `<span class="animate-pulse bg-gradient-to-r from-amber-500 to-rose-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow-md">
-           ⚡ 續卡提醒 (當期第 ${activeCount}/10 次)
+      ? `<span class="animate-pulse ${warningBadgeBg} text-[10px] font-black px-1.5 py-0.2 rounded-md shadow-sm">
+           續卡
          </span>`
       : '';
 
