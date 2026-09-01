@@ -403,7 +403,7 @@ export default async function handler(req, res) {
         });
         p.streakCount = maxStreak;
 
-        if (OFFICIAL_PREPAID.includes(p.name)) {
+        if (p.planType === '儲值' || OFFICIAL_PREPAID.includes(p.name)) {
           prepaidCyclesMap[p.name] = calculatePrepaidCycles(p.history);
         }
       });

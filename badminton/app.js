@@ -241,14 +241,9 @@ function renderPrepaidCyclesBoard() {
         let dateItemsHtml = '';
         c.items.forEach(it => {
           dateItemsHtml += `
-            <div class="flex items-center justify-between text-[11px] bg-slate-900/60 px-2 py-0.5 rounded border border-slate-800">
+            <div class="flex items-center justify-between text-[11px] bg-slate-900/60 px-2.5 py-1 rounded border border-slate-800">
               <span class="font-bold text-slate-300">第 ${it.sessionNo} 次打球</span>
-              <div class="flex items-center gap-1">
-                <span class="font-extrabold text-emerald-400">📅 ${it.date}</span>
-                <button onclick="promptEditAttendanceDate('${it.id}', '${it.date}')" class="text-[10px] text-amber-400 hover:text-amber-300 px-1" title="修改出勤日期">
-                  <i class="fa-solid fa-edit"></i>
-                </button>
-              </div>
+              <span class="font-extrabold text-emerald-400">📅 ${it.date}</span>
             </div>
           `;
         });
