@@ -174,7 +174,7 @@ function renderPrepaidCyclesBoard() {
     const totalSessions = allCycles.reduce((sum, c) => sum + (c.items ? c.items.length : 0), 0);
     const yearCount = mInfo ? mInfo.year2026Count || 0 : 0;
 
-    // Dynamic Warning border colors (8次: cyan/blue, 9次: amber/orange, 10次: rose/red)
+    // Dynamic Warning border colors (8次: cyan/blue, 9次: emerald/teal, 10次: rose/red)
     let warningBorderClass = 'border-slate-800';
     let warningBadgeBg = '';
     if (isWarning) {
@@ -182,8 +182,8 @@ function renderPrepaidCyclesBoard() {
         warningBorderClass = 'border-rose-500/90 ring-1 ring-rose-500/50 shadow-rose-950/50';
         warningBadgeBg = 'bg-rose-500 text-white';
       } else if (activeCount === 9) {
-        warningBorderClass = 'border-amber-500/90 ring-1 ring-amber-500/50 shadow-amber-950/50';
-        warningBadgeBg = 'bg-amber-500 text-slate-950';
+        warningBorderClass = 'border-emerald-500/90 ring-1 ring-emerald-500/50 shadow-emerald-950/50';
+        warningBadgeBg = 'bg-emerald-500 text-slate-950';
       } else {
         warningBorderClass = 'border-cyan-500/90 ring-1 ring-cyan-500/50 shadow-cyan-950/50';
         warningBadgeBg = 'bg-cyan-500 text-slate-950';

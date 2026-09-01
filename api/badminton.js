@@ -404,7 +404,8 @@ export default async function handler(req, res) {
         });
         p.streakCount = maxStreak;
 
-        if (p.planType === '儲值' || OFFICIAL_PREPAID.includes(p.name)) {
+        // 僅限會員名冊內 (有 Notion 會員 Page) 且繳費類型為「儲值」者才列入儲值期別履歷看板
+        if (mInfo && mInfo.memberPageId && resolvedPlan === '儲值') {
           prepaidCyclesMap[p.name] = calculatePrepaidCycles(p.history);
         }
       });
