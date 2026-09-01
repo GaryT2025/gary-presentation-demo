@@ -484,7 +484,9 @@ export default async function handler(req, res) {
       });
       Object.entries(casualWinnerByDate).forEach(([date, entry]) => {
         const t = casualWinTally[entry.name];
-        if (date > t.lastWinDate) t.lastWinDate = date;
+        if (t && (!t.lastWinDate || date > t.lastWinDate)) {
+          t.lastWinDate = date;
+        }
       });
       const sortedCasualTally = Object.values(casualWinTally).sort((a, b) => {
         if (b.wins !== a.wins) return b.wins - a.wins;
