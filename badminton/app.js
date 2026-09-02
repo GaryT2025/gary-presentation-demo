@@ -1,7 +1,17 @@
 let currentData = { attendance: [], members: [], availableDates: [], activeDate: '', prepaidCyclesMap: {}, funBanners: {} };
 let layoutDensity = 'compact'; // 'compact' or 'normal'
 
+// ===== Admin auth state (D-01, D-06) =====
+let adminToken = '';
+let isAdmin = false;
+let sortableInstances = [];
+
 document.addEventListener('DOMContentLoaded', () => {
+  // Load-bearing ordering: initAuthState() must run first, before initSortable()
+  // (which calls applyAdminVisibility() at its end) and before fetchAttendance().
+  // sortableInstances is still an empty array at this point, so this is safe.
+  initAuthState();
+
   const dateDropdown = document.getElementById('dateSelectDropdown');
 
   // Event Listeners
@@ -12,6 +22,142 @@ document.addEventListener('DOMContentLoaded', () => {
   initSortable();
   fetchAttendance();
 });
+
+// Restore admin session from localStorage. Client-side expiry parsing here is
+// a UX convenience only (avoid showing controls that would 401 on first
+// click) — the server re-verifies the HMAC signature on every write.
+function initAuthState() {
+  const stored = localStorage.getItem('badmintonAdminToken');
+  if (!stored) return;
+
+  const expiryPart = stored.split('.')[0];
+  const expiry = Number(expiryPart);
+  if (!Number.isInteger(expiry) || expiry <= Date.now()) {
+    localStorage.removeItem('badmintonAdminToken');
+    return;
+  }
+
+  adminToken = stored;
+  isAdmin = true;
+}
+
+// Attach Authorization header when logged in. Never used by the read fetch
+// in fetchAttendance() or by submitAdminLogin() (this is a login attempt,
+// not a gated write).
+function authHeaders() {
+  const headers = { 'Content-Type': 'application/json' };
+  if (adminToken) {
+    headers['Authorization'] = `Bearer ${adminToken}`;
+  }
+  return headers;
+}
+
+// A 401 on any write means the session is no longer valid server-side —
+// clear it and force back to the logged-out view rather than letting the
+// write silently fail into a generic error toast.
+function forceLogout(msg) {
+  localStorage.removeItem('badmintonAdminToken');
+  adminToken = '';
+  isAdmin = false;
+
+  document.getElementById('addMemberModal').classList.add('hidden');
+  document.getElementById('renewPassModal').classList.add('hidden');
+  document.getElementById('adminLoginModal').classList.add('hidden');
+
+  applyAdminVisibility();
+  renderKanban();
+  renderPrepaidCyclesBoard();
+  clearBatchSelection();
+
+  showToast('請重新登入', msg || '管理者登入已過期或失效，請重新登入', 'rose');
+}
+
+// Toggle every [data-admin-only] element, swap the header auth button's
+// icon/style, and disable/enable SortableJS drag (a genuine write path via
+// updateStatus(), not just a UI affordance).
+function applyAdminVisibility() {
+  document.querySelectorAll('[data-admin-only]').forEach(el => {
+    el.classList.toggle('hidden', !isAdmin);
+  });
+
+  const authBtn = document.getElementById('adminAuthBtn');
+  if (authBtn) {
+    if (isAdmin) {
+      authBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket text-base"></i>';
+      authBtn.title = '登出管理者模式';
+      authBtn.className = 'w-11 h-11 flex items-center justify-center rounded-full bg-accent text-white active:bg-accent-strong transition';
+    } else {
+      authBtn.innerHTML = '<i class="fa-solid fa-lock text-base"></i>';
+      authBtn.title = '管理者登入';
+      authBtn.className = 'w-11 h-11 flex items-center justify-center rounded-full border border-hairline text-muted active:bg-surface transition';
+    }
+  }
+
+  sortableInstances.forEach(s => {
+    if (s && typeof s.option === 'function') {
+      s.option('disabled', !isAdmin);
+    }
+  });
+}
+
+// Header auth button click handler: logs out when already logged in,
+// otherwise opens the login modal.
+function handleAdminAuthClick() {
+  if (isAdmin) {
+    adminToken = '';
+    isAdmin = false;
+    localStorage.removeItem('badmintonAdminToken');
+    applyAdminVisibility();
+    renderKanban();
+    renderPrepaidCyclesBoard();
+    clearBatchSelection();
+    showToast('已登出', '已退出管理者模式，目前為唯讀檢視', 'blue');
+  } else {
+    document.getElementById('adminPasswordInput').value = '';
+    document.getElementById('adminLoginError').classList.add('hidden');
+    document.getElementById('adminLoginModal').classList.remove('hidden');
+  }
+}
+
+function closeAdminLoginModal() {
+  document.getElementById('adminLoginModal').classList.add('hidden');
+}
+
+// Submits password to the login route. Deliberately uses an inline headers
+// object (not authHeaders()) — this fetch is a login attempt, not a gated
+// write, so it should never carry a stale/expired Authorization header.
+async function submitAdminLogin() {
+  const password = document.getElementById('adminPasswordInput').value;
+  const errorEl = document.getElementById('adminLoginError');
+  errorEl.classList.add('hidden');
+
+  try {
+    const res = await fetch('api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      adminToken = data.token;
+      isAdmin = true;
+      localStorage.setItem('badmintonAdminToken', data.token);
+      closeAdminLoginModal();
+      document.getElementById('adminPasswordInput').value = '';
+      applyAdminVisibility();
+      renderKanban();
+      renderPrepaidCyclesBoard();
+      showToast('登入成功', '已切換為管理者模式', 'emerald');
+    } else {
+      errorEl.innerText = '登入失敗，請確認密碼';
+      errorEl.classList.remove('hidden');
+    }
+  } catch (err) {
+    errorEl.innerText = '登入失敗，請確認密碼';
+    errorEl.classList.remove('hidden');
+  }
+}
 
 // Fetch Attendance and Member Data from Express API
 async function fetchAttendance(selectedDate = '') {
@@ -205,6 +351,12 @@ function renderPrepaidCyclesBoard() {
       ? `<span class="${warningBadgeClass} text-xs font-bold px-2 py-0.5 rounded-full">續卡</span>`
       : '';
 
+    const renewButtonHtml = isAdmin
+      ? `<button onclick="openRenewPassModal('${memberPageId}', '${name}')" title="購買新一期 / 續卡加 10 次 (記錄金額)" class="h-9 px-3 rounded-lg text-xs font-semibold text-warning bg-warning-soft active:bg-warning active:text-white transition flex items-center gap-1 shrink-0">
+          <i class="fa-solid fa-plus-circle"></i> 購新一期
+        </button>`
+      : '';
+
     // Header
     card.innerHTML = `
       <div class="flex items-center justify-between gap-2 border-b border-hairline pb-2.5">
@@ -219,9 +371,7 @@ function renderPrepaidCyclesBoard() {
       </div>
       <div class="flex items-center justify-between gap-2 text-sm">
         <span class="text-muted">當期進度 <strong class="${isWarning ? 'text-warning' : 'text-accent-strong'} font-bold">${activeCount}/10</strong> ・ 總計 <strong class="text-ink font-bold">${totalSessions}</strong> 次</span>
-        <button onclick="openRenewPassModal('${memberPageId}', '${name}')" title="購買新一期 / 續卡加 10 次 (記錄金額)" class="h-9 px-3 rounded-lg text-xs font-semibold text-warning bg-warning-soft active:bg-warning active:text-white transition flex items-center gap-1 shrink-0">
-          <i class="fa-solid fa-plus-circle"></i> 購新一期
-        </button>
+        ${renewButtonHtml}
       </div>
     `;
 
@@ -315,9 +465,10 @@ async function submitAddMember() {
   try {
     const res = await fetch('api/members/add', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify({ name, planType: '儲值', count, amount })
     });
+    if (res.status === 401) { forceLogout(); return; }
     const data = await res.json();
 
     if (data.success) {
@@ -360,9 +511,10 @@ async function submitRenewPass() {
   try {
     const res = await fetch('api/members/renew', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify({ memberPageId, addCount, amount })
     });
+    if (res.status === 401) { forceLogout(); return; }
     const data = await res.json();
 
     if (data.success) {
@@ -477,7 +629,7 @@ function createCardElement(item) {
     : '';
 
   let actionButtons = '';
-  if (item.status === '已報名' || item.status === '報名成功') {
+  if (isAdmin && (item.status === '已報名' || item.status === '報名成功')) {
     actionButtons = `
       <button onclick="updateStatus('${item.id}', '已出席', '${item.memberPageId}', '${item.status}')" title="點名出席" class="h-9 px-2.5 rounded-md text-sm font-semibold text-accent-strong bg-success-soft active:bg-accent active:text-white transition">
         <i class="fa-solid fa-check"></i> 出席
@@ -486,7 +638,7 @@ function createCardElement(item) {
         <i class="fa-solid fa-xmark"></i> 未到
       </button>
     `;
-  } else if (item.status === '已出席') {
+  } else if (isAdmin && item.status === '已出席') {
     actionButtons = `
       <button onclick="updateStatus('${item.id}', '已報名', '${item.memberPageId}', '${item.status}')" title="重設狀態" class="h-9 px-2.5 rounded-md text-sm font-semibold text-muted bg-surface active:bg-surface-strong transition">
         <i class="fa-solid fa-rotate-left"></i> 重設
@@ -495,7 +647,7 @@ function createCardElement(item) {
         改未到
       </button>
     `;
-  } else if (item.status === '未到' || item.status === '放鳥') {
+  } else if (isAdmin && (item.status === '未到' || item.status === '放鳥')) {
     actionButtons = `
       <button onclick="updateStatus('${item.id}', '已出席', '${item.memberPageId}', '${item.status}')" title="改為出席" class="h-9 px-2.5 rounded-md text-sm font-semibold text-accent-strong bg-success-soft active:bg-accent active:text-white transition">
         改出席
@@ -506,12 +658,16 @@ function createCardElement(item) {
     `;
   }
 
+  const checkboxHtml = isAdmin
+    ? `<label class="w-11 h-11 -m-2.5 flex items-center justify-center shrink-0 cursor-pointer">
+          <input type="checkbox" onchange="handleCardCheckChange()" class="card-checkbox w-5 h-5 rounded border-hairline cursor-pointer" data-id="${item.id}" data-memberpageid="${item.memberPageId || ''}" data-status="${item.status}">
+        </label>`
+    : '';
+
   card.innerHTML = `
     <div class="flex items-center justify-between gap-1.5">
       <div class="flex items-center gap-2 overflow-hidden min-w-0">
-        <label class="w-11 h-11 -m-2.5 flex items-center justify-center shrink-0 cursor-pointer">
-          <input type="checkbox" onchange="handleCardCheckChange()" class="card-checkbox w-5 h-5 rounded border-hairline cursor-pointer" data-id="${item.id}" data-memberpageid="${item.memberPageId || ''}" data-status="${item.status}">
-        </label>
+        ${checkboxHtml}
         ${planStyle.dot}
         <span onclick="openMemberModal('${item.name}')" class="font-semibold text-ink text-base truncate flex-1 min-w-0 active:text-accent-strong cursor-pointer">${item.name}</span>
         ${blacklistBadge}
@@ -564,9 +720,10 @@ async function quickAllAttend() {
   try {
     const res = await fetch('api/attendance/batch-update', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify({ items, status: '已出席' })
     });
+    if (res.status === 401) { forceLogout(); return; }
     const data = await res.json();
 
     if (data.success) {
@@ -632,9 +789,10 @@ async function executeBatchAction(targetStatus) {
   try {
     const res = await fetch('api/attendance/batch-update', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify({ items, status: targetStatus })
     });
+    if (res.status === 401) { forceLogout(); return; }
     const data = await res.json();
 
     if (data.success) {
@@ -654,9 +812,10 @@ async function updateStatus(pageId, status, memberPageId, currentStatus) {
   try {
     const res = await fetch('api/attendance/update', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify({ pageId, status, memberPageId, currentStatus })
     });
+    if (res.status === 401) { forceLogout(); return; }
     const data = await res.json();
 
     if (data.success) {
@@ -688,7 +847,7 @@ function initSortable() {
     const el = document.getElementById(colId);
     if (!el) return;
 
-    new Sortable(el, {
+    const instance = new Sortable(el, {
       group: 'kanban',
       animation: 150,
       ghostClass: 'sortable-ghost',
@@ -706,7 +865,10 @@ function initSortable() {
         }
       }
     });
+    sortableInstances.push(instance);
   });
+
+  applyAdminVisibility();
 }
 
 // Member Detail & Attendance History Modal
@@ -726,12 +888,16 @@ function openMemberModal(memberName) {
 
   if (pType === '儲值' || pType === '預繳10次') {
     countEl.innerText = `${mInfo ? mInfo.remainingCount : 0} 次`;
-    renewBtn.classList.remove('hidden');
-    if (mInfo && mInfo.memberPageId) {
-      renewBtn.onclick = () => {
-        openRenewPassModal(mInfo.memberPageId, memberName);
-        closeMemberModal();
-      };
+    if (isAdmin) {
+      renewBtn.classList.remove('hidden');
+      if (mInfo && mInfo.memberPageId) {
+        renewBtn.onclick = () => {
+          openRenewPassModal(mInfo.memberPageId, memberName);
+          closeMemberModal();
+        };
+      }
+    } else {
+      renewBtn.classList.add('hidden');
     }
   } else {
     countEl.innerText = '- (免計次)';
@@ -844,9 +1010,10 @@ async function promptEditAttendanceDate(pageId, currentDate) {
   try {
     const res = await fetch('api/attendance/update-date', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify({ pageId, date: newDate })
     });
+    if (res.status === 401) { forceLogout(); return; }
     const data = await res.json();
     if (data.success) {
       showToast('更新成功！', '出勤日期已成功更新', 'emerald');
