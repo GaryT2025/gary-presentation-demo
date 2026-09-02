@@ -46,7 +46,7 @@ function renderFunBanners() {
 
   const elYear2026King = document.getElementById('bannerYear2026King');
   if (fb.year2026King && fb.year2026King.name) {
-    elYear2026King.innerHTML = `<span class="text-amber-400 font-black">${fb.year2026King.name}</span> (2026出勤 <span class="underline">${fb.year2026King.count}</span> 次稱霸)`;
+    elYear2026King.innerHTML = `<span class="text-warning font-bold">${fb.year2026King.name}</span> (2026出勤 <span class="underline">${fb.year2026King.count}</span> 次稱霸)`;
   } else {
     elYear2026King.innerText = '尚無紀錄';
   }
@@ -54,21 +54,21 @@ function renderFunBanners() {
   const elFastestCasual = document.getElementById('bannerFastestCasual');
   if (fb.fastestCasual && fb.fastestCasual.name) {
     const timeStr = fb.fastestCasual.time ? new Date(fb.fastestCasual.time).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }) : '';
-    elFastestCasual.innerHTML = `<span class="text-cyan-400 font-black">${fb.fastestCasual.name}</span> (${timeStr} PM 8點零打首殺)`;
+    elFastestCasual.innerHTML = `<span class="text-info font-bold">${fb.fastestCasual.name}</span> (${timeStr} PM 8點零打首殺)`;
   } else {
     elFastestCasual.innerText = '尚無紀錄';
   }
 
   const elStreak = document.getElementById('bannerStreakKing');
   if (fb.streakKing && fb.streakKing.name) {
-    elStreak.innerHTML = `<span class="text-purple-400 font-black">${fb.streakKing.name}</span> (連續出勤 <span class="underline">${fb.streakKing.streak}</span> 場無間斷)`;
+    elStreak.innerHTML = `<span class="text-plan-annual font-bold">${fb.streakKing.name}</span> (連續出勤 <span class="underline">${fb.streakKing.streak}</span> 場無間斷)`;
   } else {
     elStreak.innerText = '尚無紀錄';
   }
 
   const elMonth = document.getElementById('bannerMonthLeader');
   if (fb.monthLeader && fb.monthLeader.name) {
-    elMonth.innerHTML = `<span class="text-emerald-400 font-black">${fb.monthLeader.name}</span> (8月打球 <span class="underline">${fb.monthLeader.count}</span> 次稱霸)`;
+    elMonth.innerHTML = `<span class="text-accent-strong font-bold">${fb.monthLeader.name}</span> (8月打球 <span class="underline">${fb.monthLeader.count}</span> 次稱霸)`;
   } else {
     elMonth.innerText = '尚無紀錄';
   }
@@ -153,7 +153,7 @@ function renderPrepaidCyclesBoard() {
   });
 
   if (memberNames.length === 0) {
-    container.innerHTML = `<div class="col-span-full py-10 text-center text-slate-500 font-bold">尚無符合條件的儲值球員期別履歷</div>`;
+    container.innerHTML = `<div class="col-span-full py-10 text-center text-muted font-semibold text-base">尚無符合條件的儲值球員期別履歷</div>`;
     return;
   }
 
@@ -174,92 +174,80 @@ function renderPrepaidCyclesBoard() {
     const totalSessions = allCycles.reduce((sum, c) => sum + (c.items ? c.items.length : 0), 0);
     const yearCount = mInfo ? mInfo.year2026Count || 0 : 0;
 
-    // Dynamic Warning border colors (8次: cyan/blue, 9次: emerald/teal, 10次: rose/red)
-    let warningBorderClass = 'border-slate-800';
-    let warningBadgeBg = '';
+    // Dynamic warning border color (8次: info/blue, 9次: accent/green, 10次: danger/red)
+    // Set via inline style (not a Tailwind class) so it reliably overrides the
+    // default .card hairline border regardless of stylesheet load order.
+    let warningBorderColor = '';
+    let warningBadgeClass = '';
     if (isWarning) {
       if (activeCount >= 10) {
-        warningBorderClass = 'border-rose-500/90 ring-1 ring-rose-500/50 shadow-rose-950/50';
-        warningBadgeBg = 'bg-rose-500 text-white';
+        warningBorderColor = '#c23b3b';
+        warningBadgeClass = 'bg-danger text-white';
       } else if (activeCount === 9) {
-        warningBorderClass = 'border-emerald-500/90 ring-1 ring-emerald-500/50 shadow-emerald-950/50';
-        warningBadgeBg = 'bg-emerald-500 text-slate-950';
+        warningBorderColor = '#1f7a54';
+        warningBadgeClass = 'bg-accent text-white';
       } else {
-        warningBorderClass = 'border-cyan-500/90 ring-1 ring-cyan-500/50 shadow-cyan-950/50';
-        warningBadgeBg = 'bg-cyan-500 text-slate-950';
+        warningBorderColor = '#2563a8';
+        warningBadgeClass = 'bg-info text-white';
       }
     }
 
     const card = document.createElement('div');
-    card.className = `glass-card bg-slate-900/90 border ${warningBorderClass} rounded-xl p-4 space-y-3 shadow-lg relative group transition-all duration-200`;
+    card.className = 'card rounded-xl p-4 space-y-3 relative transition-all duration-200';
+    if (warningBorderColor) {
+      card.style.borderColor = warningBorderColor;
+      card.style.borderWidth = '1.5px';
+    }
 
     const memberPageId = mInfo ? mInfo.memberPageId : '';
 
     const warningBadge = isWarning
-      ? `<span class="animate-pulse ${warningBadgeBg} text-[10px] font-black px-1.5 py-0.2 rounded-md shadow-sm">
-           續卡
-         </span>`
+      ? `<span class="${warningBadgeClass} text-xs font-bold px-2 py-0.5 rounded-full">續卡</span>`
       : '';
-
-    // Hover Tooltip content
-    const cycleDatesSummary = allCycles.map(c => `期別 ${c.cycleNum}: ${c.isCompleted ? '已完卡' : '進行中'} (${c.items.length}/10次, ${c.startDate})`).join('\n');
-    const tooltipText = `👤 ${name}\n📊 總出席: ${totalSessions} 次 (2026年: ${yearCount}次)\n🎯 當期進度: ${activeCount}/10 次\n💳 完卡期數: ${completedInYear} 期\n\n${cycleDatesSummary}`;
 
     // Header
     card.innerHTML = `
-      <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
-        <div class="flex items-center gap-2 relative">
-          <span style="background-color: #f59e0b; width: 12px; height: 12px; border-radius: 9999px; display: inline-block; box-shadow: 0 0 10px rgba(245,158,11,0.9);"></span>
-          <h3 class="font-extrabold text-white text-sm hover:text-amber-400 cursor-pointer" onclick="openMemberModal('${name}')">${name}</h3>
+      <div class="flex items-center justify-between gap-2 border-b border-hairline pb-2.5">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="w-2.5 h-2.5 rounded-full bg-plan-prepaid shrink-0"></span>
+          <h3 class="font-semibold text-ink text-base truncate active:text-accent-strong cursor-pointer" onclick="openMemberModal('${name}')">${name}</h3>
           ${warningBadge}
-
-          <!-- Floating Pretty Tooltip -->
-          <div class="pointer-events-none absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 p-3 rounded-xl bg-slate-950/95 border border-amber-500/40 shadow-2xl backdrop-blur-md text-xs text-slate-200 space-y-1.5 transition-all">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-1.5 font-bold text-amber-400">
-              <span>👤 ${name} 儲值履歷摘要</span>
-              <span class="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-300">總計 ${totalSessions} 次</span>
-            </div>
-            <div class="text-[11px] space-y-1">
-              <p><span class="text-slate-400">當期打球進度:</span> <strong class="${isWarning ? 'text-amber-400 font-extrabold' : 'text-emerald-400'}">${activeCount} / 10 次</strong> ${isWarning ? '⚠️ 建議提醒續卡' : ''}</p>
-              <p><span class="text-slate-400">2026年度出席:</span> <strong class="text-emerald-400">${yearCount} 次</strong></p>
-              <p><span class="text-slate-400">歷史總共完卡:</span> <strong class="text-amber-300">${completedInYear} 期</strong></p>
-            </div>
-          </div>
         </div>
-        <div class="flex items-center gap-1.5">
-          <button onclick="openRenewPassModal('${memberPageId}', '${name}')" title="購買新一期 / 續卡加 10 次 (記錄金額)" class="bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 text-[10px] font-extrabold px-2.5 py-1 rounded border border-amber-500/40 transition flex items-center gap-1">
-            <i class="fa-solid fa-plus-circle"></i> +購新一期
-          </button>
-          <span class="bg-slate-800 text-slate-300 text-[10px] font-extrabold px-2 py-1 rounded-full border border-slate-700">
-            ${targetYear === 'all' ? '全部' : targetYear + '年'} 完卡 ${completedInYear} 期 (共 ${totalSessions}次)
-          </span>
-        </div>
+        <span class="bg-surface text-muted text-xs font-semibold px-2 py-1 rounded-full shrink-0">
+          ${targetYear === 'all' ? '全部' : targetYear + '年'} 完卡 ${completedInYear} 期
+        </span>
+      </div>
+      <div class="flex items-center justify-between gap-2 text-sm">
+        <span class="text-muted">當期進度 <strong class="${isWarning ? 'text-warning' : 'text-accent-strong'} font-bold">${activeCount}/10</strong> ・ 總計 <strong class="text-ink font-bold">${totalSessions}</strong> 次</span>
+        <button onclick="openRenewPassModal('${memberPageId}', '${name}')" title="購買新一期 / 續卡加 10 次 (記錄金額)" class="h-9 px-3 rounded-lg text-xs font-semibold text-warning bg-warning-soft active:bg-warning active:text-white transition flex items-center gap-1 shrink-0">
+          <i class="fa-solid fa-plus-circle"></i> 購新一期
+        </button>
       </div>
     `;
 
     // Cycles Timeline Container
     const cyclesListDiv = document.createElement('div');
-    cyclesListDiv.className = 'space-y-3 max-h-80 overflow-y-auto pr-1 text-xs';
+    cyclesListDiv.className = 'space-y-2.5 max-h-80 overflow-y-auto pr-1 text-sm';
 
     if (filteredCycles.length === 0) {
-      cyclesListDiv.innerHTML = `<p class="text-slate-500 text-center py-3">該年份無儲值期別紀錄</p>`;
+      cyclesListDiv.innerHTML = `<p class="text-muted text-center py-3">該年份無儲值期別紀錄</p>`;
     } else {
       [...filteredCycles].reverse().forEach(c => {
         const cycleItem = document.createElement('div');
-        cycleItem.className = `p-3 rounded-lg border ${c.isCompleted ? 'bg-slate-800/40 border-slate-700/60' : 'bg-amber-500/10 border-amber-500/40 ring-1 ring-amber-500/30'
+        cycleItem.className = `p-3 rounded-lg border ${c.isCompleted ? 'bg-surface border-hairline' : 'bg-warning-soft border-warning/40'
           }`;
 
         const dateRangeStr = c.isCompleted
-          ? `<span class="text-emerald-300 font-extrabold">${c.startDate}</span> ➔ <span class="text-emerald-300 font-extrabold">${c.endDate}</span> <span class="text-slate-400 font-normal">(歷時 ${c.totalDays} 天)</span>`
-          : `<span class="text-amber-300 font-extrabold">${c.startDate} 開始</span> ➔ <span class="text-slate-400">進行中 (已打 ${c.items.length}/10 次)</span>`;
+          ? `<span class="text-accent-strong font-semibold">${c.startDate}</span> &rarr; <span class="text-accent-strong font-semibold">${c.endDate}</span> <span class="text-muted font-normal">(歷時 ${c.totalDays} 天)</span>`
+          : `<span class="text-warning font-semibold">${c.startDate} 開始</span> &rarr; <span class="text-muted">進行中 (已打 ${c.items.length}/10 次)</span>`;
 
         // 10 Detailed Dates Accordion/List for verification
         let dateItemsHtml = '';
         c.items.forEach(it => {
           dateItemsHtml += `
-            <div class="flex items-center justify-between text-[11px] bg-slate-900/60 px-2.5 py-1 rounded border border-slate-800">
-              <span class="font-bold text-slate-300">第 ${it.sessionNo} 次打球</span>
-              <span class="font-extrabold text-emerald-400">📅 ${it.date}</span>
+            <div class="flex items-center justify-between text-sm bg-white px-2.5 py-1.5 rounded-md border border-hairline">
+              <span class="font-medium text-body">第 ${it.sessionNo} 次打球</span>
+              <span class="font-semibold text-accent-strong">${it.date}</span>
             </div>
           `;
         });
@@ -267,21 +255,21 @@ function renderPrepaidCyclesBoard() {
         const collapseId = `cycleDetail_${name}_${c.cycleNum}`;
 
         cycleItem.innerHTML = `
-          <div class="flex items-center justify-between mb-1.5">
-            <span class="font-extrabold ${c.isCompleted ? 'text-slate-200' : 'text-amber-400'}">
-              <i class="fa-solid fa-bookmark mr-1"></i> 第 ${c.cycleNum} 期 ${c.isCompleted ? '✅ 已完卡' : '⏳ 進行中'}
+          <div class="flex items-center justify-between gap-2 mb-1.5">
+            <span class="font-semibold ${c.isCompleted ? 'text-ink' : 'text-warning'}">
+              <i class="fa-solid fa-bookmark mr-1"></i> 第 ${c.cycleNum} 期 ${c.isCompleted ? '已完卡' : '進行中'}
             </span>
-            <button onclick="toggleCycleDetail('${collapseId}')" class="text-[10px] font-bold text-amber-400 hover:underline">
-              <i class="fa-solid fa-calendar-check mr-1"></i> 對帳日期 (10次明細)
+            <button onclick="toggleCycleDetail('${collapseId}')" class="h-8 px-2 text-xs font-semibold text-accent-strong active:underline">
+              <i class="fa-solid fa-calendar-check mr-1"></i> 對帳明細
             </button>
           </div>
 
-          <div class="text-[11px] mb-2">
+          <div class="text-sm mb-2">
             ${dateRangeStr}
           </div>
 
           <!-- Detailed 10 Attendance Dates Grid -->
-          <div id="${collapseId}" class="mt-2 pt-2 border-t border-slate-800 grid grid-cols-2 gap-1.5 hidden">
+          <div id="${collapseId}" class="mt-2 pt-2 border-t border-hairline grid grid-cols-2 gap-1.5 hidden">
             ${dateItemsHtml}
           </div>
         `;
@@ -397,11 +385,11 @@ function setLayoutDensity(density) {
   const nBtn = document.getElementById('densityNormalBtn');
 
   if (density === 'compact') {
-    cBtn.className = 'px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30';
-    nBtn.className = 'px-2 py-0.5 rounded bg-slate-800 text-slate-400 hover:text-slate-200';
+    cBtn.className = 'density-btn active h-11 px-3 rounded-lg text-sm font-semibold';
+    nBtn.className = 'density-btn h-11 px-3 rounded-lg text-sm font-semibold';
   } else {
-    nBtn.className = 'px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30';
-    cBtn.className = 'px-2 py-0.5 rounded bg-slate-800 text-slate-400 hover:text-slate-200';
+    nBtn.className = 'density-btn active h-11 px-3 rounded-lg text-sm font-semibold';
+    cBtn.className = 'density-btn h-11 px-3 rounded-lg text-sm font-semibold';
   }
   renderKanban();
 }
@@ -443,37 +431,41 @@ function renderKanban() {
   }
 }
 
-// Helper: Get Vibrant Color Orb & Left Bar Style for Plan Type (100% Ultra Visible)
+// Helper: Get Plan Type Color Dot & Left Bar Color (kept hue identity: 年繳=purple, 月繳=green, 儲值=amber)
 function getPlanStyle(planType) {
   if (planType === '年繳') {
     return {
-      dot: `<span style="background-color: #a855f7; width: 12px; height: 12px; min-width: 12px; border-radius: 9999px; display: inline-block; box-shadow: 0 0 10px rgba(168,85,247,0.9);" title="年繳"></span>`,
-      barColor: '#a855f7'
+      dot: `<span style="background-color: #6d3fa0; width: 10px; height: 10px; min-width: 10px; border-radius: 9999px; display: inline-block;" title="年繳"></span>`,
+      barColor: '#6d3fa0'
     };
   }
   if (planType === '月繳') {
     return {
-      dot: `<span style="background-color: #10b981; width: 12px; height: 12px; min-width: 12px; border-radius: 9999px; display: inline-block; box-shadow: 0 0 10px rgba(16,185,129,0.9);" title="月繳"></span>`,
-      barColor: '#10b981'
+      dot: `<span style="background-color: #1f7a54; width: 10px; height: 10px; min-width: 10px; border-radius: 9999px; display: inline-block;" title="月繳"></span>`,
+      barColor: '#1f7a54'
     };
   }
   // 儲值 (Prepaid)
   return {
-    dot: `<span style="background-color: #f59e0b; width: 12px; height: 12px; min-width: 12px; border-radius: 9999px; display: inline-block; box-shadow: 0 0 10px rgba(245,158,11,0.9);" title="儲值"></span>`,
-    barColor: '#f59e0b'
+    dot: `<span style="background-color: #a3620c; width: 10px; height: 10px; min-width: 10px; border-radius: 9999px; display: inline-block;" title="儲值"></span>`,
+    barColor: '#a3620c'
   };
 }
 
-// Create Ultra-Compact Card DOM Element
+// Create Kanban Card DOM Element
 function createCardElement(item) {
   const card = document.createElement('div');
   const isCompact = layoutDensity === 'compact';
   const planStyle = getPlanStyle(item.planType);
 
-  card.className = `glass-card kanban-card rounded-lg border transition-all duration-150 relative group cursor-grab active:cursor-grabbing ${isCompact ? 'p-2 border-slate-800/90 bg-slate-900/90 hover:border-slate-700' : 'p-3 border-slate-800 bg-slate-900/80'
-    } ${item.isBlacklisted ? 'border-rose-500/60 bg-rose-950/20' : ''}`;
+  card.className = `kanban-card card rounded-lg transition-all duration-150 relative cursor-grab active:cursor-grabbing ${isCompact ? 'py-2 px-2.5' : 'py-2.5 px-3'
+    }`;
 
   card.style.borderLeft = `4px solid ${planStyle.barColor}`;
+  if (item.isBlacklisted) {
+    card.style.borderColor = '#c23b3b';
+    card.style.backgroundColor = 'var(--danger-soft)';
+  }
 
   card.dataset.id = item.id;
   card.dataset.name = item.name;
@@ -481,45 +473,47 @@ function createCardElement(item) {
   card.dataset.status = item.status;
 
   const blacklistBadge = item.isBlacklisted
-    ? `<span class="bg-rose-600/30 text-rose-200 border border-rose-500/80 text-[10px] font-extrabold px-1.5 py-0.2 rounded">⛔ 1個月未到${item.noshowCount}次</span>`
+    ? `<span class="bg-danger text-white text-sm font-bold px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap">近1月未到${item.noshowCount}次</span>`
     : '';
 
   let actionButtons = '';
   if (item.status === '已報名' || item.status === '報名成功') {
     actionButtons = `
-      <button onclick="updateStatus('${item.id}', '已出席', '${item.memberPageId}', '${item.status}')" title="點名出席" class="bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-slate-950 text-[11px] font-bold px-2 py-0.5 rounded border border-emerald-500/40 transition">
+      <button onclick="updateStatus('${item.id}', '已出席', '${item.memberPageId}', '${item.status}')" title="點名出席" class="h-9 px-2.5 rounded-md text-sm font-semibold text-accent-strong bg-success-soft active:bg-accent active:text-white transition">
         <i class="fa-solid fa-check"></i> 出席
       </button>
-      <button onclick="updateStatus('${item.id}', '未到', '${item.memberPageId}', '${item.status}')" title="標記未到" class="bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-slate-950 text-[11px] font-bold px-2 py-0.5 rounded border border-rose-500/40 transition">
+      <button onclick="updateStatus('${item.id}', '未到', '${item.memberPageId}', '${item.status}')" title="標記未到" class="h-9 px-2.5 rounded-md text-sm font-semibold text-danger bg-danger-soft active:bg-danger active:text-white transition">
         <i class="fa-solid fa-xmark"></i> 未到
       </button>
     `;
   } else if (item.status === '已出席') {
     actionButtons = `
-      <button onclick="updateStatus('${item.id}', '已報名', '${item.memberPageId}', '${item.status}')" title="重設狀態" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-bold px-1.5 py-0.5 rounded border border-slate-700 transition">
+      <button onclick="updateStatus('${item.id}', '已報名', '${item.memberPageId}', '${item.status}')" title="重設狀態" class="h-9 px-2.5 rounded-md text-sm font-semibold text-muted bg-surface active:bg-surface-strong transition">
         <i class="fa-solid fa-rotate-left"></i> 重設
       </button>
-      <button onclick="updateStatus('${item.id}', '未到', '${item.memberPageId}', '${item.status}')" title="改為未到" class="bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-slate-950 text-[10px] font-bold px-1.5 py-0.5 rounded border border-rose-500/40 transition">
+      <button onclick="updateStatus('${item.id}', '未到', '${item.memberPageId}', '${item.status}')" title="改為未到" class="h-9 px-2.5 rounded-md text-sm font-semibold text-danger bg-danger-soft active:bg-danger active:text-white transition">
         改未到
       </button>
     `;
   } else if (item.status === '未到' || item.status === '放鳥') {
     actionButtons = `
-      <button onclick="updateStatus('${item.id}', '已出席', '${item.memberPageId}', '${item.status}')" title="改為出席" class="bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-slate-950 text-[10px] font-bold px-1.5 py-0.5 rounded border border-emerald-500/40 transition">
+      <button onclick="updateStatus('${item.id}', '已出席', '${item.memberPageId}', '${item.status}')" title="改為出席" class="h-9 px-2.5 rounded-md text-sm font-semibold text-accent-strong bg-success-soft active:bg-accent active:text-white transition">
         改出席
       </button>
-      <button onclick="updateStatus('${item.id}', '已報名', '${item.memberPageId}', '${item.status}')" title="重設狀態" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-bold px-1.5 py-0.5 rounded border border-slate-700 transition">
+      <button onclick="updateStatus('${item.id}', '已報名', '${item.memberPageId}', '${item.status}')" title="重設狀態" class="h-9 px-2.5 rounded-md text-sm font-semibold text-muted bg-surface active:bg-surface-strong transition">
         <i class="fa-solid fa-rotate-left"></i> 重設
       </button>
     `;
   }
 
   card.innerHTML = `
-    <div class="flex items-center justify-between gap-1">
-      <div class="flex items-center gap-1.5 overflow-hidden">
-        <input type="checkbox" onchange="handleCardCheckChange()" class="card-checkbox w-3.5 h-3.5 rounded border-slate-700 bg-slate-800 text-emerald-400 focus:ring-0 cursor-pointer shrink-0" data-id="${item.id}" data-memberpageid="${item.memberPageId || ''}" data-status="${item.status}">
+    <div class="flex items-center justify-between gap-1.5">
+      <div class="flex items-center gap-2 overflow-hidden min-w-0">
+        <label class="w-11 h-11 -m-2.5 flex items-center justify-center shrink-0 cursor-pointer">
+          <input type="checkbox" onchange="handleCardCheckChange()" class="card-checkbox w-5 h-5 rounded border-hairline cursor-pointer" data-id="${item.id}" data-memberpageid="${item.memberPageId || ''}" data-status="${item.status}">
+        </label>
         ${planStyle.dot}
-        <span onclick="openMemberModal('${item.name}')" class="font-extrabold text-slate-100 text-xs truncate max-w-[110px] hover:text-emerald-400 cursor-pointer underline decoration-slate-700 underline-offset-2">${item.name}</span>
+        <span onclick="openMemberModal('${item.name}')" class="font-semibold text-ink text-base truncate flex-1 min-w-0 active:text-accent-strong cursor-pointer">${item.name}</span>
         ${blacklistBadge}
       </div>
       <div class="flex items-center gap-1 shrink-0">
@@ -541,13 +535,13 @@ function filterKanbanCards(query) {
     if (!q || name.includes(q)) {
       card.classList.remove('hidden');
       if (q) {
-        card.classList.add('ring-2', 'ring-emerald-400');
+        card.classList.add('search-hit');
       } else {
-        card.classList.remove('ring-2', 'ring-emerald-400');
+        card.classList.remove('search-hit');
       }
     } else {
       card.classList.add('hidden');
-      card.classList.remove('ring-2', 'ring-emerald-400');
+      card.classList.remove('search-hit');
     }
   });
 }
@@ -747,23 +741,23 @@ function openMemberModal(memberName) {
   // Render History Timeline
   listEl.innerHTML = '';
   if (!mInfo || !mInfo.history || mInfo.history.length === 0) {
-    listEl.innerHTML = `<div class="text-slate-500 text-center py-4">無歷史打球紀錄</div>`;
+    listEl.innerHTML = `<div class="text-muted text-center py-4">無歷史打球紀錄</div>`;
   } else {
     mInfo.history.forEach(h => {
       const item = document.createElement('div');
-      item.className = 'flex items-center justify-between p-2 rounded-lg bg-slate-800/50 border border-slate-700/50';
+      item.className = 'flex items-center justify-between p-2.5 rounded-lg bg-surface';
 
       let badge = '';
       if (h.status === '已出席') {
-        badge = `<span class="bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded text-[10px] font-bold"><i class="fa-solid fa-circle-check mr-1"></i>已出席</span>`;
+        badge = `<span class="bg-success-soft text-accent-strong px-2 py-1 rounded text-xs font-semibold"><i class="fa-solid fa-circle-check mr-1"></i>已出席</span>`;
       } else if (h.status === '未到' || h.status === '放鳥') {
-        badge = `<span class="bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded text-[10px] font-bold"><i class="fa-solid fa-circle-xmark mr-1"></i>未到</span>`;
+        badge = `<span class="bg-danger-soft text-danger px-2 py-1 rounded text-xs font-semibold"><i class="fa-solid fa-circle-xmark mr-1"></i>未到</span>`;
       } else {
-        badge = `<span class="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded text-[10px] font-bold">已報名</span>`;
+        badge = `<span class="bg-info-soft text-info px-2 py-1 rounded text-xs font-semibold">已報名</span>`;
       }
 
       item.innerHTML = `
-        <span class="font-semibold text-slate-200">📅 ${h.date}</span>
+        <span class="font-medium text-ink">${h.date}</span>
         ${badge}
       `;
       listEl.appendChild(item);
@@ -788,15 +782,15 @@ function switchTab(tab) {
   kanbanSec.classList.add('hidden');
   cyclesSec.classList.add('hidden');
 
-  kanbanBtn.className = 'tab-btn text-xs font-extrabold border-b-2 border-transparent text-slate-400 hover:text-slate-200 pb-1 flex items-center gap-1.5';
-  cyclesBtn.className = 'tab-btn text-xs font-extrabold border-b-2 border-transparent text-slate-400 hover:text-slate-200 pb-1 flex items-center gap-1.5';
+  kanbanBtn.className = 'tab-btn text-base font-semibold pb-2.5 flex items-center gap-2';
+  cyclesBtn.className = 'tab-btn text-base font-semibold pb-2.5 flex items-center gap-2';
 
   if (tab === 'kanban') {
     kanbanSec.classList.remove('hidden');
-    kanbanBtn.className = 'tab-btn active text-xs font-extrabold border-b-2 border-emerald-400 text-emerald-400 pb-1 flex items-center gap-1.5';
+    kanbanBtn.className = 'tab-btn active text-base font-semibold pb-2.5 flex items-center gap-2';
   } else if (tab === 'cycles') {
     cyclesSec.classList.remove('hidden');
-    cyclesBtn.className = 'tab-btn active text-xs font-extrabold border-b-2 border-amber-400 text-amber-400 pb-1 flex items-center gap-1.5';
+    cyclesBtn.className = 'tab-btn active text-base font-semibold pb-2.5 flex items-center gap-2';
     renderPrepaidCyclesBoard();
   }
 }
@@ -812,15 +806,21 @@ function showToast(title, msg, color = 'emerald') {
   toastMsg.innerText = msg;
 
   if (color === 'rose') {
-    toastIcon.className = 'fa-solid fa-circle-xmark text-rose-400 text-base';
-    toast.className = 'fixed bottom-4 right-4 z-50 bg-slate-900/95 border border-rose-500/50 shadow-xl rounded-xl p-3 flex items-center gap-2.5 text-slate-100 backdrop-blur-xl text-xs';
+    toastIcon.className = 'fa-solid fa-circle-xmark text-danger text-xl shrink-0';
+    toast.className = 'fixed z-50 toast-box rounded-xl p-3.5 flex items-center gap-3';
+    toast.style.borderLeft = '4px solid var(--danger)';
   } else if (color === 'blue') {
-    toastIcon.className = 'fa-solid fa-spinner fa-spin text-blue-400 text-base';
-    toast.className = 'fixed bottom-4 right-4 z-50 bg-slate-900/95 border border-blue-500/50 shadow-xl rounded-xl p-3 flex items-center gap-2.5 text-slate-100 backdrop-blur-xl text-xs';
+    toastIcon.className = 'fa-solid fa-spinner fa-spin text-info text-xl shrink-0';
+    toast.className = 'fixed z-50 toast-box rounded-xl p-3.5 flex items-center gap-3';
+    toast.style.borderLeft = '4px solid var(--info)';
   } else {
-    toastIcon.className = 'fa-solid fa-circle-check text-emerald-400 text-base';
-    toast.className = 'fixed bottom-4 right-4 z-50 bg-slate-900/95 border border-emerald-500/50 shadow-xl rounded-xl p-3 flex items-center gap-2.5 text-slate-100 backdrop-blur-xl text-xs';
+    toastIcon.className = 'fa-solid fa-circle-check text-accent-strong text-xl shrink-0';
+    toast.className = 'fixed z-50 toast-box rounded-xl p-3.5 flex items-center gap-3';
+    toast.style.borderLeft = '4px solid var(--accent)';
   }
+  toast.style.bottom = 'calc(1rem + env(safe-area-inset-bottom))';
+  toast.style.right = '1rem';
+  toast.style.maxWidth = 'calc(100% - 2rem)';
 
   toast.classList.remove('hidden');
   setTimeout(() => {
