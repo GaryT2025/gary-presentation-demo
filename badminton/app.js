@@ -7,9 +7,8 @@ let isAdmin = false;
 let sortableInstances = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Load-bearing ordering: initAuthState() must run first, before initSortable()
-  // (which calls applyAdminVisibility() at its end) and before fetchAttendance().
-  // sortableInstances is still an empty array at this point, so this is safe.
+  // Load-bearing ordering: initAuthState() must run first, before
+  // applyAdminVisibility() and before fetchAttendance().
   initAuthState();
 
   const dateDropdown = document.getElementById('dateSelectDropdown');
@@ -18,8 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
   dateDropdown.addEventListener('change', (e) => fetchAttendance(e.target.value));
   document.getElementById('refreshBtn').addEventListener('click', () => fetchAttendance(dateDropdown.value));
 
-  // Initialize Kanban & Fetch Data
-  initSortable();
+  // Apply admin gating & Fetch Data
+  applyAdminVisibility();
   fetchAttendance();
 });
 
@@ -72,9 +71,10 @@ function forceLogout(msg) {
   showToast('請重新登入', msg || '管理者登入已過期或失效，請重新登入', 'rose');
 }
 
-// Toggle every [data-admin-only] element, swap the header auth button's
-// icon/style, and disable/enable SortableJS drag (a genuine write path via
-// updateStatus(), not just a UI affordance).
+// Toggle every [data-admin-only] element and swap the header auth button's
+// icon/style based on admin state. Drag-and-drop reordering was removed;
+// sortableInstances is now permanently an empty array, so the forEach below
+// is a permanent no-op kept only to avoid touching unrelated code.
 function applyAdminVisibility() {
   document.querySelectorAll('[data-admin-only]').forEach(el => {
     el.classList.toggle('hidden', !isAdmin);
@@ -832,43 +832,6 @@ async function updateStatus(pageId, status, memberPageId, currentStatus) {
   } catch (err) {
     showToast('連線錯誤', '更新失敗', 'rose');
   }
-}
-
-// Initialize Drag & Drop via SortableJS
-function initSortable() {
-  const cols = ['colPending', 'colAttended', 'colNoshow'];
-  const statusMap = {
-    'colPending': '已報名',
-    'colAttended': '已出席',
-    'colNoshow': '未到'
-  };
-
-  cols.forEach(colId => {
-    const el = document.getElementById(colId);
-    if (!el) return;
-
-    const instance = new Sortable(el, {
-      group: 'kanban',
-      animation: 150,
-      ghostClass: 'sortable-ghost',
-      dragClass: 'sortable-drag',
-      onEnd: async function (evt) {
-        const itemEl = evt.item;
-        const targetColId = evt.to.id;
-        const newStatus = statusMap[targetColId];
-        const pageId = itemEl.dataset.id;
-        const memberPageId = itemEl.dataset.memberpageid;
-        const oldStatus = itemEl.dataset.status;
-
-        if (newStatus && oldStatus !== newStatus) {
-          updateStatus(pageId, newStatus, memberPageId, oldStatus);
-        }
-      }
-    });
-    sortableInstances.push(instance);
-  });
-
-  applyAdminVisibility();
 }
 
 // Member Detail & Attendance History Modal
