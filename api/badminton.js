@@ -241,6 +241,13 @@ export default async function handler(req, res) {
     'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
   );
 
+  // vercel.json applies `Cache-Control: public, max-age=3600` to `/(.*)`, which
+  // matches this rewritten API path and let Vercel's edge CDN serve hour-old
+  // Notion data after a write (measured: X-Vercel-Cache: HIT, Age: 349).
+  // vercel.json is shared by every site in this project and must not be edited,
+  // so override it here instead. Applies to all routes — reads and writes alike.
+  res.setHeader('Cache-Control', 'no-store');
+
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
