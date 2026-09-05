@@ -1,5 +1,12 @@
 import crypto from 'node:crypto';
 
+// Paced batch-update (attendance/batch-update) sends Notion requests at
+// ~3/s to stay under Notion's rate limit. A 36-person 一鍵全到 batch is
+// ~36 items x up to 3 Notion calls ≈ 108 requests ≈ 36s, which cannot fit
+// in Vercel's default Node function timeout. 60 is the Vercel Hobby
+// ceiling, so it is safe on any plan tier this project could be on.
+export const maxDuration = 60;
+
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const ATTENDANCE_DB_ID = process.env.NOTION_ATTENDANCE_DB_ID;
 const MEMBERS_DB_ID = process.env.NOTION_MEMBERS_DB_ID;
@@ -116,6 +123,21 @@ function getPlainText(prop) {
   }
   if (prop.type === 'email') return prop.email || '';
   return '';
+}
+
+// Notion's API caps out around 3 requests/second per integration. A plain
+// concurrency cap is not enough (with ~250ms round trips, 3 concurrent
+// workers can still push ~12 req/s), so we reserve evenly-spaced send slots
+// instead: the send RATE is bounded regardless of latency. Reservation is
+// synchronous so two concurrent callers can never win the same slot.
+const NOTION_MIN_INTERVAL_MS = 340;
+let notionNextSlotAt = 0;
+function acquireNotionSlot() {
+  const at = Math.max(Date.now(), notionNextSlotAt);
+  notionNextSlotAt = at + NOTION_MIN_INTERVAL_MS;
+  const delay = at - Date.now();
+  if (delay <= 0) return Promise.resolve();
+  return new Promise((resolve) => setTimeout(resolve, delay));
 }
 
 function getDatePropVal(properties) {
@@ -616,39 +638,112 @@ export default async function handler(req, res) {
         return res.status(400).json({ success: false, error: 'Invalid items or status' });
       }
 
+      // Soft internal deadline so the handler always answers instead of
+      // being killed mid-flight: if the budget runs out, stop claiming new
+      // items and honestly report the remainder as skipped rather than
+      // dying with an opaque 504.
+      const startedAt = Date.now();
+      const BATCH_BUDGET_MS = 50000;
+
       let updatedCount = 0;
-      const promises = items.map(async (item) => {
+      const failed = [];
+      const skipped = [];
+      let cursor = 0;
+
+      async function processItem(item) {
         const { pageId, memberPageId, currentStatus } = item;
-        if (!pageId || pageId === 'dummy' || pageId.length < 20) return;
 
-        await updateNotionPage(pageId, {
-          '出席情況': { select: { name: status } }
-        });
-        updatedCount++;
+        if (!pageId || pageId === 'dummy' || pageId.length < 20) {
+          skipped.push(pageId);
+          return;
+        }
 
-        if (memberPageId && memberPageId !== 'null' && memberPageId !== 'undefined' && memberPageId.length >= 20) {
-          try {
-            const page = await getNotionPage(memberPageId);
-            const planType = getPlainText(page.properties['繳費類型']) || '儲值';
-            if (planType === '儲值' || planType === '預繳10次') {
-              const currentCount = page.properties['Number'] ? (page.properties['Number'].number ?? 0) : 0;
+        try {
+          // Retry the 出席情況 PATCH up to 2x, but ONLY on a 429. A 429 means
+          // Notion did not apply the write, so retrying cannot double-apply it.
+          let attempt = 0;
+          while (true) {
+            await acquireNotionSlot();
+            try {
+              await updateNotionPage(pageId, { '出席情況': { select: { name: status } } });
+              break;
+            } catch (err) {
+              const msg = err && err.message ? err.message : String(err);
+              if (attempt < 2 && /\(429\)/.test(msg)) {
+                attempt++;
+                await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
+                continue;
+              }
+              throw err;
+            }
+          }
+          updatedCount++;
 
-              if (status === '已出席' && currentStatus !== '已出席') {
-                const newCount = Math.max(0, currentCount - 1);
-                await updateNotionPage(memberPageId, { 'Number': { number: newCount } });
-              } else if (currentStatus === '已出席' && status !== '已出席') {
-                const newCount = currentCount + 1;
-                await updateNotionPage(memberPageId, { 'Number': { number: newCount } });
+          if (memberPageId && memberPageId !== 'null' && memberPageId !== 'undefined' && memberPageId.length >= 20) {
+            // Skip the wasted member-page GET when neither boundary crossing
+            // can happen regardless of planType.
+            const crossesBoundary =
+              (status === '已出席' && currentStatus !== '已出席') ||
+              (currentStatus === '已出席' && status !== '已出席');
+            if (crossesBoundary) {
+              try {
+                await acquireNotionSlot();
+                const page = await getNotionPage(memberPageId);
+                const planType = getPlainText(page.properties['繳費類型']) || '儲值';
+                if (planType === '儲值' || planType === '預繳10次') {
+                  const currentCount = page.properties['Number'] ? (page.properties['Number'].number ?? 0) : 0;
+                  if (status === '已出席' && currentStatus !== '已出席') {
+                    const newCount = Math.max(0, currentCount - 1);
+                    await acquireNotionSlot();
+                    await updateNotionPage(memberPageId, { 'Number': { number: newCount } });
+                  } else if (currentStatus === '已出席' && status !== '已出席') {
+                    const newCount = currentCount + 1;
+                    await acquireNotionSlot();
+                    await updateNotionPage(memberPageId, { 'Number': { number: newCount } });
+                  }
+                }
+              } catch (e) {
+                // Best-effort only: a failure to adjust remaining-session
+                // count must not mark the attendance item as failed.
+                console.warn('Batch member count update skipped for:', memberPageId);
               }
             }
-          } catch (e) {
-            console.warn('Batch member count update skipped for:', memberPageId);
           }
+        } catch (err) {
+          failed.push({ pageId, error: String(err && err.message ? err.message : err) });
+          console.warn('Batch item failed for:', pageId, err);
         }
-      });
+      }
 
-      await Promise.all(promises);
-      return res.status(200).json({ success: true, updatedCount, status });
+      async function worker() {
+        while (true) {
+          if (Date.now() - startedAt > BATCH_BUDGET_MS) {
+            while (cursor < items.length) {
+              skipped.push(items[cursor].pageId);
+              cursor++;
+            }
+            return;
+          }
+          if (cursor >= items.length) return;
+          const item = items[cursor++];
+          await processItem(item);
+        }
+      }
+
+      // Bounded worker pool: caps in-flight items at 3 while acquireNotionSlot
+      // caps the outbound request RATE. A worker body never rejects, so
+      // awaiting Promise.all on the workers is safe.
+      const workerCount = Math.min(3, items.length);
+      const workers = [];
+      for (let w = 0; w < workerCount; w++) workers.push(worker());
+      await Promise.all(workers);
+
+      const payload = { success: true, updatedCount, status, failed, skipped };
+      if (updatedCount === 0 && failed.length > 0) {
+        payload.success = false;
+        payload.error = `批次更新失敗（${failed.length} 筆）：${failed[0].error}`;
+      }
+      return res.status(200).json(payload);
     }
 
     // 6. POST api/attendance/update-date
