@@ -34,14 +34,29 @@ function getOfficialPlan(name) {
   return '儲值';
 }
 
-async function queryAllNotionDatabase(dbId, maxPages = 10) {
+// Pagination is driven exclusively by Notion's own has_more/next_cursor
+// signal -- there is no hardcoded page/record cap. MAX_SAFETY_PAGES below
+// is a runaway-loop guard only (not a data-correctness cap): it protects
+// against a genuine Notion-API-misbehavior scenario (has_more never
+// resolving to false), sized generously at ~25x today's largest table
+// (attendance DB had 4,013 rows / 41 pages as of 2026-09-06). If it is
+// ever hit, this throws loudly instead of looping forever or silently
+// truncating results. See .planning/quick/260906-i5e-badminton-attendance-pagination-dataloss/
+// for the data-loss bug this replaces (the old hardcoded page-count cap
+// silently dropped the oldest records once a table grew past it).
+const MAX_SAFETY_PAGES = 1000;
+
+async function queryAllNotionDatabase(dbId) {
   let allResults = [];
   let hasMore = true;
   let nextCursor = undefined;
   let pageCount = 0;
 
-  while (hasMore && pageCount < maxPages) {
+  while (hasMore) {
     pageCount++;
+    if (pageCount > MAX_SAFETY_PAGES) {
+      throw new Error(`queryAllNotionDatabase runaway-loop abort: dbId=${dbId} exceeded MAX_SAFETY_PAGES=${MAX_SAFETY_PAGES} (fetched ${allResults.length} records so far) without has_more resolving to false. This is a safety-guard abort, not a data-correctness truncation -- investigate Notion API behavior.`);
+    }
     const body = {
       page_size: 100,
       sorts: [{ timestamp: 'created_time', direction: 'descending' }]
@@ -304,8 +319,8 @@ export default async function handler(req, res) {
       const currentMonthPrefix = '2026-08';
       const realTodayStr = toTaiwanDateStr(new Date().toISOString());
       
-      const attendanceResults = await queryAllNotionDatabase(ATTENDANCE_DB_ID, 10);
-      const memberResults = await queryAllNotionDatabase(MEMBERS_DB_ID, 3);
+      const attendanceResults = await queryAllNotionDatabase(ATTENDANCE_DB_ID);
+      const memberResults = await queryAllNotionDatabase(MEMBERS_DB_ID);
 
       const memberPlanMap = {};
       const memberNameMap = {};
