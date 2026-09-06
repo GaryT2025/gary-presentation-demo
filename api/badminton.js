@@ -160,7 +160,7 @@ function toTaiwanDateStr(isoString) {
 
 function calculatePrepaidCycles(attendanceHistory) {
   const validAttendances = attendanceHistory
-    .filter(h => h.isValid || h.originStatus === '報名成功' || h.attendanceStatus === '已出席')
+    .filter(h => h.originStatus === '報名成功' && h.attendanceStatus === '已出席')
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 
   const cycles = [];
