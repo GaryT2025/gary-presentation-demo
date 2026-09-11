@@ -23,6 +23,9 @@ const OFFICIAL_PREPAID = ['糖果寶', '淑湘', '賓哥', 'Sam', '小潘', '小
 
 const NAME_ALIASES = { '黃羽辰': '羽辰', '柳大俠': '柳大神' };
 
+// Real registrants whose 姓名(Name) happens to be all digits -- everything else numeric stays filtered as dirty data.
+const NUMERIC_NAME_WHITELIST = new Set(['138']);
+
 function normalizeName(rawName) {
   return NAME_ALIASES[rawName] || rawName;
 }
@@ -364,7 +367,7 @@ export default async function handler(req, res) {
         if (status === '取消報名' || status === '報名取消') return;
 
         const name = normalizeName((getPlainText(p.properties['姓名(Name)'])).trim());
-        if (!name || name === '5' || !isNaN(name)) return;
+        if (!name || name === '5' || (!isNaN(name) && !NUMERIC_NAME_WHITELIST.has(name))) return;
 
         const uId = getPlainText(p.properties['userId']);
         const datePropVal = getDatePropVal(p.properties);
@@ -485,7 +488,7 @@ export default async function handler(req, res) {
         if (status === '取消報名' || status === '報名取消') return;
 
         const name = normalizeName((getPlainText(p.properties['姓名(Name)'])).trim());
-        if (!name || name === '5' || !isNaN(name)) return;
+        if (!name || name === '5' || (!isNaN(name) && !NUMERIC_NAME_WHITELIST.has(name))) return;
 
         const uId = getPlainText(p.properties['userId']);
         const datePropVal = getDatePropVal(p.properties);
