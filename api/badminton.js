@@ -26,6 +26,9 @@ const NAME_ALIASES = { '黃羽辰': '羽辰', '柳大俠': '柳大神' };
 // Real registrants whose 姓名(Name) happens to be all digits -- everything else numeric stays filtered as dirty data.
 const NUMERIC_NAME_WHITELIST = new Set(['138']);
 
+// Notion Members-DB 上由 Gary 手動建立的 Date 欄位；寫入(members/renew)與讀取(GET attendance)共用此常數，避免兩邊字串打錯字造成靜默不匹配。
+const LAST_PREPAID_DATE_PROP = '最後儲值日期';
+
 function normalizeName(rawName) {
   return NAME_ALIASES[rawName] || rawName;
 }
@@ -335,7 +338,8 @@ export default async function handler(req, res) {
         const name = getPlainText(props['Name']) || getPlainText(props['item']) || '';
         const planType = getPlainText(props['繳費類型']);
         const count = props['Number'] ? (props['Number'].number ?? 0) : 0;
-        
+        const lastPrepaidDate = props[LAST_PREPAID_DATE_PROP]?.date?.start || null;
+
         const memberInfo = {
           memberPageId: m.id,
           userId,
@@ -343,7 +347,9 @@ export default async function handler(req, res) {
           planType,
           remainingCount: count,
           year2026Count: 0,
-          monthCount: 0
+          monthCount: 0,
+          hasConfirmedPrepay: !!lastPrepaidDate,
+          lastPrepaidDate
         };
 
         if (userId) memberPlanMap[userId] = memberInfo;
@@ -611,12 +617,14 @@ export default async function handler(req, res) {
       const page = await getNotionPage(memberPageId);
       const currentCount = page.properties['Number'] ? (page.properties['Number'].number ?? 0) : 0;
       const newCount = currentCount + parseInt(addCount, 10);
+      const todayTw = toTaiwanDateStr(new Date().toISOString());
 
       await updateNotionPage(memberPageId, {
-        'Number': { number: newCount }
+        'Number': { number: newCount },
+        [LAST_PREPAID_DATE_PROP]: { date: { start: todayTw } }
       });
 
-      return res.status(200).json({ success: true, memberPageId, newCount, amount });
+      return res.status(200).json({ success: true, memberPageId, newCount, amount, lastPrepaidDate: todayTw });
     }
 
     // 4. POST api/attendance/update
