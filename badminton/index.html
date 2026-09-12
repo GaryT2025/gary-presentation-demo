@@ -110,7 +110,7 @@
       </div>
     </section>
 
-    <!-- Fun MVP Banners: 年度(前2名)／月度(第1名) 兩個分組榜單 -->
+    <!-- Fun MVP Banners: 年度／月度 兩個分組榜單，皆各列前 2 名 -->
     <div class="space-y-2">
       <h2 id="yearlyGroupLabel" class="text-sm font-semibold text-muted uppercase tracking-wide">🏆 年度榜</h2>
       <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -118,8 +118,8 @@
           <span class="text-2xl shrink-0">🔥</span>
           <div class="min-w-0">
             <p class="text-sm font-semibold text-muted uppercase tracking-wide">年度出席王</p>
-            <p id="bannerYear2026King" class="text-sm font-bold text-ink mt-0.5">載入中...</p>
-            <p id="bannerYear2026KingRunnerUp" class="text-sm text-muted mt-0.5"></p>
+            <p id="bannerYearAttendanceKing" class="text-sm font-bold text-ink mt-0.5">載入中...</p>
+            <p id="bannerYearAttendanceKingRunnerUp" class="text-sm text-muted mt-0.5"></p>
           </div>
         </div>
         <div class="card rounded-xl p-3.5 flex items-center gap-3">
@@ -148,7 +148,24 @@
           <span class="text-2xl shrink-0">🚀</span>
           <div class="min-w-0">
             <p class="text-sm font-semibold text-muted uppercase tracking-wide">月度出席王</p>
-            <p id="bannerMonthLeader" class="text-sm font-bold text-ink mt-0.5">載入中...</p>
+            <p id="bannerMonthAttendanceKing" class="text-sm font-bold text-ink mt-0.5">載入中...</p>
+            <p id="bannerMonthAttendanceKingRunnerUp" class="text-sm text-muted mt-0.5"></p>
+          </div>
+        </div>
+        <div class="card rounded-xl p-3.5 flex items-center gap-3">
+          <span class="text-2xl shrink-0">🌟</span>
+          <div class="min-w-0">
+            <p class="text-sm font-semibold text-muted uppercase tracking-wide">月度連續出勤王</p>
+            <p id="bannerMonthStreakKing" class="text-sm font-bold text-ink mt-0.5">載入中...</p>
+            <p id="bannerMonthStreakKingRunnerUp" class="text-sm text-muted mt-0.5"></p>
+          </div>
+        </div>
+        <div class="card rounded-xl p-3.5 flex items-center gap-3">
+          <span class="text-2xl shrink-0">💥</span>
+          <div class="min-w-0">
+            <p class="text-sm font-semibold text-muted uppercase tracking-wide">月度秒殺王</p>
+            <p id="bannerMonthFastestCasual" class="text-sm font-bold text-ink mt-0.5">載入中...</p>
+            <p id="bannerMonthFastestCasualRunnerUp" class="text-sm text-muted mt-0.5"></p>
           </div>
         </div>
       </section>
@@ -194,13 +211,13 @@
           <div class="flex items-center justify-between gap-2 mb-3 pb-3 border-b border-hairline">
             <div class="flex items-center gap-2 flex-wrap">
               <h2 class="font-semibold text-base text-ink flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-info"></span> 已報名
+                <span class="w-2.5 h-2.5 rounded-full bg-info"></span> 報名
               </h2>
               <div class="flex items-center gap-1.5 hidden" data-admin-only>
                 <button onclick="toggleSelectAllPending()" class="text-xs font-semibold text-muted border border-hairline px-2.5 py-1.5 rounded-md active:bg-surface transition">
                   全選
                 </button>
-                <button onclick="quickAllAttend()" title="一鍵將全場報名球員標記為已出席" class="text-xs font-semibold text-white bg-accent px-2.5 py-1.5 rounded-md active:bg-accent-strong transition">
+                <button onclick="quickAllAttend()" title="一鍵將全場報名球員標記為已到" class="text-xs font-semibold text-white bg-accent px-2.5 py-1.5 rounded-md active:bg-accent-strong transition">
                   一鍵全到
                 </button>
               </div>
@@ -216,7 +233,7 @@
         <div class="card rounded-xl p-3.5 flex flex-col">
           <div class="flex items-center justify-between mb-3 pb-3 border-b border-hairline">
             <h2 class="font-semibold text-base text-ink flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-accent"></span> 已出席
+              <span class="w-2.5 h-2.5 rounded-full bg-accent"></span> 已到
             </h2>
             <span id="countAttended" class="bg-success-soft text-accent-strong text-sm font-bold px-2.5 py-1 rounded-full">0</span>
           </div>
@@ -286,7 +303,7 @@
     </div>
 
     <button onclick="executeBatchAction('已出席')" class="h-10 px-3.5 rounded-lg text-sm font-semibold text-white bg-accent active:bg-accent-strong transition">
-      標記已出席
+      標記已到
     </button>
 
     <button onclick="executeBatchAction('未到')" class="h-10 px-3.5 rounded-lg text-sm font-semibold text-danger bg-danger-soft active:bg-danger active:text-white transition">

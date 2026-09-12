@@ -159,6 +159,18 @@ async function submitAdminLogin() {
   }
 }
 
+// D-3: display-layer text simplification only — translates the ORIGINAL
+// status strings (which are also what's compared against elsewhere and what
+// gets written to Notion's select field) into the user-facing wording
+// Gary asked for: 報名／已到／未到. The comparisons inside this function
+// must stay on the original strings; only the return value (what the user
+// sees) is simplified.
+function statusLabel(status) {
+  if (status === '已出席') return '已到';
+  if (status === '未到' || status === '放鳥') return '未到';
+  return '報名';
+}
+
 // Fetch Attendance and Member Data from Express API
 async function fetchAttendance(selectedDate = '') {
   const refreshIcon = document.getElementById('refreshIcon');
@@ -186,9 +198,9 @@ async function fetchAttendance(selectedDate = '') {
   }
 }
 
-// Render Fun Champion Banners — D-6: fb now splits into yearly (top-2 per
-// metric) / monthly (top-1) groups; D-4: month/year labels are dynamic, not
-// hardcoded strings.
+// Render Fun Champion Banners — D-2: yearly and monthly now share the same
+// three-metric shape (attendanceKing/streakKing/fastestCasual), both top-2;
+// D-4: month/year labels are dynamic, not hardcoded strings.
 function renderFunBanners() {
   const fb = currentData.funBanners || {};
   const yearly = fb.yearly || {};
@@ -203,11 +215,11 @@ function renderFunBanners() {
     monthlyLabelEl.innerText = fb.currentMonthLabel ? `📆 月度榜 · ${fb.currentMonthLabel}月` : '📆 月度榜';
   }
 
-  // Fills a champion node + optional runner-up node from a top-N array
-  // (D-6). Empty array -> "尚無紀錄" + blank runner-up (never leaves
-  // "載入中..." stuck, never renders "undefined"). Length 1 -> champion
-  // only, runner-up blank. Length 2 -> both, runner-up prefixed with a
-  // visible "亞軍" marker so it reads as clearly secondary to the champion.
+  // Fills a champion node + optional runner-up node from a top-N array.
+  // Empty array -> "尚無紀錄" + blank runner-up (never leaves "載入中..."
+  // stuck, never renders "undefined"). Length 1 -> champion only, runner-up
+  // blank. Length 2 -> both, runner-up is just the next line under the
+  // champion with no "second place" or other text prefix — D-1.
   function renderLeaderboardCard(championEl, runnerUpEl, list, formatFn) {
     if (!championEl) return;
     const arr = Array.isArray(list) ? list : [];
@@ -218,41 +230,64 @@ function renderFunBanners() {
     }
     championEl.innerHTML = formatFn(arr[0]);
     if (runnerUpEl) {
-      runnerUpEl.innerHTML = arr.length >= 2 ? `亞軍 ${formatFn(arr[1])}` : '';
+      runnerUpEl.innerHTML = arr.length >= 2 ? formatFn(arr[1]) : '';
     }
   }
 
-  renderLeaderboardCard(
-    document.getElementById('bannerYear2026King'),
-    document.getElementById('bannerYear2026KingRunnerUp'),
-    yearly.year2026King,
-    p => `<span class="text-warning font-bold">${p.name}</span> (${fb.currentYear || ''}出勤 <span class="underline">${p.count}</span> 次稱霸)`
-  );
+  // D-2: data-driven config, one entry per card, instead of 6 near-identical
+  // renderLeaderboardCard() call sites drifting apart over time. Monthly
+  // formatFns reuse yearly's wording/color tokens, swapping the "年度/當年"
+  // phrasing for `${fb.currentMonthLabel}月`.
+  const cardConfigs = [
+    {
+      championId: 'bannerYearAttendanceKing',
+      runnerUpId: 'bannerYearAttendanceKingRunnerUp',
+      list: yearly.attendanceKing,
+      formatFn: p => `<span class="text-warning font-bold">${p.name}</span> (${fb.currentYear || ''}出勤 <span class="underline">${p.count}</span> 次稱霸)`
+    },
+    {
+      championId: 'bannerStreakKing',
+      runnerUpId: 'bannerStreakKingRunnerUp',
+      list: yearly.streakKing,
+      formatFn: p => `<span class="text-plan-annual font-bold">${p.name}</span> (連續出勤 <span class="underline">${p.streak}</span> 場無間斷)`
+    },
+    {
+      championId: 'bannerFastestCasual',
+      runnerUpId: 'bannerFastestCasualRunnerUp',
+      list: yearly.fastestCasual,
+      // Previously read fb.fastestCasual.time, which the backend never sent
+      // (always undefined -> blank time string). Uses the backend's actual
+      // wins/lastWinDate fields instead.
+      formatFn: p => `<span class="text-info font-bold">${p.name}</span> (零打首殺 <span class="underline">${p.wins}</span> 次${p.lastWinDate ? `，最近 ${p.lastWinDate}` : ''})`
+    },
+    {
+      championId: 'bannerMonthAttendanceKing',
+      runnerUpId: 'bannerMonthAttendanceKingRunnerUp',
+      list: monthly.attendanceKing,
+      formatFn: p => `<span class="text-accent-strong font-bold">${p.name}</span> (${fb.currentMonthLabel || ''}月出勤 <span class="underline">${p.count}</span> 次稱霸)`
+    },
+    {
+      championId: 'bannerMonthStreakKing',
+      runnerUpId: 'bannerMonthStreakKingRunnerUp',
+      list: monthly.streakKing,
+      formatFn: p => `<span class="text-plan-annual font-bold">${p.name}</span> (${fb.currentMonthLabel || ''}月連續出勤 <span class="underline">${p.streak}</span> 場無間斷)`
+    },
+    {
+      championId: 'bannerMonthFastestCasual',
+      runnerUpId: 'bannerMonthFastestCasualRunnerUp',
+      list: monthly.fastestCasual,
+      formatFn: p => `<span class="text-info font-bold">${p.name}</span> (${fb.currentMonthLabel || ''}月零打首殺 <span class="underline">${p.wins}</span> 次${p.lastWinDate ? `，最近 ${p.lastWinDate}` : ''})`
+    }
+  ];
 
-  renderLeaderboardCard(
-    document.getElementById('bannerStreakKing'),
-    document.getElementById('bannerStreakKingRunnerUp'),
-    yearly.streakKing,
-    p => `<span class="text-plan-annual font-bold">${p.name}</span> (連續出勤 <span class="underline">${p.streak}</span> 場無間斷)`
-  );
-
-  renderLeaderboardCard(
-    document.getElementById('bannerFastestCasual'),
-    document.getElementById('bannerFastestCasualRunnerUp'),
-    yearly.fastestCasual,
-    // Previously read fb.fastestCasual.time, which the backend never sent
-    // (always undefined -> blank time string). Uses the backend's actual
-    // wins/lastWinDate fields instead.
-    p => `<span class="text-info font-bold">${p.name}</span> (零打首殺 <span class="underline">${p.wins}</span> 次${p.lastWinDate ? `，最近 ${p.lastWinDate}` : ''})`
-  );
-
-  // Monthly card has no runner-up — D-6: monthly.monthLeader is max length 1.
-  renderLeaderboardCard(
-    document.getElementById('bannerMonthLeader'),
-    null,
-    monthly.monthLeader,
-    p => `<span class="text-accent-strong font-bold">${p.name}</span> (${fb.currentMonthLabel || ''}月打球 <span class="underline">${p.count}</span> 次稱霸)`
-  );
+  cardConfigs.forEach(cfg => {
+    renderLeaderboardCard(
+      document.getElementById(cfg.championId),
+      document.getElementById(cfg.runnerUpId),
+      cfg.list,
+      cfg.formatFn
+    );
+  });
 }
 
 // Render Available Dates Dropdown
@@ -684,7 +719,7 @@ function createCardElement(item) {
   if (isAdmin && (item.status === '已報名' || item.status === '報名成功')) {
     actionButtons = `
       <button onclick="updateStatus('${item.id}', '已出席', '${item.memberPageId}', '${item.status}')" title="點名出席" class="h-9 px-2.5 rounded-md text-sm font-semibold text-accent-strong bg-success-soft active:bg-accent active:text-white transition">
-        <i class="fa-solid fa-check"></i> 出席
+        <i class="fa-solid fa-check"></i> 已到
       </button>
       <button onclick="updateStatus('${item.id}', '未到', '${item.memberPageId}', '${item.status}')" title="標記未到" class="h-9 px-2.5 rounded-md text-sm font-semibold text-danger bg-danger-soft active:bg-danger active:text-white transition">
         <i class="fa-solid fa-xmark"></i> 未到
@@ -702,7 +737,7 @@ function createCardElement(item) {
   } else if (isAdmin && (item.status === '未到' || item.status === '放鳥')) {
     actionButtons = `
       <button onclick="updateStatus('${item.id}', '已出席', '${item.memberPageId}', '${item.status}')" title="改為出席" class="h-9 px-2.5 rounded-md text-sm font-semibold text-accent-strong bg-success-soft active:bg-accent active:text-white transition">
-        改出席
+        改已到
       </button>
       <button onclick="updateStatus('${item.id}', '已報名', '${item.memberPageId}', '${item.status}')" title="重設狀態" class="h-9 px-2.5 rounded-md text-sm font-semibold text-muted bg-surface active:bg-surface-strong transition">
         <i class="fa-solid fa-rotate-left"></i> 重設
@@ -767,7 +802,7 @@ async function quickAllAttend() {
     currentStatus: cb.dataset.status
   }));
 
-  showToast('一鍵全到處理中...', `正在將 ${items.length} 位報名球員一鍵標記【已出席】`, 'blue');
+  showToast('一鍵全到處理中...', `正在將 ${items.length} 位報名球員一鍵標記【已到】`, 'blue');
 
   try {
     const res = await fetch('api/attendance/batch-update', {
@@ -779,7 +814,7 @@ async function quickAllAttend() {
     const data = await res.json();
 
     if (data.success) {
-      showToast('一鍵點名完成！', `全場 ${data.updatedCount} 位球員成功標記【已出席】`, 'emerald');
+      showToast('一鍵點名完成！', `全場 ${data.updatedCount} 位球員成功標記【已到】`, 'emerald');
       const activeDate = document.getElementById('dateSelectDropdown').value;
       fetchAttendance(activeDate);
     } else {
@@ -871,7 +906,7 @@ async function updateStatus(pageId, status, memberPageId, currentStatus) {
     const data = await res.json();
 
     if (data.success) {
-      let msg = `已在 Notion【出席情況】寫入：${status}`;
+      let msg = `出席狀態已更新：${statusLabel(status)}`;
       if (status === '已出席' && data.newCount !== null) {
         msg += `，儲值額度剩餘：${data.newCount} 次`;
       }
@@ -930,11 +965,11 @@ function openMemberModal(memberName) {
 
       let badge = '';
       if (h.status === '已出席') {
-        badge = `<span class="bg-success-soft text-accent-strong px-2 py-1 rounded text-xs font-semibold"><i class="fa-solid fa-circle-check mr-1"></i>已出席</span>`;
+        badge = `<span class="bg-success-soft text-accent-strong px-2 py-1 rounded text-xs font-semibold"><i class="fa-solid fa-circle-check mr-1"></i>${statusLabel(h.status)}</span>`;
       } else if (h.status === '未到' || h.status === '放鳥') {
-        badge = `<span class="bg-danger-soft text-danger px-2 py-1 rounded text-xs font-semibold"><i class="fa-solid fa-circle-xmark mr-1"></i>未到</span>`;
+        badge = `<span class="bg-danger-soft text-danger px-2 py-1 rounded text-xs font-semibold"><i class="fa-solid fa-circle-xmark mr-1"></i>${statusLabel(h.status)}</span>`;
       } else {
-        badge = `<span class="bg-info-soft text-info px-2 py-1 rounded text-xs font-semibold">已報名</span>`;
+        badge = `<span class="bg-info-soft text-info px-2 py-1 rounded text-xs font-semibold">${statusLabel(h.status)}</span>`;
       }
 
       item.innerHTML = `
