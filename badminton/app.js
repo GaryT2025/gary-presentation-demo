@@ -351,6 +351,13 @@ function renderPrepaidCyclesBoard() {
       ? `<span class="${warningBadgeClass} text-xs font-bold px-2 py-0.5 rounded-full">續卡</span>`
       : '';
 
+    // D-03: 沒查到 mInfo（會員在 Members-DB 沒有頁面）一律視為「尚未確認儲值」，
+    // 沒有第三種空白狀態；只看「最後儲值日期」是否有值，不做逐次出席日期比對。
+    const hasConfirmedPrepay = !!(mInfo && mInfo.hasConfirmedPrepay);
+    const prepayBadge = hasConfirmedPrepay
+      ? `<span class="bg-accent text-white text-xs font-bold px-2 py-0.5 rounded-full">✅ 已確認儲值</span>`
+      : `<span class="bg-warning-soft text-warning text-xs font-bold px-2 py-0.5 rounded-full">⚠️ 尚未確認儲值</span>`;
+
     const renewButtonHtml = isAdmin
       ? `<button onclick="openRenewPassModal('${memberPageId}', '${name}')" title="購買新一期 / 續卡加 10 次 (記錄金額)" class="h-9 px-3 rounded-lg text-xs font-semibold text-warning bg-warning-soft active:bg-warning active:text-white transition flex items-center gap-1 shrink-0">
           <i class="fa-solid fa-plus-circle"></i> 購新一期
@@ -364,6 +371,7 @@ function renderPrepaidCyclesBoard() {
           <span class="w-2.5 h-2.5 rounded-full bg-plan-prepaid shrink-0"></span>
           <h3 class="font-semibold text-ink text-base truncate active:text-accent-strong cursor-pointer" onclick="openMemberModal('${name}')">${name}</h3>
           ${warningBadge}
+          ${prepayBadge}
         </div>
         <span class="bg-surface text-muted text-xs font-semibold px-2 py-1 rounded-full shrink-0">
           ${targetYear === 'all' ? '全部' : targetYear + '年'} 完卡 ${completedInYear} 期
