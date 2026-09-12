@@ -321,10 +321,16 @@ export default async function handler(req, res) {
     // 1. GET api/attendance
     if (req.method === 'GET' && path === 'attendance') {
       const targetDate = req.query.date || '';
-      const currentYear = '2026';
-      const currentMonthPrefix = '2026-08';
+      // D-4: previously hardcoded '2026' / '2026-08' literals here meant the
+      // monthly leaderboard silently stopped advancing after 2026-08 forever.
+      // Derive both from today's Taiwan-timezone date string instead, via the
+      // same toTaiwanDateStr() timezone entry point used everywhere else in
+      // this file.
       const realTodayStr = toTaiwanDateStr(new Date().toISOString());
-      
+      const currentYear = realTodayStr.slice(0, 4);
+      const currentMonthPrefix = realTodayStr.slice(0, 7);
+      const currentMonthLabel = String(Number(realTodayStr.slice(5, 7)));
+
       const attendanceResults = await queryAllNotionDatabase(ATTENDANCE_DB_ID);
       const memberResults = await queryAllNotionDatabase(MEMBERS_DB_ID);
 
@@ -421,7 +427,11 @@ export default async function handler(req, res) {
           };
         }
 
-        const isValid = originStatus === '報名成功' || attendanceStatus === '已出席';
+        // D-3: Gary's ruling — leaderboard/年度/月度 counts only recognize
+        // "報名成功" (registered successfully), regardless of attendanceStatus.
+        // This isValid feeds only the counters below; calculatePrepaidCycles()
+        // has its own independent AND-filter and is untouched.
+        const isValid = originStatus === '報名成功';
 
         playerStatsMap[name].history.push({
           date: finalDate,
@@ -454,12 +464,18 @@ export default async function handler(req, res) {
           .filter(h => h.date && h.date.startsWith(currentYear))
           .sort((a, b) => new Date(a.date) - new Date(b.date));
 
+        // D-5: check 未到/放鳥 FIRST. Under the old order, a person who
+        // registered but never showed up still has originStatus === '報名成功',
+        // so after D-3 isValid is true for them too — the streak never hit
+        // the reset branch and "未到" could never actually break a streak.
+        // (放鳥 is already normalized to 未到 above; checked here too as a
+        // belt-and-suspenders no-op, not a behavior change.)
         sorted2026Hist.forEach(h => {
-          if (h.isValid) {
+          if (h.status === '未到' || h.status === '放鳥') {
+            currentStreak = 0;
+          } else if (h.isValid) {
             currentStreak += 1;
             if (currentStreak > maxStreak) maxStreak = currentStreak;
-          } else if (h.status === '未到') {
-            currentStreak = 0;
           }
         });
         p.streakCount = maxStreak;
@@ -528,8 +544,13 @@ export default async function handler(req, res) {
       });
 
       const allPlayersList = Object.values(playerStatsMap);
-      const sortedYear = [...allPlayersList].sort((a, b) => b.year2026Count - a.year2026Count);
-      const year2026King = sortedYear[0] && sortedYear[0].year2026Count > 0 ? sortedYear[0] : null;
+      // D-6: sorts now carry a name.localeCompare tie-break. Runner-up (2nd
+      // place) is exposed to the front end below, so tie order can no longer
+      // be left to Object.values() insertion order / sort() stability quirks.
+      const sortedYear = [...allPlayersList].sort((a, b) => {
+        if (b.year2026Count !== a.year2026Count) return b.year2026Count - a.year2026Count;
+        return a.name.localeCompare(b.name);
+      });
 
       // D-02/D-03/D-04: tally per-date 零打 race wins (from casualWinnerByDate,
       // populated year-wide above), tie-break most wins -> most recent lastWinDate
@@ -552,19 +573,37 @@ export default async function handler(req, res) {
         if (b.lastWinDate !== a.lastWinDate) return b.lastWinDate.localeCompare(a.lastWinDate);
         return a.name.localeCompare(b.name);
       });
-      const fastestCasualLeader = sortedCasualTally[0] && sortedCasualTally[0].wins > 0 ? sortedCasualTally[0] : null;
 
-      const sortedStreak = [...allPlayersList].sort((a, b) => b.streakCount - a.streakCount);
-      const streakKing = sortedStreak[0] && sortedStreak[0].streakCount > 0 ? sortedStreak[0] : null;
+      const sortedStreak = [...allPlayersList].sort((a, b) => {
+        if (b.streakCount !== a.streakCount) return b.streakCount - a.streakCount;
+        return a.name.localeCompare(b.name);
+      });
 
-      const sortedMonth = [...allPlayersList].sort((a, b) => b.monthCount - a.monthCount);
-      const monthLeader = sortedMonth[0] && sortedMonth[0].monthCount > 0 ? sortedMonth[0] : null;
+      const sortedMonth = [...allPlayersList].sort((a, b) => {
+        if (b.monthCount !== a.monthCount) return b.monthCount - a.monthCount;
+        return a.name.localeCompare(b.name);
+      });
+
+      // D-6: turn a tie-broken sorted array into a top-N leaderboard — drops
+      // non-qualifiers (metric <= 0) and maps to the response shape. Replaces
+      // the old single-winner `sorted[0] && sorted[0].X > 0 ? sorted[0] : null`
+      // pattern now that runner-up (2nd place) is also surfaced for yearly stats.
+      function toTopN(sorted, n, metricFn, mapper) {
+        return sorted.filter(p => metricFn(p) > 0).slice(0, n).map(mapper);
+      }
 
       const funBanners = {
-        year2026King: year2026King ? { name: year2026King.name, count: year2026King.year2026Count, planType: year2026King.planType } : null,
-        fastestCasual: fastestCasualLeader ? { name: fastestCasualLeader.name, wins: fastestCasualLeader.wins, lastWinDate: fastestCasualLeader.lastWinDate } : null,
-        streakKing: streakKing ? { name: streakKing.name, streak: streakKing.streakCount, planType: streakKing.planType } : null,
-        monthLeader: monthLeader ? { name: monthLeader.name, count: monthLeader.monthCount, planType: monthLeader.planType } : null
+        currentYear,
+        currentMonthPrefix,
+        currentMonthLabel,
+        yearly: {
+          year2026King: toTopN(sortedYear, 2, p => p.year2026Count, p => ({ name: p.name, count: p.year2026Count, planType: p.planType })),
+          streakKing: toTopN(sortedStreak, 2, p => p.streakCount, p => ({ name: p.name, streak: p.streakCount, planType: p.planType })),
+          fastestCasual: toTopN(sortedCasualTally, 2, p => p.wins, p => ({ name: p.name, wins: p.wins, lastWinDate: p.lastWinDate }))
+        },
+        monthly: {
+          monthLeader: toTopN(sortedMonth, 1, p => p.monthCount, p => ({ name: p.name, count: p.monthCount, planType: p.planType }))
+        }
       };
 
       return res.status(200).json({
