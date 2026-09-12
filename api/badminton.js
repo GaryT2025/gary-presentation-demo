@@ -334,7 +334,6 @@ export default async function handler(req, res) {
       const attendanceResults = await queryAllNotionDatabase(ATTENDANCE_DB_ID);
       const memberResults = await queryAllNotionDatabase(MEMBERS_DB_ID);
 
-      const memberPlanMap = {};
       const memberNameMap = {};
       const memberIdToPageId = {};
 
@@ -358,7 +357,6 @@ export default async function handler(req, res) {
           lastPrepaidDate
         };
 
-        if (userId) memberPlanMap[userId] = memberInfo;
         if (name) memberNameMap[name] = memberInfo;
         memberIdToPageId[m.id] = memberInfo;
       });
@@ -399,7 +397,13 @@ export default async function handler(req, res) {
         }
 
         const officialPlan = getOfficialPlan(name);
-        const mInfo = memberNameMap[name] || memberPlanMap[uId] || { planType: officialPlan, remainingCount: 10 };
+        // D-1: 只依姓名解析會員，不再退回 userId 對照表。店家有共用報名帳號
+        // （小鄭／羽辰的 LINE userId 底下混著幾十個不相干的人名），userId 回退會把這些
+        // 陌生人的報名記錄整批誤歸到帳號主人名下——灌高其個人出席次數，也會讓點名時從
+        // 帳號主人的剩餘堂數扣款。Gary 裁定「用 Name 去統計，用 ID 難怪會錯」。
+        // 「同一人不同名字」（如 黃羽辰→羽辰、柳大俠→柳大神）改用 NAME_ALIASES 這個
+        // 刻意列舉的白名單機制處理，跟這裡拿掉的「大海撈針式」userId 回退是不同機制。
+        const mInfo = memberNameMap[name] || { planType: officialPlan, remainingCount: 10 };
         const resolvedPlan = mInfo.planType || officialPlan;
 
         // D-02/D-03: per-session-date 零打 race, computed year-wide (not from the
@@ -524,7 +528,8 @@ export default async function handler(req, res) {
         const isPaid = p.properties['繳費?']?.checkbox || false;
 
         const officialPlan = getOfficialPlan(name);
-        const mInfo = memberNameMap[name] || memberPlanMap[uId] || { planType: officialPlan, remainingCount: 10, memberPageId: null };
+        // D-1: 同上，清單區塊也只依姓名解析，不再退回 userId。
+        const mInfo = memberNameMap[name] || { planType: officialPlan, remainingCount: 10, memberPageId: null };
         const resolvedPlan = mInfo.planType || officialPlan;
 
         if (activeDate === 'all' || (finalDate && finalDate.startsWith(activeDate))) {

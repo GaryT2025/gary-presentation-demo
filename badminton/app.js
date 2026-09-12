@@ -236,47 +236,47 @@ function renderFunBanners() {
 
   // D-2: data-driven config, one entry per card, instead of 6 near-identical
   // renderLeaderboardCard() call sites drifting apart over time. Monthly
-  // formatFns reuse yearly's wording/color tokens, swapping the "年度/當年"
-  // phrasing for `${fb.currentMonthLabel}月`.
+  // formatFns reuse yearly's color tokens; card title + monthlyGroupLabel above
+  // already state which month it is, so the formatFn text itself is identical
+  // to yearly's (D-3: 姓名 + 數字 + 次, no repeated month/year wording).
   const cardConfigs = [
     {
       championId: 'bannerYearAttendanceKing',
       runnerUpId: 'bannerYearAttendanceKingRunnerUp',
       list: yearly.attendanceKing,
-      formatFn: p => `<span class="text-warning font-bold">${p.name}</span> (${fb.currentYear || ''}出勤 <span class="underline">${p.count}</span> 次稱霸)`
+      formatFn: p => `<span class="text-warning font-bold">${p.name}</span> <span class="underline">${p.count}</span> 次`
     },
     {
       championId: 'bannerStreakKing',
       runnerUpId: 'bannerStreakKingRunnerUp',
       list: yearly.streakKing,
-      formatFn: p => `<span class="text-plan-annual font-bold">${p.name}</span> (連續出勤 <span class="underline">${p.streak}</span> 場無間斷)`
+      formatFn: p => `<span class="text-plan-annual font-bold">${p.name}</span> <span class="underline">${p.streak}</span> 次`
     },
     {
       championId: 'bannerFastestCasual',
       runnerUpId: 'bannerFastestCasualRunnerUp',
       list: yearly.fastestCasual,
-      // Previously read fb.fastestCasual.time, which the backend never sent
-      // (always undefined -> blank time string). Uses the backend's actual
-      // wins/lastWinDate fields instead.
-      formatFn: p => `<span class="text-info font-bold">${p.name}</span> (零打首殺 <span class="underline">${p.wins}</span> 次${p.lastWinDate ? `，最近 ${p.lastWinDate}` : ''})`
+      // D-3: lastWinDate deliberately dropped from display -- keeps yearly/monthly
+      // 秒殺王 formats identical and the card text terse (Gary-approved simplification).
+      formatFn: p => `<span class="text-info font-bold">${p.name}</span>（<span class="underline">${p.wins}</span> 次）`
     },
     {
       championId: 'bannerMonthAttendanceKing',
       runnerUpId: 'bannerMonthAttendanceKingRunnerUp',
       list: monthly.attendanceKing,
-      formatFn: p => `<span class="text-accent-strong font-bold">${p.name}</span> (${fb.currentMonthLabel || ''}月出勤 <span class="underline">${p.count}</span> 次稱霸)`
+      formatFn: p => `<span class="text-accent-strong font-bold">${p.name}</span> <span class="underline">${p.count}</span> 次`
     },
     {
       championId: 'bannerMonthStreakKing',
       runnerUpId: 'bannerMonthStreakKingRunnerUp',
       list: monthly.streakKing,
-      formatFn: p => `<span class="text-plan-annual font-bold">${p.name}</span> (${fb.currentMonthLabel || ''}月連續出勤 <span class="underline">${p.streak}</span> 場無間斷)`
+      formatFn: p => `<span class="text-plan-annual font-bold">${p.name}</span> <span class="underline">${p.streak}</span> 次`
     },
     {
       championId: 'bannerMonthFastestCasual',
       runnerUpId: 'bannerMonthFastestCasualRunnerUp',
       list: monthly.fastestCasual,
-      formatFn: p => `<span class="text-info font-bold">${p.name}</span> (${fb.currentMonthLabel || ''}月零打首殺 <span class="underline">${p.wins}</span> 次${p.lastWinDate ? `，最近 ${p.lastWinDate}` : ''})`
+      formatFn: p => `<span class="text-info font-bold">${p.name}</span>（<span class="underline">${p.wins}</span> 次）`
     }
   ];
 
