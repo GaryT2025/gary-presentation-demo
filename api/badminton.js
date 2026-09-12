@@ -457,20 +457,19 @@ export default async function handler(req, res) {
 
       const prepaidCyclesMap = {};
 
-      Object.values(playerStatsMap).forEach(p => {
+      // D-5/D-2: streak algorithm extracted into a named pure function so the
+      // yearly and monthly windows can never drift apart — same filter/sort/
+      // reset-order logic, just a different date-prefix input. Order inside
+      // is untouched verbatim from the original D-5 fix: check 未到/放鳥
+      // FIRST (reset), only then does isValid accumulate.
+      function computeMaxStreak(history, datePrefix) {
         let currentStreak = 0;
         let maxStreak = 0;
-        const sorted2026Hist = [...p.history]
-          .filter(h => h.date && h.date.startsWith(currentYear))
+        const filtered = history
+          .filter(h => h.date && h.date.startsWith(datePrefix))
           .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-        // D-5: check 未到/放鳥 FIRST. Under the old order, a person who
-        // registered but never showed up still has originStatus === '報名成功',
-        // so after D-3 isValid is true for them too — the streak never hit
-        // the reset branch and "未到" could never actually break a streak.
-        // (放鳥 is already normalized to 未到 above; checked here too as a
-        // belt-and-suspenders no-op, not a behavior change.)
-        sorted2026Hist.forEach(h => {
+        filtered.forEach(h => {
           if (h.status === '未到' || h.status === '放鳥') {
             currentStreak = 0;
           } else if (h.isValid) {
@@ -478,7 +477,13 @@ export default async function handler(req, res) {
             if (currentStreak > maxStreak) maxStreak = currentStreak;
           }
         });
-        p.streakCount = maxStreak;
+        return maxStreak;
+      }
+
+      Object.values(playerStatsMap).forEach(p => {
+        p.streakCount = computeMaxStreak(p.history, currentYear);
+        // D-2: 月度榜跟年度榜做同樣三件事，只是把時間窗從 currentYear 換成 currentMonthPrefix。
+        p.monthStreakCount = computeMaxStreak(p.history, currentMonthPrefix);
 
         const resolvedPlan = p.planType;
 
@@ -554,28 +559,46 @@ export default async function handler(req, res) {
 
       // D-02/D-03/D-04: tally per-date 零打 race wins (from casualWinnerByDate,
       // populated year-wide above), tie-break most wins -> most recent lastWinDate
-      // -> name.localeCompare, for determinism.
-      const casualWinTally = {};
-      Object.values(casualWinnerByDate).forEach(entry => {
-        if (!casualWinTally[entry.name]) {
-          casualWinTally[entry.name] = { name: entry.name, wins: 0, lastWinDate: '' };
-        }
-        casualWinTally[entry.name].wins += 1;
-      });
-      Object.entries(casualWinnerByDate).forEach(([date, entry]) => {
-        const t = casualWinTally[entry.name];
-        if (t && (!t.lastWinDate || date > t.lastWinDate)) {
-          t.lastWinDate = date;
-        }
-      });
-      const sortedCasualTally = Object.values(casualWinTally).sort((a, b) => {
-        if (b.wins !== a.wins) return b.wins - a.wins;
-        if (b.lastWinDate !== a.lastWinDate) return b.lastWinDate.localeCompare(a.lastWinDate);
-        return a.name.localeCompare(b.name);
-      });
+      // -> name.localeCompare, for determinism. Extracted into a named function
+      // (D-2) so yearly and monthly can call the same tie-break logic against
+      // different slices of casualWinnerByDate without drifting apart.
+      function buildCasualTally(entriesObj) {
+        const tally = {};
+        Object.values(entriesObj).forEach(entry => {
+          if (!tally[entry.name]) {
+            tally[entry.name] = { name: entry.name, wins: 0, lastWinDate: '' };
+          }
+          tally[entry.name].wins += 1;
+        });
+        Object.entries(entriesObj).forEach(([date, entry]) => {
+          const t = tally[entry.name];
+          if (t && (!t.lastWinDate || date > t.lastWinDate)) {
+            t.lastWinDate = date;
+          }
+        });
+        return Object.values(tally).sort((a, b) => {
+          if (b.wins !== a.wins) return b.wins - a.wins;
+          if (b.lastWinDate !== a.lastWinDate) return b.lastWinDate.localeCompare(a.lastWinDate);
+          return a.name.localeCompare(b.name);
+        });
+      }
+
+      // casualWinnerByDate is already year-wide only (collected with
+      // finalDate.startsWith(currentYear) above) — do not re-filter it here.
+      const sortedCasualTally = buildCasualTally(casualWinnerByDate);
+      const monthCasualWinnerByDate = Object.fromEntries(
+        Object.entries(casualWinnerByDate).filter(([date]) => date.startsWith(currentMonthPrefix))
+      );
+      const sortedMonthCasualTally = buildCasualTally(monthCasualWinnerByDate);
 
       const sortedStreak = [...allPlayersList].sort((a, b) => {
         if (b.streakCount !== a.streakCount) return b.streakCount - a.streakCount;
+        return a.name.localeCompare(b.name);
+      });
+
+      // D-2: 月度連續出勤王排序，比照 sortedStreak 但 metric 換成 monthStreakCount。
+      const sortedMonthStreak = [...allPlayersList].sort((a, b) => {
+        if (b.monthStreakCount !== a.monthStreakCount) return b.monthStreakCount - a.monthStreakCount;
         return a.name.localeCompare(b.name);
       });
 
@@ -592,17 +615,22 @@ export default async function handler(req, res) {
         return sorted.filter(p => metricFn(p) > 0).slice(0, n).map(mapper);
       }
 
+      // D-2: monthly mirrors yearly's three metrics exactly, just scoped to
+      // currentMonthPrefix instead of currentYear — same key names, same
+      // top-2 shape, so front end can consume both groups identically.
       const funBanners = {
         currentYear,
         currentMonthPrefix,
         currentMonthLabel,
         yearly: {
-          year2026King: toTopN(sortedYear, 2, p => p.year2026Count, p => ({ name: p.name, count: p.year2026Count, planType: p.planType })),
+          attendanceKing: toTopN(sortedYear, 2, p => p.year2026Count, p => ({ name: p.name, count: p.year2026Count, planType: p.planType })),
           streakKing: toTopN(sortedStreak, 2, p => p.streakCount, p => ({ name: p.name, streak: p.streakCount, planType: p.planType })),
           fastestCasual: toTopN(sortedCasualTally, 2, p => p.wins, p => ({ name: p.name, wins: p.wins, lastWinDate: p.lastWinDate }))
         },
         monthly: {
-          monthLeader: toTopN(sortedMonth, 1, p => p.monthCount, p => ({ name: p.name, count: p.monthCount, planType: p.planType }))
+          attendanceKing: toTopN(sortedMonth, 2, p => p.monthCount, p => ({ name: p.name, count: p.monthCount, planType: p.planType })),
+          streakKing: toTopN(sortedMonthStreak, 2, p => p.monthStreakCount, p => ({ name: p.name, streak: p.monthStreakCount, planType: p.planType })),
+          fastestCasual: toTopN(sortedMonthCasualTally, 2, p => p.wins, p => ({ name: p.name, wins: p.wins, lastWinDate: p.lastWinDate }))
         }
       };
 
