@@ -110,37 +110,49 @@
       </div>
     </section>
 
-    <!-- 2026 Yearly MVP Banners -->
-    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-      <div class="card rounded-xl p-3.5 flex items-center gap-3">
-        <span class="text-2xl shrink-0">🔥</span>
-        <div class="min-w-0">
-          <p class="text-sm font-semibold text-muted uppercase tracking-wide">2026 年度出席王</p>
-          <p id="bannerYear2026King" class="text-sm font-bold text-ink mt-0.5">載入中...</p>
+    <!-- Fun MVP Banners: 年度(前2名)／月度(第1名) 兩個分組榜單 -->
+    <div class="space-y-2">
+      <h2 id="yearlyGroupLabel" class="text-sm font-semibold text-muted uppercase tracking-wide">🏆 年度榜</h2>
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div class="card rounded-xl p-3.5 flex items-center gap-3">
+          <span class="text-2xl shrink-0">🔥</span>
+          <div class="min-w-0">
+            <p class="text-sm font-semibold text-muted uppercase tracking-wide">年度出席王</p>
+            <p id="bannerYear2026King" class="text-sm font-bold text-ink mt-0.5">載入中...</p>
+            <p id="bannerYear2026KingRunnerUp" class="text-sm text-muted mt-0.5"></p>
+          </div>
         </div>
-      </div>
-      <div class="card rounded-xl p-3.5 flex items-center gap-3">
-        <span class="text-2xl shrink-0">⚡</span>
-        <div class="min-w-0">
-          <p class="text-sm font-semibold text-muted uppercase tracking-wide">零打報名秒殺王</p>
-          <p id="bannerFastestCasual" class="text-sm font-bold text-ink mt-0.5">載入中...</p>
+        <div class="card rounded-xl p-3.5 flex items-center gap-3">
+          <span class="text-2xl shrink-0">👑</span>
+          <div class="min-w-0">
+            <p class="text-sm font-semibold text-muted uppercase tracking-wide">連霸出勤帝</p>
+            <p id="bannerStreakKing" class="text-sm font-bold text-ink mt-0.5">載入中...</p>
+            <p id="bannerStreakKingRunnerUp" class="text-sm text-muted mt-0.5"></p>
+          </div>
         </div>
-      </div>
-      <div class="card rounded-xl p-3.5 flex items-center gap-3">
-        <span class="text-2xl shrink-0">👑</span>
-        <div class="min-w-0">
-          <p class="text-sm font-semibold text-muted uppercase tracking-wide">連霸出勤帝</p>
-          <p id="bannerStreakKing" class="text-sm font-bold text-ink mt-0.5">載入中...</p>
+        <div class="card rounded-xl p-3.5 flex items-center gap-3">
+          <span class="text-2xl shrink-0">⚡</span>
+          <div class="min-w-0">
+            <p class="text-sm font-semibold text-muted uppercase tracking-wide">零打報名秒殺王</p>
+            <p id="bannerFastestCasual" class="text-sm font-bold text-ink mt-0.5">載入中...</p>
+            <p id="bannerFastestCasualRunnerUp" class="text-sm text-muted mt-0.5"></p>
+          </div>
         </div>
-      </div>
-      <div class="card rounded-xl p-3.5 flex items-center gap-3">
-        <span class="text-2xl shrink-0">🚀</span>
-        <div class="min-w-0">
-          <p class="text-sm font-semibold text-muted uppercase tracking-wide">月度出席王</p>
-          <p id="bannerMonthLeader" class="text-sm font-bold text-ink mt-0.5">載入中...</p>
+      </section>
+    </div>
+
+    <div class="space-y-2">
+      <h2 id="monthlyGroupLabel" class="text-sm font-semibold text-muted uppercase tracking-wide">📆 月度榜</h2>
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div class="card rounded-xl p-3.5 flex items-center gap-3">
+          <span class="text-2xl shrink-0">🚀</span>
+          <div class="min-w-0">
+            <p class="text-sm font-semibold text-muted uppercase tracking-wide">月度出席王</p>
+            <p id="bannerMonthLeader" class="text-sm font-bold text-ink mt-0.5">載入中...</p>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
 
     <!-- Tabs + Search + Density -->
     <div class="space-y-3">

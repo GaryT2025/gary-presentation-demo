@@ -186,38 +186,73 @@ async function fetchAttendance(selectedDate = '') {
   }
 }
 
-// Render Fun Champion Banners
+// Render Fun Champion Banners — D-6: fb now splits into yearly (top-2 per
+// metric) / monthly (top-1) groups; D-4: month/year labels are dynamic, not
+// hardcoded strings.
 function renderFunBanners() {
   const fb = currentData.funBanners || {};
+  const yearly = fb.yearly || {};
+  const monthly = fb.monthly || {};
 
-  const elYear2026King = document.getElementById('bannerYear2026King');
-  if (fb.year2026King && fb.year2026King.name) {
-    elYear2026King.innerHTML = `<span class="text-warning font-bold">${fb.year2026King.name}</span> (2026出勤 <span class="underline">${fb.year2026King.count}</span> 次稱霸)`;
-  } else {
-    elYear2026King.innerText = '尚無紀錄';
+  const yearlyLabelEl = document.getElementById('yearlyGroupLabel');
+  if (yearlyLabelEl) {
+    yearlyLabelEl.innerText = fb.currentYear ? `🏆 年度榜 · ${fb.currentYear}` : '🏆 年度榜';
+  }
+  const monthlyLabelEl = document.getElementById('monthlyGroupLabel');
+  if (monthlyLabelEl) {
+    monthlyLabelEl.innerText = fb.currentMonthLabel ? `📆 月度榜 · ${fb.currentMonthLabel}月` : '📆 月度榜';
   }
 
-  const elFastestCasual = document.getElementById('bannerFastestCasual');
-  if (fb.fastestCasual && fb.fastestCasual.name) {
-    const timeStr = fb.fastestCasual.time ? new Date(fb.fastestCasual.time).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }) : '';
-    elFastestCasual.innerHTML = `<span class="text-info font-bold">${fb.fastestCasual.name}</span> (${timeStr} PM 8點零打首殺)`;
-  } else {
-    elFastestCasual.innerText = '尚無紀錄';
+  // Fills a champion node + optional runner-up node from a top-N array
+  // (D-6). Empty array -> "尚無紀錄" + blank runner-up (never leaves
+  // "載入中..." stuck, never renders "undefined"). Length 1 -> champion
+  // only, runner-up blank. Length 2 -> both, runner-up prefixed with a
+  // visible "亞軍" marker so it reads as clearly secondary to the champion.
+  function renderLeaderboardCard(championEl, runnerUpEl, list, formatFn) {
+    if (!championEl) return;
+    const arr = Array.isArray(list) ? list : [];
+    if (arr.length === 0) {
+      championEl.innerText = '尚無紀錄';
+      if (runnerUpEl) runnerUpEl.innerText = '';
+      return;
+    }
+    championEl.innerHTML = formatFn(arr[0]);
+    if (runnerUpEl) {
+      runnerUpEl.innerHTML = arr.length >= 2 ? `亞軍 ${formatFn(arr[1])}` : '';
+    }
   }
 
-  const elStreak = document.getElementById('bannerStreakKing');
-  if (fb.streakKing && fb.streakKing.name) {
-    elStreak.innerHTML = `<span class="text-plan-annual font-bold">${fb.streakKing.name}</span> (連續出勤 <span class="underline">${fb.streakKing.streak}</span> 場無間斷)`;
-  } else {
-    elStreak.innerText = '尚無紀錄';
-  }
+  renderLeaderboardCard(
+    document.getElementById('bannerYear2026King'),
+    document.getElementById('bannerYear2026KingRunnerUp'),
+    yearly.year2026King,
+    p => `<span class="text-warning font-bold">${p.name}</span> (${fb.currentYear || ''}出勤 <span class="underline">${p.count}</span> 次稱霸)`
+  );
 
-  const elMonth = document.getElementById('bannerMonthLeader');
-  if (fb.monthLeader && fb.monthLeader.name) {
-    elMonth.innerHTML = `<span class="text-accent-strong font-bold">${fb.monthLeader.name}</span> (8月打球 <span class="underline">${fb.monthLeader.count}</span> 次稱霸)`;
-  } else {
-    elMonth.innerText = '尚無紀錄';
-  }
+  renderLeaderboardCard(
+    document.getElementById('bannerStreakKing'),
+    document.getElementById('bannerStreakKingRunnerUp'),
+    yearly.streakKing,
+    p => `<span class="text-plan-annual font-bold">${p.name}</span> (連續出勤 <span class="underline">${p.streak}</span> 場無間斷)`
+  );
+
+  renderLeaderboardCard(
+    document.getElementById('bannerFastestCasual'),
+    document.getElementById('bannerFastestCasualRunnerUp'),
+    yearly.fastestCasual,
+    // Previously read fb.fastestCasual.time, which the backend never sent
+    // (always undefined -> blank time string). Uses the backend's actual
+    // wins/lastWinDate fields instead.
+    p => `<span class="text-info font-bold">${p.name}</span> (零打首殺 <span class="underline">${p.wins}</span> 次${p.lastWinDate ? `，最近 ${p.lastWinDate}` : ''})`
+  );
+
+  // Monthly card has no runner-up — D-6: monthly.monthLeader is max length 1.
+  renderLeaderboardCard(
+    document.getElementById('bannerMonthLeader'),
+    null,
+    monthly.monthLeader,
+    p => `<span class="text-accent-strong font-bold">${p.name}</span> (${fb.currentMonthLabel || ''}月打球 <span class="underline">${p.count}</span> 次稱霸)`
+  );
 }
 
 // Render Available Dates Dropdown
