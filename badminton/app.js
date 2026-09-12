@@ -330,6 +330,35 @@ function updateKPIs() {
   }
 }
 
+// 續卡/預告卡片共用門檻：當期打滿 8 次視為「快滿了」。
+// 刻意獨立命名（不是隨便寫死的數字）：既有的 isWarning 續卡警示徽章、
+// 「購新一期」按鈕防呆、下一期預告卡片，三處都必須吃同一個常數，
+// 避免日後改動時三處門檻漂移成不同數字。
+const RENEW_THRESHOLD = 8;
+
+// 純唯讀衍生判斷：本函式不寫入任何資料、不影響任何一筆出席記錄算進哪一期；
+// 期別歸屬永遠由後端 calculatePrepaidCycles() 決定，這裡只是拿後端已經算好的
+// allCycles/activeCount/remainingCount 做顯示層的「要不要多畫一張預告卡」判斷。
+//
+// 顯示條件（2026-09-12 Gary 核准修正版，不看 isCompleted）：
+//   1. activeCycle 存在（該會員至少有一期資料）
+//   2. activeCount >= RENEW_THRESHOLD（不論當期是否已完卡；完卡的 activeCount
+//      恆為 10，本來就滿足 >= 8，不需要也不得另外特判 isCompleted）
+//   3. remainingCount 是有效數字，且 >= (10 - activeCount) + 10——
+//      語意：扣掉打完當期還要用掉的堂數之後，餘額還能再撐滿一整期
+//   4. allCycles 裡不存在 cycleNum === activeCycle.cycleNum + 1 的真實期別，
+//      避免跟真實資料重疊/打架，一旦真的打出下一期就該由真實卡片取代預告卡
+//   5. targetYear 為 'all' 或等於 activeCycle.year，避免切到別的年份還看到當期預告
+function computeNextCyclePreview({ allCycles, activeCycle, activeCount, remainingCount, targetYear }) {
+  if (!activeCycle) return null;
+  if (!(activeCount >= RENEW_THRESHOLD)) return null;
+  if (!Number.isFinite(remainingCount) || !(remainingCount >= (10 - activeCount) + 10)) return null;
+  if ((allCycles || []).some(c => c.cycleNum === activeCycle.cycleNum + 1)) return null;
+  if (!(targetYear === 'all' || targetYear === activeCycle.year)) return null;
+  return { cycleNum: activeCycle.cycleNum + 1 };
+}
+window.computeNextCyclePreview = computeNextCyclePreview;
+
 // RENDER PREPAID 10-SESSION CYCLES TRACKER BOARD (精準展示雙方對帳出席時間)
 function renderPrepaidCyclesBoard() {
   const container = document.getElementById('cyclesGridContainer');
@@ -385,7 +414,10 @@ function renderPrepaidCyclesBoard() {
     const completedInYear = filteredCycles.filter(c => c.isCompleted).length;
     const activeCycle = allCycles.find(c => !c.isCompleted) || (allCycles.length > 0 ? allCycles[allCycles.length - 1] : null);
     const activeCount = activeCycle ? activeCycle.items.length : 0;
-    const isWarning = activeCount >= 8 && activeCycle && !activeCycle.isCompleted;
+    // atRenewThreshold：純門檻，不看完卡狀態——已完卡會員（如柏村，10/10）也要能點「購新一期」。
+    // isWarning：既有續卡警示語意不變，維持「當期進行中且已滿門檻」才亮警示色塊/邊框。
+    const atRenewThreshold = activeCount >= RENEW_THRESHOLD;
+    const isWarning = atRenewThreshold && activeCycle && !activeCycle.isCompleted;
 
     const totalSessions = allCycles.reduce((sum, c) => sum + (c.items ? c.items.length : 0), 0);
     const yearCount = mInfo ? mInfo.year2026Count || 0 : 0;
@@ -428,11 +460,17 @@ function renderPrepaidCyclesBoard() {
       ? `<span class="bg-accent w-3 h-3 rounded-full shrink-0" title="已確認儲值" aria-label="已確認儲值"></span>`
       : `<span class="bg-warning w-3 h-3 rounded-full shrink-0" title="尚未確認儲值" aria-label="尚未確認儲值"></span>`;
 
-    const renewButtonHtml = isAdmin
-      ? `<button onclick="openRenewPassModal('${memberPageId}', '${name}')" title="購買新一期 / 續卡加 10 次 (記錄金額)" class="h-9 px-3 rounded-lg text-xs font-semibold text-warning bg-warning-soft active:bg-warning active:text-white transition flex items-center gap-1 shrink-0">
+    let renewButtonHtml = '';
+    if (isAdmin && atRenewThreshold) {
+      renewButtonHtml = `<button onclick="openRenewPassModal('${memberPageId}', '${name}')" title="購買新一期 / 續卡加 10 次 (記錄金額)" class="h-9 px-3 rounded-lg text-xs font-semibold text-warning bg-warning-soft active:bg-warning active:text-white transition flex items-center gap-1 shrink-0">
           <i class="fa-solid fa-plus-circle"></i> 購新一期
-        </button>`
-      : '';
+        </button>`;
+    } else if (isAdmin && !atRenewThreshold) {
+      // disabled 屬性 + 無 onclick 雙重防呆：只靠 CSS pointer-events:none 擋不住鍵盤觸發。
+      renewButtonHtml = `<button disabled title="當期進度未達 8 次，尚不需續卡（目前 ${activeCount}/10）" class="h-9 px-3 rounded-lg text-xs font-semibold text-muted bg-surface cursor-not-allowed transition flex items-center gap-1 shrink-0">
+          <i class="fa-solid fa-plus-circle"></i> 購新一期
+        </button>`;
+    }
 
     // Header
     card.innerHTML = `
@@ -504,6 +542,29 @@ function renderPrepaidCyclesBoard() {
 
         cyclesListDiv.appendChild(cycleItem);
       });
+    }
+
+    const preview = computeNextCyclePreview({
+      allCycles,
+      activeCycle,
+      activeCount,
+      remainingCount: mInfo ? mInfo.remainingCount : undefined,
+      targetYear
+    });
+    if (preview) {
+      const previewItem = document.createElement('div');
+      previewItem.className = 'p-3 rounded-lg border border-dashed border-hairline bg-white';
+      previewItem.setAttribute('data-preview-cycle', String(preview.cycleNum));
+      previewItem.innerHTML = `
+        <div class="flex items-center justify-between gap-2 mb-1.5">
+          <span class="font-semibold text-muted">
+            <i class="fa-solid fa-hourglass-half mr-1"></i> 第 ${preview.cycleNum} 期（已儲值，等待開打）
+          </span>
+        </div>
+        <div class="text-sm mb-1 text-muted">0/10</div>
+        <p class="text-xs text-muted">餘額已足夠支付下一整期，出席累積至第 ${activeCycle.cycleNum * 10 + 1} 次後會自動轉為正式期別</p>
+      `;
+      cyclesListDiv.insertBefore(previewItem, cyclesListDiv.firstChild);
     }
 
     card.appendChild(cyclesListDiv);
