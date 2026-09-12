@@ -235,7 +235,12 @@
 
         <div class="flex flex-wrap items-start justify-between gap-3 border-b border-hairline pb-3.5">
           <div>
-            <h2 class="text-lg font-semibold text-ink">儲值人員期別履歷</h2>
+            <div class="flex items-center gap-2">
+              <h2 class="text-lg font-semibold text-ink">儲值人員期別履歷</h2>
+              <button onclick="openCycleLegendModal()" title="色塊說明" aria-label="色塊說明" class="w-9 h-9 flex items-center justify-center rounded-full text-muted active:bg-surface transition shrink-0">
+                <i class="fa-solid fa-circle-info"></i>
+              </button>
+            </div>
             <p class="text-sm text-muted mt-1">每位儲值球員每一期 10 次的具體出席日期，方便雙方對帳。</p>
           </div>
           <button onclick="openAddMemberModal('儲值')" data-admin-only class="hidden h-11 px-4 rounded-lg text-sm font-semibold text-white bg-accent active:bg-accent-strong transition shrink-0">
@@ -364,6 +369,64 @@
         </button>
         <button onclick="submitRenewPass()" class="h-11 px-4 rounded-lg text-sm font-semibold text-white bg-accent active:bg-accent-strong transition">
           確認記錄與充值
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CYCLE LEGEND MODAL (色塊說明) -->
+  <div id="cycleLegendModal" class="fixed inset-0 bg-ink/40 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-hairline rounded-2xl max-w-md w-full p-5 space-y-4 shadow-xl relative">
+      <button onclick="closeCycleLegendModal()" class="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full text-muted active:bg-surface">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-full bg-accent-soft text-accent-strong flex items-center justify-center">
+          <i class="fa-solid fa-circle-info"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-ink">色塊說明</h3>
+      </div>
+
+      <div class="space-y-3.5 text-sm">
+        <div>
+          <p class="font-semibold text-ink mb-2">姓名右側圓點 ●：儲值確認狀態</p>
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2.5">
+              <span class="bg-accent w-3 h-3 rounded-full shrink-0"></span>
+              <span class="text-body">已確認儲值（Notion 會員頁已填「最後儲值日期」）</span>
+            </div>
+            <div class="flex items-center gap-2.5">
+              <span class="bg-warning w-3 h-3 rounded-full shrink-0"></span>
+              <span class="text-body">尚未確認儲值（尚未填寫，或該球員在 Members-DB 沒有頁面）</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p class="font-semibold text-ink mb-2">姓名右側方塊 ■：續卡提醒（當期進度 ≥ 8 次才出現）</p>
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2.5">
+              <span class="bg-info w-3 h-3 rounded-[3px] shrink-0"></span>
+              <span class="text-body">當期已打 8 次</span>
+            </div>
+            <div class="flex items-center gap-2.5">
+              <span class="bg-accent w-3 h-3 rounded-[3px] shrink-0"></span>
+              <span class="text-body">當期已打 9 次</span>
+            </div>
+            <div class="flex items-center gap-2.5">
+              <span class="bg-danger w-3 h-3 rounded-[3px] shrink-0"></span>
+              <span class="text-body">當期已打 10 次（可續卡），卡片外框會同步變成同一個顏色</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="text-xs text-muted pt-2 border-t border-hairline">姓名左側那顆琥珀圓點是「儲值方案」標記，與上述狀態無關。</p>
+      </div>
+
+      <div class="pt-3 border-t border-hairline flex items-center justify-end">
+        <button onclick="closeCycleLegendModal()" class="h-11 px-4 rounded-lg text-sm font-semibold text-muted bg-surface active:bg-surface-strong transition">
+          知道了
         </button>
       </div>
     </div>

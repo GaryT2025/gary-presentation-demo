@@ -324,17 +324,17 @@ function renderPrepaidCyclesBoard() {
     // Set via inline style (not a Tailwind class) so it reliably overrides the
     // default .card hairline border regardless of stylesheet load order.
     let warningBorderColor = '';
-    let warningBadgeClass = '';
+    let warningDotClass = '';
     if (isWarning) {
       if (activeCount >= 10) {
         warningBorderColor = '#c23b3b';
-        warningBadgeClass = 'bg-danger text-white';
+        warningDotClass = 'bg-danger';
       } else if (activeCount === 9) {
         warningBorderColor = '#1f7a54';
-        warningBadgeClass = 'bg-accent text-white';
+        warningDotClass = 'bg-accent';
       } else {
         warningBorderColor = '#2563a8';
-        warningBadgeClass = 'bg-info text-white';
+        warningDotClass = 'bg-info';
       }
     }
 
@@ -348,15 +348,15 @@ function renderPrepaidCyclesBoard() {
     const memberPageId = mInfo ? mInfo.memberPageId : '';
 
     const warningBadge = isWarning
-      ? `<span class="${warningBadgeClass} text-xs font-bold px-2 py-0.5 rounded-full">續卡</span>`
+      ? `<span class="${warningDotClass} w-3 h-3 rounded-[3px] shrink-0" title="續卡提醒：當期已打 ${activeCount}/10 次" aria-label="續卡提醒：當期已打 ${activeCount}/10 次"></span>`
       : '';
 
     // D-03: 沒查到 mInfo（會員在 Members-DB 沒有頁面）一律視為「尚未確認儲值」，
     // 沒有第三種空白狀態；只看「最後儲值日期」是否有值，不做逐次出席日期比對。
     const hasConfirmedPrepay = !!(mInfo && mInfo.hasConfirmedPrepay);
     const prepayBadge = hasConfirmedPrepay
-      ? `<span class="bg-accent text-white text-xs font-bold px-2 py-0.5 rounded-full">✅ 已確認儲值</span>`
-      : `<span class="bg-warning-soft text-warning text-xs font-bold px-2 py-0.5 rounded-full">⚠️ 尚未確認儲值</span>`;
+      ? `<span class="bg-accent w-3 h-3 rounded-full shrink-0" title="已確認儲值" aria-label="已確認儲值"></span>`
+      : `<span class="bg-warning w-3 h-3 rounded-full shrink-0" title="尚未確認儲值" aria-label="尚未確認儲值"></span>`;
 
     const renewButtonHtml = isAdmin
       ? `<button onclick="openRenewPassModal('${memberPageId}', '${name}')" title="購買新一期 / 續卡加 10 次 (記錄金額)" class="h-9 px-3 rounded-lg text-xs font-semibold text-warning bg-warning-soft active:bg-warning active:text-white transition flex items-center gap-1 shrink-0">
@@ -449,6 +449,15 @@ function toggleCycleDetail(elementId) {
   }
 }
 
+// CYCLE LEGEND MODAL LOGIC (色塊說明)
+function openCycleLegendModal() {
+  document.getElementById('cycleLegendModal').classList.remove('hidden');
+}
+
+function closeCycleLegendModal() {
+  document.getElementById('cycleLegendModal').classList.add('hidden');
+}
+
 // ADD NEW MEMBER MODAL LOGIC (新增儲值人員)
 function openAddMemberModal(defaultPlan = '儲值') {
   document.getElementById('addMemberNameInput').value = '';
@@ -499,7 +508,7 @@ function openRenewPassModal(memberPageId, memberName) {
   document.getElementById('renewMemberPageIdInput').value = memberPageId;
   document.getElementById('renewModalMemberName').innerText = `球員: ${memberName}`;
   document.getElementById('renewCountInput').value = '10';
-  document.getElementById('renewAmountInput').value = '1500';
+  document.getElementById('renewAmountInput').value = '20000';
   document.getElementById('renewPassModal').classList.remove('hidden');
 }
 
