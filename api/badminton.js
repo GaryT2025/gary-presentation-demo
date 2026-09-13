@@ -21,7 +21,7 @@ const OFFICIAL_YEARLY = ['小鄭', '阿峻', '蘇聯', '賴董', '誠仁'];
 const OFFICIAL_MONTHLY = ['富哥', '福哥', '光廷', '阿娟', '小洪', '年興'];
 const OFFICIAL_PREPAID = ['糖果寶', '淑湘', '賓哥', 'Sam', '小潘', '小卉', '為欽', '羽辰', '世昌', '文和', '智文', '浩騰', 'Justin', '進宗', '庭偉', '柏村', '昆疆', '牧民', 'Gary', '弘峻', '慶鴻', '柳大神', '俊佳'];
 
-const NAME_ALIASES = { '黃羽辰': '羽辰', '柳大俠': '柳大神', '銘仁': '小卉' };
+const NAME_ALIASES = { '黃羽辰': '羽辰', '柳大俠': '柳大神', '銘仁': '小卉', '文': '智文', '阿宗': '進宗' };
 
 // Real registrants whose 姓名(Name) happens to be all digits -- everything else numeric stays filtered as dirty data.
 const NUMERIC_NAME_WHITELIST = new Set(['138']);
@@ -391,8 +391,8 @@ export default async function handler(req, res) {
         if (status === '未到' && finalDate) {
           const pDate = new Date(finalDate);
           if (pDate >= thirtyDaysAgo) {
+            // 一筆未到只計一次，統計一律以姓名為 key（延續 D-1：userId 是共用報名帳號，不可當個人統計 key）。
             noshowCounts[name] = (noshowCounts[name] || 0) + 1;
-            if (uId) noshowCounts[uId] = (noshowCounts[uId] || 0) + 1;
           }
         }
 
@@ -533,7 +533,7 @@ export default async function handler(req, res) {
         const resolvedPlan = mInfo.planType || officialPlan;
 
         if (activeDate === 'all' || (finalDate && finalDate.startsWith(activeDate))) {
-          const noshowCount = (noshowCounts[name] || 0) + (uId ? (noshowCounts[uId] || 0) : 0);
+          const noshowCount = noshowCounts[name] || 0;
           const isBlacklisted = noshowCount >= 2;
 
           list.push({
