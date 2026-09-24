@@ -25,7 +25,12 @@ let appState = {
   selectedGroupFilter: 'ALL',
   selectedYear: '2026',
   selectedSales: 'ALL',
-  searchQuery: ''
+  searchQuery: '',
+  // 階層 4 報表狀態
+  reportMode: 'monthly', // 'monthly' | 'ytd'
+  reportMonth: '9',      // 預設 9 月 (對齊 sample 09 月)
+  reportDept: 'ALL',     // 部門過濾
+  reportSearch: ''       // 關鍵字搜尋
 };
 
 // Chart instances
@@ -62,6 +67,41 @@ const FCI_FULL_SALES_ROSTER = [
   { name: 'Shawn', group: 'Power&EPC' },
   { name: 'Sophie', group: 'NonPower' }
 ];
+
+// FCI 業務人員全名 (英中對照，對齊 Sample PDF 報表格式)
+const FCI_SALES_FULL_NAMES = {
+  'Charlie': 'Charlie Lin 林昌黎',
+  'Jason': 'Jason Chen 陳盈傑',
+  'Ping': 'Ping Soong 宋賢斌',
+  'Neil': 'Neil Wu 吳宏恩',
+  'Rex': 'Rex Huang 黃蔚岷',
+  'Sophie': 'Sophie Chen 陳俞蓁',
+  'Canni': 'Canni Chang 張凱寧',
+  'Hayashi': 'Hayashi Lin 林惠美',
+  'Shawn': 'Shawn Hsu 徐舜偉',
+  'Yen': 'Yen Wu 吳雙延'
+};
+
+function getSalesFullName(name) {
+  const norm = normalizeOwnerName(name);
+  return FCI_SALES_FULL_NAMES[norm] || norm;
+}
+
+// 格式化數字為千分位
+function formatNumberWithCommas(num, decimals = 0) {
+  if (isNaN(num) || num === null || num === undefined) return '0';
+  const val = Number(num);
+  return val.toLocaleString('en-US', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  });
+}
+
+// 格式化百分比
+function formatPercent(num, decimals = 1) {
+  if (isNaN(num) || num === null || num === undefined) return '0.0%';
+  return `${Number(num).toFixed(decimals)}%`;
+}
 
 function normalizeOwnerName(owner) {
   if (!owner) return '未指派';
@@ -257,6 +297,68 @@ function getFCIRealData() {
 
   const mockOrders = [];
   
+  // Sample 09 月實際資料 (完全對齊 sample/FCI Sales Monthly Report.pdf)
+  mockOrders.push({
+    project_id: 'ORD-20260901',
+    customer: '台塑石化 (FCFC 台化)',
+    customer_short: 'FCFC 台化',
+    group: 'NonPower',
+    'Power/NonPower': 'NonPower',
+    owner: 'Jason',
+    currency: 'NTD',
+    amount_orig: 180000,
+    amount_twd: 180000,
+    profit_twd: 27541,
+    ebt_rate: 0.153,
+    status: '簽核完成',
+    created_date: '2026-09-07'
+  });
+  mockOrders.push({
+    project_id: 'ORD-20260902',
+    customer: '台灣賽孚思化學',
+    customer_short: '台灣賽孚思',
+    group: 'NonPower',
+    'Power/NonPower': 'NonPower',
+    owner: 'Jason',
+    currency: 'NTD',
+    amount_orig: 293400,
+    amount_twd: 293400,
+    profit_twd: 86928,
+    ebt_rate: 0.2963,
+    status: '簽核完成',
+    created_date: '2026-09-08'
+  });
+  mockOrders.push({
+    project_id: 'ORD-20260903',
+    customer: '中華紙漿股份有限公司 - 花蓮廠',
+    customer_short: '中華紙漿 - 花蓮',
+    group: 'NonPower',
+    'Power/NonPower': 'NonPower',
+    owner: 'Rex',
+    currency: 'NTD',
+    amount_orig: 5506000,
+    amount_twd: 5506000,
+    profit_twd: 205144,
+    ebt_rate: 0.0373,
+    status: '簽核完成',
+    created_date: '2026-09-09'
+  });
+  mockOrders.push({
+    project_id: 'ORD-20260904',
+    customer: '聚熱實業股份有限公司',
+    customer_short: '聚熱',
+    group: 'NonPower',
+    'Power/NonPower': 'NonPower',
+    owner: 'Rex',
+    currency: 'NTD',
+    amount_orig: 477600,
+    amount_twd: 477600,
+    profit_twd: 61179,
+    ebt_rate: 0.1281,
+    status: '簽核完成',
+    created_date: '2026-09-09'
+  });
+
   // Seed Jason 2026 Booked
   mockOrders.push({
     project_id: 'ORD-J1',
@@ -305,20 +407,34 @@ function getFCIRealData() {
     created_date: '2026-07-20'
   });
 
-  // Seed Charlie 2026 Booked
-  // MTO has no department-tier Power/NonPower bucket of its own; the record
-  // still needs a concrete Power/NonPower value for the new record-level
-  // classification, so it's set to 'Power' here as a reasonable demo default.
+  // Seed Charlie 2026 Booked - Power&EPC (對齊 sample: 30,897,811)
   mockOrders.push({
-    project_id: 'ORD-CH1',
+    project_id: 'ORD-CH-P1',
     customer: '台塑麥寮 MTO工程',
+    customer_short: '台塑麥寮',
     group: 'MTO',
     'Power/NonPower': 'Power',
     owner: 'Charlie',
-    amount_twd: 35290811,
-    profit_twd: Math.floor(35290811 * 0.15),
-    ebt_rate: 0.15,
+    amount_twd: 30897811,
+    profit_twd: 5866426,
+    ebt_rate: 0.19,
+    status: '簽核完成',
     created_date: '2026-08-01'
+  });
+
+  // Seed Charlie 2026 Booked - Non Power (對齊 sample: 4,393,000)
+  mockOrders.push({
+    project_id: 'ORD-CH-NP1',
+    customer: '遠東新世紀化學',
+    customer_short: '遠東新',
+    group: 'NonPower',
+    'Power/NonPower': 'NonPower',
+    owner: 'Charlie',
+    amount_twd: 4393000,
+    profit_twd: 864989,
+    ebt_rate: 0.20,
+    status: '簽核完成',
+    created_date: '2026-07-15'
   });
 
   // Seed Neil 2026 Booked
@@ -554,11 +670,10 @@ function bindEvents() {
   if (refreshBtn) {
     refreshBtn.onclick = () => fetchData(true);
   }
+
+  // 掛載階層 4 控制器事件
+  setupHierarchyLevel4Events();
 }
-
-
-
-
 
 // Key Casing Normalization Helper to shield against Google Sheet capitalization changes
 const orderMapping = {
@@ -571,7 +686,14 @@ const orderMapping = {
   '專案類型 (2)': '專案類型 (2)',
   'project_id': 'project_id',
   'profit_twd': 'profit_twd',
-  'ebt_rate': 'ebt_rate'
+  'ebt_rate': 'ebt_rate',
+  'customer': 'customer',
+  '顧客簡稱': 'customer_short',
+  'customer_short': 'customer_short',
+  '專案幣別': 'currency',
+  'currency': 'currency',
+  '專案金額 (原幣)': 'amount_orig',
+  'amount_orig': 'amount_orig'
 };
 
 const caseMapping = {
@@ -1138,6 +1260,637 @@ function renderLeaderboard(orders, cases, targets) {
       }
     }
   });
+
+  // 渲染階層 4：接單業績分析報表
+  renderHierarchyLevel4();
+}
+
+// ============================================================
+// 階層 4：接單業績分析報表 (Hierarchy 4 Reports Engine)
+// ============================================================
+
+function getMonthFromDateStr(dateStr) {
+  if (!dateStr) return null;
+  const str = String(dateStr).trim();
+  const parts = str.split(/[-/]/);
+  if (parts.length >= 2) {
+    return parseInt(parts[1], 10);
+  }
+  const d = new Date(str);
+  return isNaN(d.getTime()) ? null : d.getMonth() + 1;
+}
+
+function setupHierarchyLevel4Events() {
+  const btnMonthly = document.getElementById('btn-report-monthly');
+  const btnYtd = document.getElementById('btn-report-ytd');
+  const monthFilterWrap = document.getElementById('report-month-filter-wrap');
+  const monthSelect = document.getElementById('report-month-select');
+  const deptSelect = document.getElementById('report-dept-select');
+  const exportBtn = document.getElementById('report-export-btn');
+  const subtitle = document.getElementById('hierarchy4-subtitle');
+  const metaTag = document.getElementById('report-meta-tag');
+
+  if (btnMonthly && btnYtd) {
+    btnMonthly.onclick = () => {
+      appState.reportMode = 'monthly';
+      btnMonthly.classList.add('active');
+      btnYtd.classList.remove('active');
+      if (monthFilterWrap) monthFilterWrap.style.display = 'flex';
+      if (subtitle) subtitle.textContent = '依部門與業務人員展開當月接單專案明細 (對齊 FCI Sales Monthly Report)';
+      if (metaTag) metaTag.textContent = '資料來源: Yearly Report Data - TW | Approval: F';
+      renderHierarchyLevel4();
+    };
+
+    btnYtd.onclick = () => {
+      appState.reportMode = 'ytd';
+      btnYtd.classList.add('active');
+      btnMonthly.classList.remove('active');
+      if (monthFilterWrap) monthFilterWrap.style.display = 'none';
+      if (subtitle) subtitle.textContent = '全公司業務人員年度累計接單、EBT 利潤與達成率匯總 (對齊 Sales Report Summary - FCI TW)';
+      if (metaTag) metaTag.textContent = `幣別: NTD | 統計區間: ${appState.selectedYear}/1/1 - ${appState.selectedYear}/12/31`;
+      renderHierarchyLevel4();
+    };
+  }
+
+  if (monthSelect) {
+    monthSelect.value = String(parseInt(appState.reportMonth, 10));
+    monthSelect.onchange = (e) => {
+      appState.reportMonth = e.target.value;
+      renderHierarchyLevel4();
+    };
+  }
+
+  if (deptSelect) {
+    deptSelect.onchange = (e) => {
+      appState.reportDept = e.target.value;
+      renderHierarchyLevel4();
+    };
+  }
+
+  if (exportBtn) {
+    exportBtn.onclick = () => exportHierarchy4Table();
+  }
+}
+
+function renderHierarchyLevel4() {
+  const container = document.getElementById('report-table-container');
+  const kpiContainer = document.getElementById('report-kpi-summary');
+  if (!container || !kpiContainer) return;
+
+  if (appState.reportMode === 'monthly') {
+    renderMonthlyBookedReport(container, kpiContainer);
+  } else {
+    renderYtdSummaryReport(container, kpiContainer);
+  }
+}
+
+// ------------------------------------------------------------
+// 視圖 1: 當月份接單業績 (對齊 FCI Sales Monthly Report.pdf)
+// ------------------------------------------------------------
+function renderMonthlyBookedReport(container, kpiContainer) {
+  const selectedYear = appState.selectedYear || '2026';
+  const targetMonth = parseInt(appState.reportMonth, 10);
+
+  // 篩選當月份訂單
+  const monthlyOrders = appState.orders.filter(o => {
+    const yr = getYearFromDateStr(o.created_date);
+    const m = getMonthFromDateStr(o.created_date);
+    if (yr !== selectedYear || m !== targetMonth) return false;
+
+    // 部門篩選
+    if (appState.reportDept !== 'ALL') {
+      const dept = getRecordPowerNonPower(o);
+      if (dept !== appState.reportDept) return false;
+    }
+
+    return true;
+  });
+
+  // 計算 KPI
+  const totalOrders = monthlyOrders.length;
+  const totalSalesAmt = monthlyOrders.reduce((sum, o) => sum + parseNumber(o.amount_twd), 0);
+  const totalEbtProfit = monthlyOrders.reduce((sum, o) => sum + parseNumber(o.profit_twd || (parseNumber(o.amount_twd) * parseNumber(o.ebt_rate || 0.15))), 0);
+  const avgEbtRate = totalSalesAmt > 0 ? (totalEbtProfit / totalSalesAmt * 100) : 0;
+
+  kpiContainer.innerHTML = `
+    <div class="report-kpi-card">
+      <span class="report-kpi-title">📅 本月接單總額 (Sales Amount)</span>
+      <span class="report-kpi-val num-font">NT$ ${formatNumberWithCommas(totalSalesAmt)}</span>
+      <span class="report-kpi-sub">${selectedYear} 年 ${String(targetMonth).padStart(2, '0')} 月份訂單</span>
+    </div>
+    <div class="report-kpi-card">
+      <span class="report-kpi-title">📈 本月預估利潤 (EBT Profit)</span>
+      <span class="report-kpi-val num-font" style="color: #34d399;">NT$ ${formatNumberWithCommas(totalEbtProfit)}</span>
+      <span class="report-kpi-sub">預估總獲利金額</span>
+    </div>
+    <div class="report-kpi-card">
+      <span class="report-kpi-title">💎 平均利潤率 (Avg. EBT Rate)</span>
+      <span class="report-kpi-val num-font" style="color: #38bdf8;">${formatPercent(avgEbtRate, 2)}</span>
+      <span class="report-kpi-sub">利潤 / 營收比 (加權平均)</span>
+    </div>
+    <div class="report-kpi-card">
+      <span class="report-kpi-title">📦 本月接單筆數 (Order Q'ty)</span>
+      <span class="report-kpi-val num-font">${totalOrders} 筆</span>
+      <span class="report-kpi-sub">已成交專案數</span>
+    </div>
+  `;
+
+  if (totalOrders === 0) {
+    container.innerHTML = `
+      <div style="padding: 40px; text-align: center; color: var(--text-muted);">
+        <p style="font-size: 16px; margin-bottom: 8px;">📭 查無 ${selectedYear} 年 ${String(targetMonth).padStart(2, '0')} 月份之接單資料</p>
+        <p style="font-size: 13px;">請嘗試切換上方月份選單或調整搜尋條件。</p>
+      </div>
+    `;
+    return;
+  }
+
+  // 組織兩層樹狀結構：部門 -> 業務人員 -> 訂單
+  const deptMap = new Map();
+  monthlyOrders.forEach(o => {
+    const dept = getRecordPowerNonPower(o) || 'Other';
+    const owner = normalizeOwnerName(o.owner);
+    if (!deptMap.has(dept)) {
+      deptMap.set(dept, new Map());
+    }
+    const salesMap = deptMap.get(dept);
+    if (!salesMap.has(owner)) {
+      salesMap.set(owner, []);
+    }
+    salesMap.get(owner).push(o);
+  });
+
+  let tableHtml = `
+    <table class="report-data-table" id="hierarchy4-table-element">
+      <thead>
+        <tr>
+          <th style="min-width: 100px;">業務組別</th>
+          <th style="min-width: 160px;">責任業務</th>
+          <th style="min-width: 180px;">顧客簡稱</th>
+          <th class="col-center" style="min-width: 70px;">專案幣別</th>
+          <th class="col-right" style="min-width: 130px;">專案金額 (原幣)</th>
+          <th class="col-right" style="min-width: 130px;">專案金額 (台幣)</th>
+          <th class="col-right" style="min-width: 120px;">預估利潤 (台幣)</th>
+          <th class="col-right" style="min-width: 90px;">EBT Rate</th>
+          <th class="col-center" style="min-width: 100px;">建檔日期</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  let grandOrigAmt = 0;
+  let grandTwdAmt = 0;
+  let grandProfitAmt = 0;
+
+  deptMap.forEach((salesMap, deptName) => {
+    let deptOrdersCount = 0;
+    let deptOrigAmt = 0;
+    let deptTwdAmt = 0;
+    let deptProfitAmt = 0;
+
+    salesMap.forEach(orders => {
+      deptOrdersCount += orders.length;
+      orders.forEach(o => {
+        const orig = parseNumber(o.amount_orig || o.amount_twd);
+        const twd = parseNumber(o.amount_twd);
+        const profit = parseNumber(o.profit_twd || (twd * parseNumber(o.ebt_rate || 0.15)));
+        deptOrigAmt += orig;
+        deptTwdAmt += twd;
+        deptProfitAmt += profit;
+      });
+    });
+
+    grandOrigAmt += deptOrigAmt;
+    grandTwdAmt += deptTwdAmt;
+    grandProfitAmt += deptProfitAmt;
+
+    // 部門主標題橫條
+    tableHtml += `
+      <tr class="report-group-header-row">
+        <td colspan="9">
+          🏢 業務組別：${deptName} (${deptOrdersCount} 筆資料)
+        </td>
+      </tr>
+    `;
+
+    // 業務人員分組
+    salesMap.forEach((orders, ownerName) => {
+      const ownerFullName = getSalesFullName(ownerName);
+      let sOrig = 0;
+      let sTwd = 0;
+      let sProfit = 0;
+
+      tableHtml += `
+        <tr class="report-sales-header-row">
+          <td colspan="9" style="padding-left: 20px;">
+            👤 ${ownerFullName} (${orders.length} 筆資料)
+          </td>
+        </tr>
+      `;
+
+      orders.forEach(o => {
+        const orig = parseNumber(o.amount_orig || o.amount_twd);
+        const twd = parseNumber(o.amount_twd);
+        const profit = parseNumber(o.profit_twd || (twd * parseNumber(o.ebt_rate || 0.15)));
+        const rate = twd > 0 ? (profit / twd) : (parseNumber(o.ebt_rate) || 0);
+        const curr = o.currency || 'NTD';
+        const custShort = o.customer_short || o['顧客簡稱'] || (o.customer ? o.customer.substring(0, 10) : '-');
+        const dt = o.created_date ? String(o.created_date).replace(/-/g, '/') : '-';
+
+        sOrig += orig;
+        sTwd += twd;
+        sProfit += profit;
+
+        const rateBadgeClass = (rate >= 0.2) ? 'ebt-rate-high' : ((rate >= 0.1) ? 'ebt-rate-med' : 'ebt-rate-low');
+
+        tableHtml += `
+          <tr>
+            <td style="color: var(--text-muted);">${deptName}</td>
+            <td style="font-weight: 500;">${ownerFullName}</td>
+            <td style="color: #e2e8f0;">${custShort}</td>
+            <td class="col-center" style="color: var(--text-muted);">${curr}</td>
+            <td class="col-right num-font">${formatNumberWithCommas(orig, 2)}</td>
+            <td class="col-right num-font" style="font-weight: 600;">${formatNumberWithCommas(twd, 0)}</td>
+            <td class="col-right num-font" style="color: #34d399;">${formatNumberWithCommas(profit, 0)}</td>
+            <td class="col-right">
+              <span class="ebt-rate-badge ${rateBadgeClass} num-font">${formatPercent(rate * 100, 2)}</span>
+            </td>
+            <td class="col-center" style="color: var(--text-muted); font-size: 11.5px;">${dt}</td>
+          </tr>
+        `;
+      });
+
+      // 業務小計列
+      const sRate = sTwd > 0 ? (sProfit / sTwd * 100) : 0;
+      const sRateBadgeClass = (sRate >= 20) ? 'ebt-rate-high' : ((sRate >= 10) ? 'ebt-rate-med' : 'ebt-rate-low');
+      tableHtml += `
+        <tr class="report-subtotal-row">
+          <td colspan="4" style="text-align: right; color: var(--text-muted); font-size: 12px;">${ownerFullName} 小計:</td>
+          <td class="col-right num-font">${formatNumberWithCommas(sOrig, 2)}</td>
+          <td class="col-right num-font">${formatNumberWithCommas(sTwd, 0)}</td>
+          <td class="col-right num-font" style="color: #34d399;">${formatNumberWithCommas(sProfit, 0)}</td>
+          <td class="col-right">
+            <span class="ebt-rate-badge ${sRateBadgeClass} num-font">${formatPercent(sRate, 2)}</span>
+          </td>
+          <td class="col-center">-</td>
+        </tr>
+      `;
+    });
+
+    // 部門加總列
+    const deptRate = deptTwdAmt > 0 ? (deptProfitAmt / deptTwdAmt * 100) : 0;
+    tableHtml += `
+      <tr class="report-dept-total-row">
+        <td colspan="4" style="font-weight: 700;">🏢 ${deptName} 加總</td>
+        <td class="col-right num-font">${formatNumberWithCommas(deptOrigAmt, 2)}</td>
+        <td class="col-right num-font">${formatNumberWithCommas(deptTwdAmt, 0)}</td>
+        <td class="col-right num-font">${formatNumberWithCommas(deptProfitAmt, 0)}</td>
+        <td class="col-right">
+          <span class="ebt-rate-badge ebt-rate-high num-font">${formatPercent(deptRate, 2)}</span>
+        </td>
+        <td class="col-center">-</td>
+      </tr>
+    `;
+  });
+
+  // 全公司總計列
+  const grandRate = grandTwdAmt > 0 ? (grandProfitAmt / grandTwdAmt * 100) : 0;
+  tableHtml += `
+      <tr class="report-grand-total-row">
+        <td colspan="4">🏁 總共 ${totalOrders} 筆資料 (Company Total)</td>
+        <td class="col-right num-font">${formatNumberWithCommas(grandOrigAmt, 2)}</td>
+        <td class="col-right num-font">${formatNumberWithCommas(grandTwdAmt, 0)}</td>
+        <td class="col-right num-font">${formatNumberWithCommas(grandProfitAmt, 0)}</td>
+        <td class="col-right">
+          <span class="ebt-rate-badge ebt-rate-high num-font" style="font-size: 12.5px;">${formatPercent(grandRate, 2)}</span>
+        </td>
+        <td class="col-center">-</td>
+      </tr>
+    </tbody>
+  </table>
+  `;
+
+  container.innerHTML = tableHtml;
+}
+
+// ------------------------------------------------------------
+// 視圖 2: 年度累積接單業績 (對齊 Sales Report Summary - FCI TW.pdf)
+// ------------------------------------------------------------
+function renderYtdSummaryReport(container, kpiContainer) {
+  const selectedYear = appState.selectedYear || '2026';
+
+  // 篩選當年度訂單
+  const curYearOrders = appState.orders.filter(o => {
+    const yr = getYearFromDateStr(o.created_date);
+    return yr === selectedYear;
+  });
+
+  // 篩選當年度目標
+  const curYearTargets = appState.targets.filter(t => {
+    const yr = (t['年份'] || t['year'] || '').toString().trim();
+    return !selectedYear || yr === selectedYear;
+  });
+
+  // 業務人員對齊 PDF 兩大群組 (Charlie 同時負責 Non Power 與 Power&EPC)
+  const NON_POWER_MEMBERS = ['Charlie', 'Jason', 'Ping', 'Neil', 'Rex', 'Sophie'];
+  const POWER_EPC_MEMBERS = ['Canni', 'Charlie', 'Hayashi', 'Shawn', 'Yen'];
+
+  function calcMemberRow(memName, targetGroup) {
+    const fullName = getSalesFullName(memName);
+    
+    // 找出該業務的 Target
+    const isTargetGroupMatch = (t) => {
+      const p = normalizeOwnerName(t['Sales Person'] || t['salesPerson'] || '');
+      if (p !== memName) return false;
+      const team = (t['列表頁Team'] || t['Team'] || '').toString();
+      if (targetGroup === 'Non Power') {
+        return team.includes('NonPower') || team.includes('Non Power');
+      } else {
+        return team.includes('Power') || team.includes('EPC') || team.includes('MTO');
+      }
+    };
+
+    let tRow = curYearTargets.find(isTargetGroupMatch);
+    if (!tRow) {
+      tRow = curYearTargets.find(t => normalizeOwnerName(t['Sales Person'] || t['salesPerson'] || '') === memName);
+    }
+
+    let salesTarget = 0;
+    let ebtTarget = 0;
+
+    if (memName === 'Charlie') {
+      // Charlie 同時跨兩部門：Non Power (目標 6.5M / EBT 650K) 與 Power&EPC (目標 243.5M / EBT 24.85M)
+      if (targetGroup === 'Non Power') {
+        salesTarget = (tRow && parseNumber(tRow['NonPower Sales Target'])) || 6500000;
+        ebtTarget = (tRow && parseNumber(tRow['NonPower EBT Target'])) || 650000;
+      } else {
+        salesTarget = (tRow && parseNumber(tRow['Power Sales Target'])) || 243500000;
+        ebtTarget = (tRow && parseNumber(tRow['Power EBT Target'])) || 24850000;
+      }
+    } else {
+      salesTarget = tRow ? parseNumber(tRow['Sales Amount Target'] || tRow['salesTarget']) : 0;
+      ebtTarget = tRow ? parseNumber(tRow['EBT Target'] || tRow['ebtTarget'] || (salesTarget * 0.10)) : (salesTarget * 0.10);
+    }
+
+    // 找出該業務在該部門的年度已接單 (依部門精確過濾)
+    const memOrders = curYearOrders.filter(o => {
+      if (normalizeOwnerName(o.owner) !== memName) return false;
+      const dept = getRecordPowerNonPower(o);
+      if (targetGroup === 'Non Power') {
+        return dept === 'NonPower';
+      } else {
+        return dept === 'Power' || dept === 'Power&EPC';
+      }
+    });
+
+    const orderQty = memOrders.length;
+    const salesBooked = memOrders.reduce((sum, o) => sum + parseNumber(o.amount_twd), 0);
+    const ebtBooked = memOrders.reduce((sum, o) => sum + parseNumber(o.profit_twd || (parseNumber(o.amount_twd) * parseNumber(o.ebt_rate || 0.15))), 0);
+
+    const salesAch = salesTarget > 0 ? (salesBooked / salesTarget * 100) : 0;
+    const ebtAch = ebtTarget > 0 ? (ebtBooked / ebtTarget * 100) : 0;
+    const targetEbtRate = salesTarget > 0 ? (ebtTarget / salesTarget * 100) : 10;
+    const achEbtRate = salesBooked > 0 ? (ebtBooked / salesBooked * 100) : 0;
+
+    return {
+      team: targetGroup,
+      name: memName,
+      fullName: fullName,
+      salesTarget,
+      salesBooked,
+      salesAch,
+      ebtTarget,
+      ebtBooked,
+      ebtAch,
+      targetEbtRate,
+      achEbtRate,
+      orderQty
+    };
+  }
+
+  const npRows = NON_POWER_MEMBERS.map(m => calcMemberRow(m, 'Non Power'));
+  const powerRows = POWER_EPC_MEMBERS.map(m => calcMemberRow(m, 'Power&EPC'));
+
+  // 部門過濾
+  let displayNp = (appState.reportDept === 'ALL' || appState.reportDept === 'NonPower');
+  let displayPower = (appState.reportDept === 'ALL' || appState.reportDept === 'Power');
+
+  // 計算小計與加總
+  function sumGroup(rows) {
+    const sTarget = rows.reduce((s, r) => s + r.salesTarget, 0);
+    const sBooked = rows.reduce((s, r) => s + r.salesBooked, 0);
+    const eTarget = rows.reduce((s, r) => s + r.ebtTarget, 0);
+    const eBooked = rows.reduce((s, r) => s + r.ebtBooked, 0);
+    const qty = rows.reduce((s, r) => s + r.orderQty, 0);
+    return {
+      salesTarget: sTarget,
+      salesBooked: sBooked,
+      salesAch: sTarget > 0 ? (sBooked / sTarget * 100) : 0,
+      ebtTarget: eTarget,
+      ebtBooked: eBooked,
+      ebtAch: eTarget > 0 ? (eBooked / eTarget * 100) : 0,
+      targetEbtRate: sTarget > 0 ? (eTarget / sTarget * 100) : 10,
+      achEbtRate: sBooked > 0 ? (eBooked / sBooked * 100) : 0,
+      orderQty: qty
+    };
+  }
+
+  const npSubtotal = sumGroup(npRows);
+  const powerSubtotal = sumGroup(powerRows);
+  const companyTotal = sumGroup([...npRows, ...powerRows]);
+
+  // 更新 KPI 膠囊
+  kpiContainer.innerHTML = `
+    <div class="report-kpi-card">
+      <span class="report-kpi-title">🏆 年度累計接單 (YTD Booked)</span>
+      <span class="report-kpi-val num-font">NT$ ${formatNumberWithCommas(companyTotal.salesBooked)}</span>
+      <span class="report-kpi-sub">目標: NT$ ${formatNumberWithCommas(companyTotal.salesTarget)}</span>
+    </div>
+    <div class="report-kpi-card">
+      <span class="report-kpi-title">🎯 全年銷售達成率 (Sales Ach.)</span>
+      <span class="report-kpi-val num-font" style="color: ${companyTotal.salesAch >= 80 ? '#34d399' : '#f59e0b'};">
+        ${formatPercent(companyTotal.salesAch, 1)}
+      </span>
+      <span class="report-kpi-sub">集團整體 Order Booked 達成</span>
+    </div>
+    <div class="report-kpi-card">
+      <span class="report-kpi-title">💎 年度累積 EBT 利潤 (Booked EBT)</span>
+      <span class="report-kpi-val num-font" style="color: #38bdf8;">NT$ ${formatNumberWithCommas(companyTotal.ebtBooked)}</span>
+      <span class="report-kpi-sub">EBT 達成率: ${formatPercent(companyTotal.ebtAch, 1)}</span>
+    </div>
+    <div class="report-kpi-card">
+      <span class="report-kpi-title">📑 全年成交筆數 (Total Q'ty)</span>
+      <span class="report-kpi-val num-font">${companyTotal.orderQty} 筆</span>
+      <span class="report-kpi-sub">平均利潤率: ${formatPercent(companyTotal.achEbtRate, 1)}</span>
+    </div>
+  `;
+
+  // 輔助函式：達成率進度膠囊
+  function renderAchCell(achPct) {
+    const val = Number(achPct) || 0;
+    const fillWidth = Math.min(100, Math.max(0, val));
+    let color = '#f87171'; // 紅色
+    if (val >= 100) color = '#34d399'; // 綠色
+    else if (val >= 60) color = '#38bdf8'; // 藍色
+    else if (val >= 30) color = '#fbbf24'; // 黃色
+
+    return `
+      <div class="ach-cell-wrap">
+        <span class="num-font" style="color: ${color}; font-weight: 700;">${formatPercent(val, 0)}</span>
+        <div class="ach-bar-mini">
+          <div class="ach-bar-fill" style="width: ${fillWidth}%; background: ${color};"></div>
+        </div>
+      </div>
+    `;
+  }
+
+  // 渲染資料列
+  function renderRowHtml(r) {
+    return `
+      <tr>
+        <td style="color: var(--text-muted); font-size: 12px;">${r.team}</td>
+        <td style="font-weight: 600; color: #ffffff;">${r.fullName}</td>
+        <td class="col-right num-font">${formatNumberWithCommas(r.salesTarget, 0)}</td>
+        <td class="col-right num-font" style="font-weight: 700; color: #38bdf8;">${formatNumberWithCommas(r.salesBooked, 0)}</td>
+        <td class="col-right">${renderAchCell(r.salesAch)}</td>
+        <td class="col-right num-font">${formatNumberWithCommas(r.ebtTarget, 0)}</td>
+        <td class="col-right num-font" style="font-weight: 600; color: #34d399;">${formatNumberWithCommas(r.ebtBooked, 0)}</td>
+        <td class="col-right">${renderAchCell(r.ebtAch)}</td>
+        <td class="col-right num-font" style="color: var(--text-muted);">${formatPercent(r.targetEbtRate, 0)}</td>
+        <td class="col-right num-font" style="color: #fbbf24; font-weight: 600;">${formatPercent(r.achEbtRate, 0)}</td>
+        <td class="col-center num-font" style="font-weight: 700;">${r.orderQty}</td>
+      </tr>
+    `;
+  }
+
+  let tableHtml = `
+    <table class="report-data-table" id="hierarchy4-table-element">
+      <thead>
+        <tr>
+          <th style="min-width: 100px;">Sales Team</th>
+          <th style="min-width: 170px;">Sales Person</th>
+          <th class="col-right" style="min-width: 120px;">Target (業績)</th>
+          <th class="col-right" style="min-width: 130px;">Order Booked</th>
+          <th class="col-right" style="min-width: 110px;">Ach.</th>
+          <th class="col-right" style="min-width: 120px;">Target (EBT)</th>
+          <th class="col-right" style="min-width: 125px;">Order Booked EBT</th>
+          <th class="col-right" style="min-width: 110px;">Ach.</th>
+          <th class="col-right" style="min-width: 85px;">Target Rate</th>
+          <th class="col-right" style="min-width: 85px;">Ach. Rate</th>
+          <th class="col-center" style="min-width: 80px;">Order Q'ty</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  // 1. Non Power 群組
+  if (displayNp) {
+    npRows.forEach(r => {
+      tableHtml += renderRowHtml(r);
+    });
+
+    // Non Power 小計列
+    tableHtml += `
+      <tr class="report-dept-total-row">
+        <td colspan="2" style="font-weight: 700;">TEAM SUMMARY: Non Power</td>
+        <td class="col-right num-font">${formatNumberWithCommas(npSubtotal.salesTarget, 0)}</td>
+        <td class="col-right num-font">${formatNumberWithCommas(npSubtotal.salesBooked, 0)}</td>
+        <td class="col-right">${renderAchCell(npSubtotal.salesAch)}</td>
+        <td class="col-right num-font">${formatNumberWithCommas(npSubtotal.ebtTarget, 0)}</td>
+        <td class="col-right num-font">${formatNumberWithCommas(npSubtotal.ebtBooked, 0)}</td>
+        <td class="col-right">${renderAchCell(npSubtotal.ebtAch)}</td>
+        <td class="col-right num-font">${formatPercent(npSubtotal.targetEbtRate, 0)}</td>
+        <td class="col-right num-font" style="font-weight: 700;">${formatPercent(npSubtotal.achEbtRate, 0)}</td>
+        <td class="col-center num-font" style="font-weight: 700;">${npSubtotal.orderQty}</td>
+      </tr>
+    `;
+  }
+
+  // 2. Power&EPC 群組
+  if (displayPower) {
+    powerRows.forEach(r => {
+      tableHtml += renderRowHtml(r);
+    });
+
+    // Power&EPC 小計列
+    tableHtml += `
+      <tr class="report-dept-total-row">
+        <td colspan="2" style="font-weight: 700;">TEAM SUMMARY: Power&EPC</td>
+        <td class="col-right num-font">${formatNumberWithCommas(powerSubtotal.salesTarget, 0)}</td>
+        <td class="col-right num-font">${formatNumberWithCommas(powerSubtotal.salesBooked, 0)}</td>
+        <td class="col-right">${renderAchCell(powerSubtotal.salesAch)}</td>
+        <td class="col-right num-font">${formatNumberWithCommas(powerSubtotal.ebtTarget, 0)}</td>
+        <td class="col-right num-font">${formatNumberWithCommas(powerSubtotal.ebtBooked, 0)}</td>
+        <td class="col-right">${renderAchCell(powerSubtotal.ebtAch)}</td>
+        <td class="col-right num-font">${formatPercent(powerSubtotal.targetEbtRate, 0)}</td>
+        <td class="col-right num-font" style="font-weight: 700;">${formatPercent(powerSubtotal.achEbtRate, 0)}</td>
+        <td class="col-center num-font" style="font-weight: 700;">${powerSubtotal.orderQty}</td>
+      </tr>
+    `;
+  }
+
+  // 3. Company Total 全公司總計
+  tableHtml += `
+      <tr class="report-grand-total-row">
+        <td colspan="2">🏁 全公司加總 (Company Total)</td>
+        <td class="col-right num-font">${formatNumberWithCommas(companyTotal.salesTarget, 0)}</td>
+        <td class="col-right num-font" style="color: #67e8f9;">${formatNumberWithCommas(companyTotal.salesBooked, 0)}</td>
+        <td class="col-right">${renderAchCell(companyTotal.salesAch)}</td>
+        <td class="col-right num-font">${formatNumberWithCommas(companyTotal.ebtTarget, 0)}</td>
+        <td class="col-right num-font" style="color: #34d399;">${formatNumberWithCommas(companyTotal.ebtBooked, 0)}</td>
+        <td class="col-right">${renderAchCell(companyTotal.ebtAch)}</td>
+        <td class="col-right num-font">${formatPercent(companyTotal.targetEbtRate, 0)}</td>
+        <td class="col-right num-font" style="font-weight: 800;">${formatPercent(companyTotal.achEbtRate, 0)}</td>
+        <td class="col-center num-font" style="font-weight: 800;">${companyTotal.orderQty}</td>
+      </tr>
+    </tbody>
+  </table>
+  `;
+
+  container.innerHTML = tableHtml;
+}
+
+// ------------------------------------------------------------
+// 匯出報表為 TSV / 複製剪貼簿
+// ------------------------------------------------------------
+function exportHierarchy4Table() {
+  const table = document.getElementById('hierarchy4-table-element');
+  const btn = document.getElementById('report-export-btn');
+  if (!table) return;
+
+  let tsvContent = '';
+  const rows = table.querySelectorAll('tr');
+  rows.forEach(r => {
+    const cols = r.querySelectorAll('th, td');
+    const rowData = [];
+    cols.forEach(c => {
+      // 清理換行與多餘空白
+      const text = c.innerText.replace(/(\r\n|\n|\r)/gm, ' ').replace(/\s+/g, ' ').trim();
+      rowData.push(text);
+    });
+    tsvContent += rowData.join('\t') + '\n';
+  });
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(tsvContent).then(() => {
+      if (btn) {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '✅ 已複製至剪貼簿！';
+        btn.style.color = '#34d399';
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+          btn.style.color = '';
+        }, 1800);
+      }
+    }).catch(err => {
+      console.warn('複製失敗，改用傳統方式:', err);
+      alert('已產生報表資料，請於控制台查看。');
+      console.log(tsvContent);
+    });
+  } else {
+    console.log(tsvContent);
+    alert('已輸出報表文字至 Console。');
+  }
 }
 
 // ------------------------------------------------------------

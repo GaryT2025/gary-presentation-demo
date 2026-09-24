@@ -5,7 +5,7 @@
   <base href="/fci-sales/">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FCI Sales 決策戰情室 | Executive Dashboard</title>
-  <link rel="stylesheet" href="/fci-sales/src/style.css">
+  <link rel="stylesheet" href="./src/style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -226,6 +226,82 @@
           </div>
           <div class="chart-container" style="height: 450px;">
             <canvas id="leaderboard-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- 階層 4: 接單業績分析報表 (Sales Order Booked Reports) -->
+        <div class="glass-card main-hierarchy-card glow-cyan" id="hierarchy-level4">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <h3 class="card-title"><span class="icon-dot"></span> 📑 階層 4：接單業績分析報表 (Sales Order Booked Reports)</h3>
+              <span style="font-size: 12px; color: var(--text-muted);" id="hierarchy4-subtitle">支援當月接單明細穿透與年度全員累積達成對照</span>
+            </div>
+            
+            <!-- Toggle 控制器 -->
+            <div class="report-toggle-wrapper">
+              <div class="report-toggle-group">
+                <button class="report-toggle-btn active" id="btn-report-monthly" data-mode="monthly">
+                  📅 當月份接單業績
+                </button>
+                <button class="report-toggle-btn" id="btn-report-ytd" data-mode="ytd">
+                  📈 年度累積接單業績
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 工具列：月份選取器 (當月模式)、部門篩選、搜尋、快速過濾 -->
+          <div class="report-toolbar" id="report-toolbar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 14px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <!-- 月份選擇器 (僅當月模式顯示) -->
+              <div id="report-month-filter-wrap" style="display: flex; align-items: center; gap: 6px;">
+                <label for="report-month-select" style="font-size: 13px; color: var(--text-secondary); white-space: nowrap;">接單月份：</label>
+                <select id="report-month-select" class="select-control" style="min-width: 100px; height: 34px; font-size: 13px;">
+                  <option value="1">01 月</option>
+                  <option value="2">02 月</option>
+                  <option value="3">03 月</option>
+                  <option value="4">04 月</option>
+                  <option value="5">05 月</option>
+                  <option value="6">06 月</option>
+                  <option value="7">07 月</option>
+                  <option value="8">08 月</option>
+                  <option value="9">09 月</option>
+                  <option value="10">10 月</option>
+                  <option value="11">11 月</option>
+                  <option value="12">12 月</option>
+                </select>
+              </div>
+
+              <!-- 部門篩選器 -->
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <label for="report-dept-select" style="font-size: 13px; color: var(--text-secondary); white-space: nowrap;">業務團隊：</label>
+                <select id="report-dept-select" class="select-control" style="min-width: 130px; height: 34px; font-size: 13px;">
+                  <option value="ALL">🏢 全部部門</option>
+                  <option value="NonPower">Non-Power</option>
+                  <option value="Power">Power &amp; EPC</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- 右側資訊與操作 -->
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span id="report-meta-tag" class="badge-neutral" style="font-size: 12px; padding: 4px 10px; border-radius: 4px; background: rgba(255,255,255,0.05); color: var(--text-muted);">
+                資料來源: Yearly Report Data - TW
+              </span>
+              <button id="report-export-btn" class="btn-secondary" style="height: 34px; font-size: 12px; padding: 0 12px; cursor: pointer;">
+                📋 複製資料
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI 快速指標橫條 -->
+          <div class="report-kpi-summary" id="report-kpi-summary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 16px 0;">
+            <!-- JS 動態生成 4 個 KPI 卡 -->
+          </div>
+
+          <!-- 報表主資料表容器 -->
+          <div class="report-table-container" id="report-table-container" style="overflow-x: auto; max-height: 600px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+            <!-- JS 動態渲染 Monthly 表格 或 YTD 表格 -->
           </div>
         </div>
       </section>
@@ -546,6 +622,6 @@
     </main>
   </div>
 
-  <script src="/fci-sales/src/app.js"></script>
+  <script type="module" src="./src/app.js"></script>
 </body>
 </html>
