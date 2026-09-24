@@ -1585,7 +1585,7 @@ function renderMonthlyBookedReport(container, kpiContainer) {
             <td style="font-weight: 500;">${ownerFullName}</td>
             <td style="color: var(--text-main); font-weight: 500;">${custShort}</td>
             <td class="col-center" style="color: var(--text-muted);">${curr}</td>
-            <td class="col-right num-font">${formatNumberWithCommas(orig, 2)}</td>
+            <td class="col-right num-font">${formatNumberWithCommas(orig, 0)}</td>
             <td class="col-right num-font" style="font-weight: 600;">${formatNumberWithCommas(twd, 0)}</td>
             <td class="col-right num-font" style="color: var(--fluids-green); font-weight: 600;">${formatNumberWithCommas(profit, 0)}</td>
             <td class="col-right">
@@ -1602,7 +1602,7 @@ function renderMonthlyBookedReport(container, kpiContainer) {
       tableHtml += `
         <tr class="report-subtotal-row">
           <td colspan="4" style="text-align: right; color: var(--text-muted); font-size: 12px;">${ownerFullName} 小計:</td>
-          <td class="col-right num-font">${formatNumberWithCommas(sOrig, 2)}</td>
+          <td class="col-right num-font">${formatNumberWithCommas(sOrig, 0)}</td>
           <td class="col-right num-font">${formatNumberWithCommas(sTwd, 0)}</td>
           <td class="col-right num-font" style="color: var(--fluids-green); font-weight: 600;">${formatNumberWithCommas(sProfit, 0)}</td>
           <td class="col-right">
@@ -1618,7 +1618,7 @@ function renderMonthlyBookedReport(container, kpiContainer) {
     tableHtml += `
       <tr class="report-dept-total-row">
         <td colspan="4" style="font-weight: 700;">🏢 ${deptName} 加總</td>
-        <td class="col-right num-font">${formatNumberWithCommas(deptOrigAmt, 2)}</td>
+        <td class="col-right num-font">${formatNumberWithCommas(deptOrigAmt, 0)}</td>
         <td class="col-right num-font">${formatNumberWithCommas(deptTwdAmt, 0)}</td>
         <td class="col-right num-font">${formatNumberWithCommas(deptProfitAmt, 0)}</td>
         <td class="col-right">
@@ -1634,7 +1634,7 @@ function renderMonthlyBookedReport(container, kpiContainer) {
   tableHtml += `
       <tr class="report-grand-total-row">
         <td colspan="4">🏁 總共 ${totalOrders} 筆資料 (Company Total)</td>
-        <td class="col-right num-font">${formatNumberWithCommas(grandOrigAmt, 2)}</td>
+        <td class="col-right num-font">${formatNumberWithCommas(grandOrigAmt, 0)}</td>
         <td class="col-right num-font">${formatNumberWithCommas(grandTwdAmt, 0)}</td>
         <td class="col-right num-font">${formatNumberWithCommas(grandProfitAmt, 0)}</td>
         <td class="col-right">
