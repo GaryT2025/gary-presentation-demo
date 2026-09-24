@@ -5,7 +5,7 @@
   <base href="/fci-sales/">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FCI Sales 決策戰情室 | Executive Dashboard</title>
-  <link rel="stylesheet" href="./src/style.css">
+  <link rel="stylesheet" href="./src/style.css?v=2.2">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -237,14 +237,14 @@
               <span style="font-size: 12px; color: var(--text-muted);" id="hierarchy4-subtitle">支援當月接單明細穿透與年度全員累積達成對照</span>
             </div>
             
-            <!-- Toggle 控制器 -->
+            <!-- Toggle 控制器 (Capsule Segmented Control) -->
             <div class="report-toggle-wrapper">
               <div class="report-toggle-group">
                 <button class="report-toggle-btn active" id="btn-report-monthly" data-mode="monthly">
-                  📅 當月份接單業績
+                  <span class="toggle-dot"></span> 📅 當月份接單明細
                 </button>
                 <button class="report-toggle-btn" id="btn-report-ytd" data-mode="ytd">
-                  📈 年度累積接單業績
+                  <span class="toggle-dot"></span> 📈 年度全員累計匯總
                 </button>
               </div>
             </div>
@@ -622,6 +622,6 @@
     </main>
   </div>
 
-  <script type="module" src="./src/app.js"></script>
+  <script type="module" src="./src/app.js?v=2.2"></script>
 </body>
 </html>
