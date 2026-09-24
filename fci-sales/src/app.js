@@ -33,6 +33,73 @@ let appState = {
   reportSearch: ''       // 關鍵字搜尋
 };
 
+// ============================================================
+// 富迪斯集團品牌標準色 (PANTONE & HEX Palette)
+// ============================================================
+const BRAND_COLORS = {
+  green: '#009D88',        // Pantone 2402C: 富迪斯主色
+  greenLight: '#00c4aa',  // 發光強調色
+  greenDark: '#007d6d',   // 深色微調
+  yellow: '#f7b012',       // Pantone 137C: 警示 / 基準
+  red: '#f094ae',          // Pantone 190C: 風險 / 柔和紅
+  redAlert: '#e11d48',    // 高對比警示紅
+  lightGreen: '#8dc556',   // Pantone 7488C: 達成 / 成長
+  blue: '#2f8ccc',         // Pantone 2144C: 企業湛藍
+  darkGray: '#3e3a39'      // Pantone Black 7C: 深炭灰
+};
+
+function getThemeConfig() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+  const isLight = currentTheme === 'light';
+  return {
+    isLight,
+    theme: currentTheme,
+    textColor: isLight ? '#3e3a39' : '#94a3b8',
+    textMain: isLight ? '#1e293b' : '#f8fafc',
+    gridColor: isLight ? 'rgba(62, 58, 57, 0.08)' : 'rgba(255, 255, 255, 0.05)',
+    trackColor: isLight ? 'rgba(62, 58, 57, 0.08)' : 'rgba(255, 255, 255, 0.08)',
+    cardBg: isLight ? '#ffffff' : '#0e161c'
+  };
+}
+
+function initTheme() {
+  const savedTheme = localStorage.getItem('fci-theme') || 
+    (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  applyTheme(savedTheme, false);
+}
+
+function applyTheme(theme, shouldRerender = true) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('fci-theme', theme);
+  
+  const themeModeText = document.getElementById('theme-mode-text');
+  if (themeModeText) {
+    themeModeText.textContent = theme === 'light' ? '淺色' : '深色';
+  }
+
+  const logoImg = document.getElementById('fci-brand-logo');
+  if (logoImg) {
+    logoImg.src = theme === 'light' ? './src/assets/logo-light.png' : './src/assets/logo-dark.png';
+  }
+
+  // Update Chart.js Global defaults
+  if (typeof Chart !== 'undefined') {
+    const isLight = theme === 'light';
+    Chart.defaults.color = isLight ? '#3e3a39' : '#94a3b8';
+    Chart.defaults.borderColor = isLight ? 'rgba(62, 58, 57, 0.08)' : 'rgba(255, 255, 255, 0.05)';
+  }
+
+  if (shouldRerender) {
+    renderDashboard();
+  }
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  applyTheme(newTheme, true);
+}
+
 // Chart instances
 let groupDoughnutChart = null;
 let nonpowerDoughnutChart = null;
@@ -606,6 +673,7 @@ function formatTWD(amount) {
 
 // Init App
 async function initDashboard() {
+  initTheme();
   bindEvents();
   await fetchData();
   populateSalesDropdown();
@@ -621,6 +689,13 @@ function updateHeaderFilterVisibility() {
 
 // Bind Controllers
 function bindEvents() {
+  const themeToggleBtn = document.getElementById('theme-toggle-btn');
+  if (themeToggleBtn) {
+    themeToggleBtn.onclick = () => {
+      toggleTheme();
+    };
+  }
+
   const tabBtns = document.querySelectorAll('.tab-btn');
   tabBtns.forEach(btn => {
     btn.onclick = () => {
@@ -954,19 +1029,19 @@ function renderAchievementTab() {
   document.getElementById('hero-ebt-forecast-pct').textContent = `${ebtForecastPct.toFixed(1)}%`;
 
   // 1. Group Level 1 Charts (4 Charts, 2x2 Grid)
-  renderSingleDoughnutChart('sales-ach-doughnut', totalBooked, totalTarget, (chart) => salesAchDoughnut = chart, salesAchDoughnut, '#10b981');
+  renderSingleDoughnutChart('sales-ach-doughnut', totalBooked, totalTarget, (chart) => salesAchDoughnut = chart, salesAchDoughnut, BRAND_COLORS.green);
   document.getElementById('sales-ach-pct').textContent = `${salesBookedPct.toFixed(1)}%`;
 
-  renderSingleDoughnutChart('ebt-ach-doughnut', totalEbtBooked, totalEbtTarget, (chart) => ebtAchDoughnut = chart, ebtAchDoughnut, '#a855f7');
+  renderSingleDoughnutChart('ebt-ach-doughnut', totalEbtBooked, totalEbtTarget, (chart) => ebtAchDoughnut = chart, ebtAchDoughnut, BRAND_COLORS.blue);
   document.getElementById('ebt-ach-pct').textContent = `${ebtBookedPct.toFixed(1)}%`;
 
   const shareLabels = ['NONPOWER', 'POWER & EPC'];
-  const shareColors = ['#10b981', '#0ea5e9'];
+  const shareColors = [BRAND_COLORS.lightGreen, BRAND_COLORS.blue];
   renderSharePieChart('sales-share-doughnut', [npBooked, peBooked], shareLabels, shareColors, (chart) => salesShareDoughnut = chart, salesShareDoughnut);
   renderSharePieChart('ebt-share-doughnut', [npEbtBooked, peEbtBooked], shareLabels, shareColors, (chart) => ebtShareDoughnut = chart, ebtShareDoughnut);
 
   // 2. Department Level 2 Doughnuts & Info lists
-  renderSingleDoughnutChart('nonpower-doughnut-chart', npBooked, npTarget, (chart) => nonpowerDoughnutChart = chart, nonpowerDoughnutChart, '#10b981');
+  renderSingleDoughnutChart('nonpower-doughnut-chart', npBooked, npTarget, (chart) => nonpowerDoughnutChart = chart, nonpowerDoughnutChart, BRAND_COLORS.lightGreen);
   document.getElementById('nonpower-doughnut-pct').textContent = `${npPct}%`;
   document.getElementById('dept-nonpower-target').textContent = formatTWD(npTarget);
   document.getElementById('dept-nonpower-booked').textContent = formatTWD(npBooked);
@@ -977,7 +1052,7 @@ function renderAchievementTab() {
   document.getElementById('dept-nonpower-ebt-forecast').textContent = formatTWD(npEbtBooked + npEbtPipeline);
   document.getElementById('dept-nonpower-ebt-pct').textContent = `${npEbtPct}%`;
 
-  renderSingleDoughnutChart('powerepc-doughnut-chart', peBooked, peTarget, (chart) => powerepcDoughnutChart = chart, powerepcDoughnutChart, '#0ea5e9');
+  renderSingleDoughnutChart('powerepc-doughnut-chart', peBooked, peTarget, (chart) => powerepcDoughnutChart = chart, powerepcDoughnutChart, BRAND_COLORS.blue);
   document.getElementById('powerepc-doughnut-pct').textContent = `${pePct}%`;
   document.getElementById('dept-powerepc-target').textContent = formatTWD(peTarget);
   document.getElementById('dept-powerepc-booked').textContent = formatTWD(peBooked);
@@ -1063,12 +1138,13 @@ function adjustOpacity(hex, opacity) {
 }
 
 // Single Doughnut Helper
-function renderSingleDoughnutChart(canvasId, booked, target, setChartRef, existingChart, accentColor = '#10b981') {
+function renderSingleDoughnutChart(canvasId, booked, target, setChartRef, existingChart, accentColor = BRAND_COLORS.green) {
   if (typeof Chart === 'undefined') return;
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const gap = Math.max(0, target - booked);
+  const trackColor = getThemeConfig().trackColor;
 
   if (existingChart) existingChart.destroy();
 
@@ -1078,7 +1154,7 @@ function renderSingleDoughnutChart(canvasId, booked, target, setChartRef, existi
       labels: ['已成交實績', '目標缺口'],
       datasets: [{
         data: [booked, gap],
-        backgroundColor: [accentColor, 'rgba(255, 255, 255, 0.08)'],
+        backgroundColor: [accentColor, trackColor],
         borderColor: ['transparent', 'transparent'],
         borderWidth: 0,
         hoverOffset: 4
@@ -1160,8 +1236,8 @@ function renderLeaderboard(orders, cases, targets) {
           type: 'line',
           label: 'Sales Target',
           data: targetData,
-          borderColor: '#f59e0b',
-          backgroundColor: '#f59e0b',
+          borderColor: BRAND_COLORS.yellow,
+          backgroundColor: BRAND_COLORS.yellow,
           borderWidth: 3,
           tension: 0.3,
           pointRadius: 4,
@@ -1172,7 +1248,7 @@ function renderLeaderboard(orders, cases, targets) {
           type: 'bar',
           label: 'Sales Booked',
           data: bookedData,
-          backgroundColor: '#10b981',
+          backgroundColor: BRAND_COLORS.green,
           stack: 'sales',
           order: 2
         },
@@ -1180,8 +1256,8 @@ function renderLeaderboard(orders, cases, targets) {
           type: 'bar',
           label: 'Sales Quoted',
           data: pipelineData,
-          backgroundColor: 'rgba(16, 185, 129, 0.15)',
-          borderColor: '#10b981',
+          backgroundColor: adjustOpacity(BRAND_COLORS.green, 0.2),
+          borderColor: BRAND_COLORS.green,
           borderWidth: 1,
           borderSkipped: 'bottom',
           stack: 'sales',
@@ -1202,7 +1278,7 @@ function renderLeaderboard(orders, cases, targets) {
             if (stats && stats.target > 0) {
               const achPct = ((stats.booked / stats.target) * 100).toFixed(0) + '%';
               ctx.font = 'bold 11px sans-serif';
-              ctx.fillStyle = '#eab308'; // Amber 500
+              ctx.fillStyle = BRAND_COLORS.yellow;
               ctx.textAlign = 'center';
               ctx.fillText(achPct, datapoint.x, datapoint.y - 12);
             }
@@ -1217,20 +1293,20 @@ function renderLeaderboard(orders, cases, targets) {
       scales: {
         x: { 
           stacked: true,
-          ticks: { color: '#94a3b8' }, 
-          grid: { color: 'rgba(255, 255, 255, 0.05)' }
+          ticks: { color: getThemeConfig().textColor }, 
+          grid: { color: getThemeConfig().gridColor }
         },
         y: { 
           stacked: true,
           ticks: { 
-            color: '#94a3b8',
+            color: getThemeConfig().textColor,
             callback: function(value) { return formatTWD(value); }
           }, 
-          grid: { color: 'rgba(255, 255, 255, 0.05)' }
+          grid: { color: getThemeConfig().gridColor }
         }
       },
       plugins: {
-        legend: { labels: { color: '#94a3b8' } },
+        legend: { labels: { color: getThemeConfig().textColor } },
         tooltip: {
           mode: 'index',
           intersect: false,
@@ -1507,11 +1583,11 @@ function renderMonthlyBookedReport(container, kpiContainer) {
           <tr>
             <td style="color: var(--text-muted);">${deptName}</td>
             <td style="font-weight: 500;">${ownerFullName}</td>
-            <td style="color: #e2e8f0;">${custShort}</td>
+            <td style="color: var(--text-main); font-weight: 500;">${custShort}</td>
             <td class="col-center" style="color: var(--text-muted);">${curr}</td>
             <td class="col-right num-font">${formatNumberWithCommas(orig, 2)}</td>
             <td class="col-right num-font" style="font-weight: 600;">${formatNumberWithCommas(twd, 0)}</td>
-            <td class="col-right num-font" style="color: #34d399;">${formatNumberWithCommas(profit, 0)}</td>
+            <td class="col-right num-font" style="color: var(--fluids-green); font-weight: 600;">${formatNumberWithCommas(profit, 0)}</td>
             <td class="col-right">
               <span class="ebt-rate-badge ${rateBadgeClass} num-font">${formatPercent(rate * 100, 2)}</span>
             </td>
@@ -1528,7 +1604,7 @@ function renderMonthlyBookedReport(container, kpiContainer) {
           <td colspan="4" style="text-align: right; color: var(--text-muted); font-size: 12px;">${ownerFullName} 小計:</td>
           <td class="col-right num-font">${formatNumberWithCommas(sOrig, 2)}</td>
           <td class="col-right num-font">${formatNumberWithCommas(sTwd, 0)}</td>
-          <td class="col-right num-font" style="color: #34d399;">${formatNumberWithCommas(sProfit, 0)}</td>
+          <td class="col-right num-font" style="color: var(--fluids-green); font-weight: 600;">${formatNumberWithCommas(sProfit, 0)}</td>
           <td class="col-right">
             <span class="ebt-rate-badge ${sRateBadgeClass} num-font">${formatPercent(sRate, 2)}</span>
           </td>
@@ -1749,15 +1825,15 @@ function renderYtdSummaryReport(container, kpiContainer) {
     return `
       <tr>
         <td style="color: var(--text-muted); font-size: 12px;">${r.team}</td>
-        <td style="font-weight: 600; color: #ffffff;">${r.fullName}</td>
+        <td style="font-weight: 600; color: var(--text-main);">${r.fullName}</td>
         <td class="col-right num-font">${formatNumberWithCommas(r.salesTarget, 0)}</td>
-        <td class="col-right num-font" style="font-weight: 700; color: #38bdf8;">${formatNumberWithCommas(r.salesBooked, 0)}</td>
+        <td class="col-right num-font" style="font-weight: 700; color: var(--fluids-blue);">${formatNumberWithCommas(r.salesBooked, 0)}</td>
         <td class="col-right">${renderAchCell(r.salesAch)}</td>
         <td class="col-right num-font">${formatNumberWithCommas(r.ebtTarget, 0)}</td>
-        <td class="col-right num-font" style="font-weight: 600; color: #34d399;">${formatNumberWithCommas(r.ebtBooked, 0)}</td>
+        <td class="col-right num-font" style="font-weight: 600; color: var(--fluids-green);">${formatNumberWithCommas(r.ebtBooked, 0)}</td>
         <td class="col-right">${renderAchCell(r.ebtAch)}</td>
         <td class="col-right num-font" style="color: var(--text-muted);">${formatPercent(r.targetEbtRate, 0)}</td>
-        <td class="col-right num-font" style="color: #fbbf24; font-weight: 600;">${formatPercent(r.achEbtRate, 0)}</td>
+        <td class="col-right num-font" style="color: var(--fluids-yellow); font-weight: 600;">${formatPercent(r.achEbtRate, 0)}</td>
         <td class="col-center num-font" style="font-weight: 700;">${r.orderQty}</td>
       </tr>
     `;
@@ -2473,8 +2549,8 @@ function renderTrendsTab() {
           {
             label: `${selectedYear} YTD 實績累計 (M TWD)`,
             data: actualCumulative,
-            borderColor: '#10b981',
-            backgroundColor: 'rgba(16, 185, 129, 0.15)',
+            borderColor: BRAND_COLORS.green,
+            backgroundColor: adjustOpacity(BRAND_COLORS.green, 0.15),
             fill: true,
             tension: 0.3,
             pointRadius: 5,
@@ -2483,7 +2559,7 @@ function renderTrendsTab() {
           {
             label: `Run-Rate 斜率預估軌跡 (${formatTWD(projectedFullYear)})`,
             data: projectedCumulative,
-            borderColor: '#f59e0b',
+            borderColor: BRAND_COLORS.yellow,
             borderDash: [6, 4],
             backgroundColor: 'transparent',
             tension: 0.3,
@@ -2493,7 +2569,7 @@ function renderTrendsTab() {
           {
             label: `年度總目標 (${formatTWD(targetAmount)})`,
             data: targetLine,
-            borderColor: '#ef4444',
+            borderColor: BRAND_COLORS.red,
             borderDash: [2, 4],
             backgroundColor: 'transparent',
             pointRadius: 0,
@@ -2504,10 +2580,10 @@ function renderTrendsTab() {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: '#94a3b8' } } },
+        plugins: { legend: { labels: { color: getThemeConfig().textColor } } },
         scales: {
-          x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
-          y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' }, title: { display: true, text: '累計金額 (M NT$)', color: '#94a3b8' } }
+          x: { ticks: { color: getThemeConfig().textColor }, grid: { color: getThemeConfig().gridColor } },
+          y: { ticks: { color: getThemeConfig().textColor }, grid: { color: getThemeConfig().gridColor }, title: { display: true, text: '累計金額 (M NT$)', color: getThemeConfig().textColor } }
         }
       }
     });

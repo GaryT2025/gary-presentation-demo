@@ -1,53 +1,130 @@
 /* ============================================================
-   FCI Sales 決策戰情室 - Linear/Vercel Premium Dark UI
+   FCI Sales 決策戰情室 - FLUIDS Corporate Brand Edition
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap');
 
+/* --- 富迪斯集團品牌標準色 (PANTONE & HEX) --- */
 :root {
-  --bg-dark: #050811;
-  --bg-card: rgba(15, 23, 42, 0.75);
-  --bg-card-hover: rgba(30, 41, 59, 0.85);
-  --bg-header: rgba(5, 8, 17, 0.88);
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-highlight: rgba(255, 255, 255, 0.18);
-  
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --text-dim: #64748b;
-  
-  /* Gradients */
-  --grad-emerald: linear-gradient(135deg, #10b981, #06b6d4);
-  --grad-cyan: linear-gradient(135deg, #0ea5e9, #6366f1);
-  --grad-amber: linear-gradient(135deg, #f59e0b, #ef4444);
-  --grad-purple: linear-gradient(135deg, #8b5cf6, #ec4899);
+  --fluids-green: #009D88;        /* Pantone 2402C: 標準主色 */
+  --fluids-green-light: #00c4aa;  /* 發光強調色 */
+  --fluids-green-dark: #007d6d;   /* 深色微調 */
+  --fluids-yellow: #f7b012;       /* Pantone 137C: 警示 / 基準 */
+  --fluids-red: #f094ae;          /* Pantone 190C: 風險 / 柔和紅 */
+  --fluids-red-alert: #e11d48;    /* 高對比警示紅 */
+  --fluids-light-green: #8dc556;  /* Pantone 7488C: 達成 / 成長 */
+  --fluids-blue: #2f8ccc;         /* Pantone 2144C: 企業湛藍 */
+  --fluids-dark-gray: #3e3a39;    /* Pantone Black 7C: 深炭灰 */
 
-  /* Accents */
-  --accent-emerald: #10b981;
-  --accent-blue: #3b82f6;
-  --accent-cyan: #0ea5e9;
-  --accent-amber: #f59e0b;
-  --accent-red: #ef4444;
-  --accent-purple: #a855f7;
-
-  --shadow-glow: 0 12px 48px 0 rgba(0, 0, 0, 0.55);
-  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.35);
   --radius-lg: 20px;
   --radius-md: 14px;
   --radius-sm: 8px;
+}
+
+/* --- 深色主題 (Dark Mode - Default) --- */
+:root, [data-theme="dark"] {
+  --bg-app: #080d11;
+  --bg-card: rgba(14, 22, 28, 0.85);
+  --bg-card-hover: rgba(20, 31, 39, 0.95);
+  --bg-card-solid: #0e161c;
+  --bg-header: rgba(8, 13, 17, 0.88);
+  --bg-tabs: rgba(14, 22, 28, 0.9);
+  --bg-input: rgba(14, 22, 28, 0.85);
+  --bg-input-focus: rgba(20, 31, 39, 0.95);
+
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-highlight: rgba(0, 157, 136, 0.4);
+
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+
+  /* Dashboard Role Mapping */
+  --accent-emerald: var(--fluids-green);
+  --accent-blue: var(--fluids-blue);
+  --accent-cyan: var(--fluids-green-light);
+  --accent-amber: var(--fluids-yellow);
+  --accent-red: var(--fluids-red);
+  --accent-purple: var(--fluids-light-green);
+
+  /* Gradients based on Brand Palette */
+  --grad-emerald: linear-gradient(135deg, #009D88, #2f8ccc);
+  --grad-cyan: linear-gradient(135deg, #2f8ccc, #8dc556);
+  --grad-amber: linear-gradient(135deg, #f7b012, #f094ae);
+  --grad-purple: linear-gradient(135deg, #009D88, #8dc556);
+
+  --shadow-glow: 0 12px 48px 0 rgba(0, 0, 0, 0.65);
+  --shadow-card: 0 6px 28px rgba(0, 0, 0, 0.4);
+
+  --table-container-bg: #0b1216;
+  --table-head-bg: linear-gradient(180deg, #131d23 0%, #0d1519 100%);
+  --table-border: rgba(0, 157, 136, 0.35);
+  --table-th-border: rgba(0, 157, 136, 0.6);
+  --table-td-border: rgba(255, 255, 255, 0.08);
+  --table-zebra: rgba(255, 255, 255, 0.015);
+  --table-hover: rgba(0, 157, 136, 0.12);
+  --toggle-bg: rgba(14, 22, 28, 0.88);
+  --toggle-active-bg: linear-gradient(135deg, #009D88, #007d6d);
+}
+
+/* --- 淺色主題 (Light Mode - Enterprise Clean) --- */
+[data-theme="light"] {
+  --bg-app: #f4f7f6;
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --bg-card-hover: #ffffff;
+  --bg-card-solid: #ffffff;
+  --bg-header: rgba(255, 255, 255, 0.92);
+  --bg-tabs: #e5ecea;
+  --bg-input: #ffffff;
+  --bg-input-focus: #ffffff;
+
+  --border-subtle: rgba(62, 58, 57, 0.12);
+  --border-highlight: rgba(0, 157, 136, 0.5);
+
+  --text-main: #1e293b;
+  --text-muted: #475569;
+  --text-dim: #64748b;
+
+  /* Dashboard Role Mapping */
+  --accent-emerald: var(--fluids-green);
+  --accent-blue: var(--fluids-blue);
+  --accent-cyan: var(--fluids-green-dark);
+  --accent-amber: #d97706;
+  --accent-red: var(--fluids-red-alert);
+  --accent-purple: #16a34a;
+
+  /* Gradients */
+  --grad-emerald: linear-gradient(135deg, #009D88, #2f8ccc);
+  --grad-cyan: linear-gradient(135deg, #2f8ccc, #8dc556);
+  --grad-amber: linear-gradient(135deg, #f7b012, #f094ae);
+  --grad-purple: linear-gradient(135deg, #009D88, #8dc556);
+
+  --shadow-glow: 0 12px 32px 0 rgba(0, 157, 136, 0.09);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.06);
+
+  --table-container-bg: #ffffff;
+  --table-head-bg: linear-gradient(180deg, #edf5f3 0%, #e2ece9 100%);
+  --table-border: rgba(0, 157, 136, 0.28);
+  --table-th-border: rgba(0, 157, 136, 0.5);
+  --table-td-border: rgba(62, 58, 57, 0.08);
+  --table-zebra: rgba(0, 157, 136, 0.025);
+  --table-hover: rgba(0, 157, 136, 0.08);
+  --toggle-bg: #e2ece9;
+  --toggle-active-bg: linear-gradient(135deg, #009D88, #007d6d);
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.2s ease;
 }
 
 body {
-  background-color: var(--bg-dark);
+  background-color: var(--bg-app);
   background-image: 
-    radial-gradient(at 10% 10%, rgba(16, 185, 129, 0.04) 0px, transparent 50%),
-    radial-gradient(at 90% 10%, rgba(14, 165, 233, 0.04) 0px, transparent 50%);
+    radial-gradient(at 10% 10%, rgba(0, 157, 136, 0.05) 0px, transparent 50%),
+    radial-gradient(at 90% 10%, rgba(47, 140, 204, 0.05) 0px, transparent 50%);
   color: var(--text-main);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   font-size: 14px;
@@ -61,11 +138,11 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-.text-emerald { color: #34d399 !important; }
-.text-cyan { color: #38bdf8 !important; }
-.text-red { color: #f87171 !important; }
-.text-amber { color: #fbbf24 !important; }
-.text-purple { color: #c084fc !important; }
+.text-emerald { color: var(--accent-emerald) !important; }
+.text-cyan { color: var(--accent-cyan) !important; }
+.text-red { color: var(--accent-red) !important; }
+.text-amber { color: var(--accent-amber) !important; }
+.text-purple { color: var(--accent-purple) !important; }
 .text-muted { color: var(--text-muted) !important; }
 
 /* Layout */
@@ -83,46 +160,77 @@ body {
   background: var(--bg-header);
   backdrop-filter: blur(24px);
   border-bottom: 1px solid var(--border-subtle);
-  padding: 14px 36px;
+  padding: 12px 36px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .brand-section {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
 }
 
-.brand-logo {
-  width: 42px;
-  height: 42px;
-  background: var(--grad-emerald);
-  border-radius: var(--radius-md);
-  display: grid;
-  place-items: center;
-  font-weight: 900;
-  color: #fff;
-  font-size: 19px;
-  box-shadow: 0 0 24px rgba(16, 185, 129, 0.45);
+.brand-logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-logo-img {
+  height: 38px;
+  width: auto;
+  max-width: 240px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(0, 157, 136, 0.2));
+  transition: transform 0.2s ease;
+}
+
+.brand-logo-img:hover {
+  transform: scale(1.02);
+}
+
+.brand-text-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.brand-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .brand-title {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
   letter-spacing: -0.02em;
+  color: var(--text-main);
+}
+
+.brand-corp-tag {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  background: rgba(0, 157, 136, 0.15);
+  color: var(--fluids-green);
+  border: 1px solid rgba(0, 157, 136, 0.35);
+  padding: 1px 7px;
+  border-radius: 4px;
 }
 
 .brand-subtitle {
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--text-muted);
 }
 
 .nav-tabs {
   display: flex;
   align-items: center;
-  background: rgba(15, 23, 42, 0.9);
+  background: var(--bg-tabs);
   padding: 4px;
   border-radius: 999px;
   border: 1px solid var(--border-subtle);
@@ -133,7 +241,7 @@ body {
   background: transparent;
   border: none;
   color: var(--text-muted);
-  padding: 9px 22px;
+  padding: 8px 20px;
   border-radius: 999px;
   font-weight: 600;
   font-size: 13px;
@@ -146,24 +254,69 @@ body {
 
 .tab-btn:hover {
   color: var(--text-main);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 157, 136, 0.08);
 }
 
 .tab-btn.active {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.14);
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+  color: var(--text-main);
+  background: var(--bg-card);
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.15);
   border: 1px solid var(--border-highlight);
 }
 
 .controls-bar {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+}
+
+/* Theme Toggle Button (Apple/Linear Capsule) */
+.theme-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--bg-tabs);
+  border: 1px solid var(--border-highlight);
+  color: var(--text-main);
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  user-select: none;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--fluids-green);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 10px rgba(0, 157, 136, 0.25);
+}
+
+.theme-icon {
+  font-size: 14px;
+  line-height: 1;
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+
+[data-theme="dark"] .icon-sun {
+  display: none;
+}
+[data-theme="dark"] .icon-moon {
+  display: inline-block;
+}
+
+[data-theme="light"] .icon-sun {
+  display: inline-block;
+}
+[data-theme="light"] .icon-moon {
+  display: none;
 }
 
 .select-control {
-  background: rgba(15, 23, 42, 0.8);
+  background: var(--bg-input);
   border: 1px solid var(--border-subtle);
   color: var(--text-main);
   padding: 8px 14px;
@@ -172,11 +325,12 @@ body {
   font-size: 13px;
   outline: none;
   transition: all 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .select-control:focus, .select-control:hover {
   border-color: var(--border-highlight);
-  background: rgba(30, 41, 59, 0.9);
+  background: var(--bg-input-focus);
 }
 
 .btn-primary {
@@ -189,10 +343,11 @@ body {
   font-size: 13px;
   cursor: pointer;
   transition: transform 0.15s, opacity 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 157, 136, 0.25);
 }
 
 .btn-primary:hover {
-  opacity: 0.9;
+  opacity: 0.92;
   transform: translateY(-1px);
 }
 
@@ -225,7 +380,7 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
-  background: rgba(15, 23, 42, 0.8);
+  background: var(--bg-card);
   backdrop-filter: blur(20px);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
@@ -247,7 +402,7 @@ body {
 }
 
 .hero-group-card {
-  background: rgba(15, 23, 42, 0.8);
+  background: var(--bg-card);
   backdrop-filter: blur(20px);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
@@ -264,7 +419,7 @@ body {
   gap: 8px;
   margin-bottom: 12px;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .hero-group-icon {
@@ -1080,18 +1235,18 @@ body {
 .report-toggle-group {
   display: inline-flex;
   padding: 4px;
-  background: rgba(11, 19, 38, 0.85);
-  border: 1.5px solid rgba(56, 189, 248, 0.25);
+  background: var(--toggle-bg);
+  border: 1.5px solid var(--border-highlight);
   border-radius: 9999px;
   gap: 4px;
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.08);
   backdrop-filter: blur(14px);
 }
 
 .report-toggle-btn {
   border: 1px solid transparent;
   background: transparent;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.3px;
@@ -1106,16 +1261,16 @@ body {
 }
 
 .report-toggle-btn:hover {
-  color: #f8fafc;
-  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+  background: rgba(0, 157, 136, 0.08);
 }
 
 .report-toggle-btn.active {
   color: #ffffff !important;
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.85) 0%, rgba(2, 132, 199, 0.95) 100%) !important;
-  border: 1px solid rgba(125, 211, 252, 0.5) !important;
-  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  background: var(--toggle-active-bg) !important;
+  border: 1px solid var(--border-highlight) !important;
+  box-shadow: 0 4px 14px rgba(0, 157, 136, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .toggle-dot {
@@ -1128,31 +1283,32 @@ body {
 }
 
 .report-toggle-btn.active .toggle-dot {
-  background: #34d399;
-  box-shadow: 0 0 8px #34d399;
+  background: var(--fluids-green);
+  box-shadow: 0 0 10px var(--fluids-green);
 }
 
 /* KPI 快速膠囊卡片 */
 .report-kpi-card {
-  background: linear-gradient(180deg, rgba(30, 41, 59, 0.35) 0%, rgba(15, 23, 42, 0.6) 100%);
-  border: 1px solid rgba(56, 189, 248, 0.18);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
   border-radius: 12px;
   padding: 14px 18px;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .report-kpi-card:hover {
-  border-color: rgba(56, 189, 248, 0.45);
+  border-color: var(--border-highlight);
   transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
 }
 
 .report-kpi-title {
   font-size: 11.5px;
-  color: #94a3b8;
+  color: var(--text-muted);
   letter-spacing: 0.6px;
   font-weight: 600;
   text-transform: uppercase;
@@ -1161,12 +1317,12 @@ body {
 .report-kpi-val {
   font-size: 20px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-main);
 }
 
 .report-kpi-sub {
   font-size: 11px;
-  color: #64748b;
+  color: var(--text-dim);
 }
 
 /* ============================================================
@@ -1176,9 +1332,9 @@ body {
   overflow-x: auto;
   max-height: 620px;
   border-radius: 12px !important;
-  border: 1.5px solid rgba(56, 189, 248, 0.35) !important;
-  background: #090e1a !important;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  border: 1.5px solid var(--table-border) !important;
+  background: var(--table-container-bg) !important;
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
 }
 
 .report-data-table {
@@ -1186,27 +1342,27 @@ body {
   border-collapse: separate !important;
   border-spacing: 0 !important;
   font-size: 13px;
-  color: #e2e8f0;
+  color: var(--text-main);
   background: transparent;
   text-align: left;
 }
 
-/* 表頭樣式：深金屬冷鋼質感 + 清晰欄分隔線 */
+/* 表頭樣式：品牌冷鋼漸層 + 清晰雙向欄分隔線 */
 .report-data-table th {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
-  color: #cbd5e1;
+  background: var(--table-head-bg) !important;
+  color: var(--text-main);
   font-weight: 700;
   font-size: 12px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
   padding: 12px 14px;
-  border-bottom: 2px solid rgba(56, 189, 248, 0.5) !important;
-  border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-bottom: 2px solid var(--table-th-border) !important;
+  border-right: 1px solid var(--table-td-border) !important;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .report-data-table th:last-child {
@@ -1216,8 +1372,8 @@ body {
 /* 資料儲存格：清晰雙向格線系統 (Horizontal + Vertical Borders) */
 .report-data-table td {
   padding: 10px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-bottom: 1px solid var(--table-td-border) !important;
+  border-right: 1px solid var(--table-td-border) !important;
   white-space: nowrap;
 }
 
@@ -1227,11 +1383,11 @@ body {
 
 /* 斑馬紋交替 */
 .report-data-table tbody tr:nth-child(even) td {
-  background: rgba(255, 255, 255, 0.015);
+  background: var(--table-zebra);
 }
 
 .report-data-table tbody tr:hover td {
-  background: rgba(56, 189, 248, 0.07) !important;
+  background: var(--table-hover) !important;
 }
 
 .report-data-table .col-right {
@@ -1244,52 +1400,52 @@ body {
 
 /* 群組主橫幅：業務組別 */
 .report-group-header-row td {
-  background: linear-gradient(90deg, rgba(14, 165, 233, 0.18) 0%, rgba(15, 23, 42, 0.9) 100%) !important;
-  color: #38bdf8 !important;
+  background: linear-gradient(90deg, rgba(0, 157, 136, 0.18) 0%, var(--bg-card-hover) 100%) !important;
+  color: var(--fluids-green) !important;
   font-weight: 700;
   font-size: 13.5px;
-  border-top: 1.5px solid rgba(14, 165, 233, 0.4) !important;
-  border-bottom: 1.5px solid rgba(14, 165, 233, 0.4) !important;
+  border-top: 1.5px solid var(--fluids-green) !important;
+  border-bottom: 1.5px solid var(--fluids-green) !important;
   padding: 10px 16px !important;
 }
 
 /* 責任業務標題 */
 .report-sales-header-row td {
-  background: rgba(30, 41, 59, 0.3) !important;
-  color: #f1f5f9 !important;
+  background: var(--bg-card-hover) !important;
+  color: var(--text-main) !important;
   font-weight: 600;
   font-size: 13px;
   padding: 8px 16px !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
 }
 
 /* 業務小計列 */
 .report-subtotal-row td {
-  background: rgba(30, 41, 59, 0.5) !important;
-  color: #f8fafc !important;
+  background: rgba(0, 157, 136, 0.06) !important;
+  color: var(--text-main) !important;
   font-weight: 600;
-  border-top: 1.5px dashed rgba(255, 255, 255, 0.2) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-top: 1.5px dashed var(--table-border) !important;
+  border-bottom: 1px solid var(--table-td-border) !important;
 }
 
-/* 部門總計列：醒目發光翡翠綠外框 */
+/* 部門總計列：醒目富迪斯翡翠綠外框 */
 .report-dept-total-row td {
-  background: linear-gradient(90deg, rgba(16, 185, 129, 0.18) 0%, rgba(6, 78, 59, 0.3) 100%) !important;
-  color: #34d399 !important;
+  background: linear-gradient(90deg, rgba(0, 157, 136, 0.2) 0%, rgba(141, 197, 86, 0.15) 100%) !important;
+  color: var(--fluids-green) !important;
   font-weight: 700;
   font-size: 13.5px;
-  border-top: 2px solid #10b981 !important;
-  border-bottom: 2px solid #10b981 !important;
+  border-top: 2px solid var(--fluids-green) !important;
+  border-bottom: 2px solid var(--fluids-green) !important;
 }
 
-/* 全公司總計列：頂級金屬紫藍外框 */
+/* 全公司總計列：頂級品牌綠藍外框 */
 .report-grand-total-row td {
-  background: linear-gradient(90deg, rgba(99, 102, 241, 0.28) 0%, rgba(14, 165, 233, 0.28) 100%) !important;
-  color: #e0e7ff !important;
+  background: linear-gradient(90deg, rgba(0, 157, 136, 0.25) 0%, rgba(47, 140, 204, 0.22) 100%) !important;
+  color: var(--text-main) !important;
   font-weight: 800;
   font-size: 14px;
-  border-top: 2.5px solid #6366f1 !important;
-  border-bottom: 2.5px solid #6366f1 !important;
+  border-top: 2.5px solid var(--fluids-green) !important;
+  border-bottom: 2.5px solid var(--fluids-blue) !important;
 }
 
 /* EBT Rate 彩色膠囊標籤 */
@@ -1303,21 +1459,21 @@ body {
 }
 
 .ebt-rate-high {
-  background: rgba(16, 185, 129, 0.2);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.4);
+  background: rgba(141, 197, 86, 0.2);
+  color: var(--fluids-light-green);
+  border: 1px solid rgba(141, 197, 86, 0.45);
 }
 
 .ebt-rate-med {
-  background: rgba(245, 158, 11, 0.2);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.4);
+  background: rgba(247, 176, 18, 0.2);
+  color: var(--fluids-yellow);
+  border: 1px solid rgba(247, 176, 18, 0.45);
 }
 
 .ebt-rate-low {
-  background: rgba(239, 68, 68, 0.2);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: rgba(240, 148, 174, 0.2);
+  color: var(--fluids-red);
+  border: 1px solid rgba(240, 148, 174, 0.45);
 }
 
 /* 達成率進度膠囊 */
@@ -1331,10 +1487,10 @@ body {
 .ach-bar-mini {
   width: 55px;
   height: 7px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.15);
   border-radius: 4px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
 }
 
 .ach-bar-fill {
