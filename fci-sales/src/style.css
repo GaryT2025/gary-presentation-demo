@@ -126,15 +126,15 @@ body {
     radial-gradient(at 10% 10%, rgba(0, 157, 136, 0.05) 0px, transparent 50%),
     radial-gradient(at 90% 10%, rgba(47, 140, 204, 0.05) 0px, transparent 50%);
   color: var(--text-main);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  font-size: 14px;
+  font-family: 'Calibri', 'Segoe UI', 'Microsoft JhengHei', '微軟正黑體', -apple-system, 'PingFang TC', sans-serif;
+  font-size: 14.5px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
 }
 
 .num-font, strong, .stat-value, .stat-val, .hero-value, .center-val {
-  font-family: 'Outfit', 'Inter', sans-serif;
+  font-family: 'Calibri', 'Outfit', 'Segoe UI', sans-serif;
   font-variant-numeric: tabular-nums;
 }
 
