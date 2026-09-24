@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <base href="/rodan-security/">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>羅丹大廈 - 安防與物業管理報價比較表</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #ffffff;
+            color: #0f172a;
+            font-size: 20px;
+            line-height: 1.6;
+        }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: #ffffff; color: #000000; font-size: 16px; }
+            .print-border { border: 1px solid #000000 !important; }
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8 max-w-6xl mx-auto space-y-10">
+
+    <!-- 頂端標頭與列印按鈕 -->
+    <header class="border-b-4 border-slate-900 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+            <div class="text-slate-600 font-bold text-lg mb-1">羅丹大廈管理委員會 • 物業安防專案比較</div>
+            <h1 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+                安防與物業管理報價彙整比較表
+            </h1>
+            <div class="text-slate-600 text-base font-semibold mt-2">
+                簡報日期：115 年 09 月 24 日
+            </div>
+        </div>
+        <div class="no-print">
+            <button onclick="window.print()" class="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xl rounded-lg shadow-md transition-all flex items-center gap-2">
+                🖨️ 開啟列印 / 另存 PDF
+            </button>
+        </div>
+    </header>
+
+    <!-- 關鍵說明提示 -->
+    <div class="bg-slate-100 border-2 border-slate-900 p-5 rounded-lg text-slate-900">
+        <h3 class="font-bold text-xl text-slate-900 mb-1">📌 費用結構 key 說明</h3>
+        <ul class="list-disc list-inside space-y-1 font-medium text-lg">
+            <li><strong>管銷與稅金內含：</strong>兩家廠商所有方案報價均已包含「公司管銷費用暨服務利潤」及「5% 營業稅」。</li>
+            <li><strong>同基準價差：</strong>在同包含管銷與稅金前提下，國統 24H全哨月省 <strong>$9,325</strong>、24H無主任月省 <strong>$6,500</strong>。</li>
+            <li><strong>環境養護說明：</strong>國統備註之水塔、魚池清洗、消毒與除塵，需搭配選購清潔合約/方案方能享有。</li>
+        </ul>
+    </div>
+
+    <!-- 區塊 1：方案價格總對比表 -->
+    <section class="space-y-4">
+        <h2 class="text-2xl sm:text-3xl font-black border-l-8 border-slate-900 pl-3 text-slate-900">
+            一、 方案價格總對比表
+        </h2>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse border-2 border-slate-900">
+                <thead>
+                    <tr class="bg-slate-900 text-white text-xl">
+                        <th class="border border-slate-900 px-4 py-3">方案名稱</th>
+                        <th class="border border-slate-900 px-4 py-3">人力與勤務配置說明</th>
+                        <th class="border border-slate-900 px-4 py-3 text-center">國統保全 (月費)</th>
+                        <th class="border border-slate-900 px-4 py-3 text-center">東京都物業 (月費)</th>
+                        <th class="border border-slate-900 px-4 py-3 text-center">比較結果 (價差)</th>
+                    </tr>
+                </thead>
+                <tbody class="text-lg sm:text-xl font-medium divide-y divide-slate-400">
+                    <!-- 24小時全哨 (有主任 / 4人編制) -->
+                    <tr class="bg-white">
+                        <td class="border border-slate-400 px-4 py-4 font-bold text-slate-900">
+                            24小時全哨<br><span class="text-base text-slate-600 font-normal">(有主任 / 4人編制)</span>
+                        </td>
+                        <td class="border border-slate-400 px-4 py-4">
+                            日間專任主任 1人 + 24小時現場保全 3人
+                        </td>
+                        <td class="border border-slate-400 px-4 py-4 text-center font-bold text-emerald-800">
+                            $218,000
+                        </td>
+                        <td class="border border-slate-400 px-4 py-4 text-center font-bold text-blue-900">
+                            $227,325
+                        </td>
+                        <td class="border border-slate-400 px-4 py-4 text-center font-bold text-emerald-800 bg-emerald-50">
+                            國統月省 $9,325
+                        </td>
+                    </tr>
+                    <!-- 24小時無主任 (3人編制) -->
+                    <tr class="bg-slate-50">
+                        <td class="border border-slate-400 px-4 py-4 font-bold text-slate-900">
+                            24小時無主任<br><span class="text-base text-slate-600 font-normal">(3人編制)</span>
+                        </td>
+                        <td class="border border-slate-400 px-4 py-4">
+                            組長 1人 (兼任行政) + 24小時現場保全 2人
+                        </td>
+                        <td class="border border-slate-400 px-4 py-4 text-center font-bold text-emerald-800">
+                            $172,000
+                        </td>
+                        <td class="border border-slate-400 px-4 py-4 text-center font-bold text-blue-900">
+                            $178,500
+                        </td>
+                        <td class="border border-slate-400 px-4 py-4 text-center font-bold text-emerald-800 bg-emerald-50">
+                            國統月省 $6,500
+                        </td>
+                    </tr>
+                    <!-- 東京都科技系統方案 -->
+                    <tr class="bg-white">
+                        <td class="border border-slate-400 px-4 py-4 font-bold text-slate-900">
+                            東京都科技系統方案<br><span class="text-base text-slate-600 font-normal">(晚間無人，改系統保全)</span>
+                        </td>
+                        <td class="border border-slate-400 px-4 py-4 text-base">
+                            白天12H有1.5人力駐守；<strong>晚間12H完全無現場人員</strong>，由中鋼保全 24H 管制中心連線監控（影像彈跳/警報移報）。
+                        </td>
+                        <td class="border border-slate-400 px-4 py-4 text-center text-slate-500">
+                            --
+                        </td>
+                        <td class="border border-slate-400 px-4 py-4 text-center font-bold text-blue-900">
+                            (A) 有主任：$152,250<br>
+                            <span class="text-base font-normal">(B) 無主任：$103,425</span>
+                        </td>
+                        <td class="border border-slate-400 px-4 py-4 text-center font-bold text-blue-900 bg-blue-50">
+                            極致精簡費用
+                        </td>
+                    </tr>
+                    <!-- 選配清潔員對比 -->
+                    <tr class="bg-slate-50">
+                        <td class="border border-slate-400 px-4 py-4 font-bold text-slate-900">
+                            選配清潔員對比<br><span class="text-base text-slate-600 font-normal">(合約整併評估)</span>
+                        </td>
+                        <td class="border border-slate-400 px-4 py-4 text-base">
+                            <strong>國統選配：</strong>6小時/天 <strong>$30,778 /月</strong>（附贈水塔/魚池/消毒）。<br>
+                            <strong>現況評估：</strong>現行獨立清潔包 8小時 <strong>$40,000 /月</strong>。整併改選國統可<strong>月省 $9,222 支出</strong>（工時由 8H 調整為 6H，需評估清潔量需求）。
+                        </td>
+                        <td class="border border-slate-400 px-4 py-4 text-center font-bold text-emerald-800">
+                            $30,778 /月<br><span class="text-xs text-slate-600 font-normal">(6小時/天)</span>
+                        </td>
+                        <td class="border border-slate-400 px-4 py-4 text-center text-slate-500">
+                            未單列 / 另計
+                        </td>
+                        <td class="border border-slate-400 px-4 py-4 text-center font-bold text-emerald-800 bg-emerald-50">
+                            若整併可月省 $9,222
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- 區塊 2：職務單價對比表 -->
+    <section class="space-y-4 pt-4">
+        <h2 class="text-2xl sm:text-3xl font-black border-l-8 border-slate-900 pl-3 text-slate-900">
+            二、 職務單價對比表
+        </h2>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse border-2 border-slate-900">
+                <thead>
+                    <tr class="bg-slate-900 text-white text-xl">
+                        <th class="border border-slate-900 px-6 py-3">職務種類</th>
+                        <th class="border border-slate-900 px-6 py-3 text-center">國統保全單價 (含管銷與稅)</th>
+                        <th class="border border-slate-900 px-6 py-3 text-center">東京都物業單價 (含管銷與稅)</th>
+                        <th class="border border-slate-900 px-6 py-3 text-center">單價對比差異</th>
+                    </tr>
+                </thead>
+                <tbody class="text-lg sm:text-xl font-medium divide-y divide-slate-400">
+                    <tr class="bg-white">
+                        <td class="border border-slate-400 px-6 py-4 font-bold text-slate-900">社區主任 / 總幹事</td>
+                        <td class="border border-slate-400 px-6 py-4 text-center font-bold text-emerald-800">$50,227 /月</td>
+                        <td class="border border-slate-400 px-6 py-4 text-center font-bold text-slate-900">$52,500 /月</td>
+                        <td class="border border-slate-400 px-6 py-4 text-center font-bold text-emerald-800 bg-emerald-50">國統便宜 $2,273 /月</td>
+                    </tr>
+                    <tr class="bg-slate-50">
+                        <td class="border border-slate-400 px-6 py-4 font-bold text-slate-900">保全組長 / 隊長</td>
+                        <td class="border border-slate-400 px-6 py-4 text-center font-bold text-emerald-800">$50,227 /月</td>
+                        <td class="border border-slate-400 px-6 py-4 text-center font-bold text-slate-900">$51,000 /月</td>
+                        <td class="border border-slate-400 px-6 py-4 text-center font-bold text-emerald-800 bg-emerald-50">國統便宜 $773 /月</td>
+                    </tr>
+                    <tr class="bg-white">
+                        <td class="border border-slate-400 px-6 py-4 font-bold text-slate-900">安管員 / 保全員</td>
+                        <td class="border border-slate-400 px-6 py-4 text-center font-bold text-emerald-800">$45,484 /月</td>
+                        <td class="border border-slate-400 px-6 py-4 text-center font-bold text-slate-900">$48,000 /月</td>
+                        <td class="border border-slate-400 px-6 py-4 text-center font-bold text-emerald-800 bg-emerald-50">國統便宜 $2,516 /月</td>
+                    </tr>
+                    <tr class="bg-slate-50">
+                        <td class="border border-slate-400 px-6 py-4 font-bold text-slate-900">清潔員 (6小時)</td>
+                        <td class="border border-slate-400 px-6 py-4 text-center font-bold text-emerald-800">$30,778 /月</td>
+                        <td class="border border-slate-400 px-6 py-4 text-center text-slate-500">未單列 / 另計</td>
+                        <td class="border border-slate-400 px-6 py-4 text-center text-slate-700">可單獨加選整併</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- 區塊 3：各方案優缺點簡對 -->
+    <section class="space-y-4 pt-4">
+        <h2 class="text-2xl sm:text-3xl font-black border-l-8 border-slate-900 pl-3 text-slate-900">
+            三、 各方案優缺點簡對
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- 24小時全哨 (有主任) -->
+            <div class="border-2 border-slate-900 p-5 rounded-lg bg-white space-y-2">
+                <div class="font-black text-xl text-slate-900 border-b-2 border-slate-200 pb-2">
+                    【24小時全哨 (有主任 / 4人編制)】 $218k ~ $227.3k
+                </div>
+                <div class="text-lg">
+                    <span class="font-bold text-emerald-800">✅ 優點：</span>24小時真人現場防護無死角，專任主任全權處理社區財報與行政。國統月省 $9,325。
+                </div>
+                <div class="text-lg">
+                    <span class="font-bold text-rose-800">❌ 考量：</span>月總費用最高。
+                </div>
+            </div>
+
+            <!-- 24小時無主任 -->
+            <div class="border-2 border-slate-900 p-5 rounded-lg bg-white space-y-2">
+                <div class="font-black text-xl text-slate-900 border-b-2 border-slate-200 pb-2">
+                    【24小時無主任 (3人編制)】 $172k ~ $178.5k
+                </div>
+                <div class="text-lg">
+                    <span class="font-bold text-emerald-800">✅ 優點：</span>月省近 5 萬元人事費，同時維持 24小時真人門禁。國統月省 $6,500。
+                </div>
+                <div class="text-lg">
+                    <span class="font-bold text-rose-800">❌ 考量：</span>無專任主任，行政財報需由組長兼任或委員協助。
+                </div>
+            </div>
+
+            <!-- 東京都科技系統方案 -->
+            <div class="border-2 border-slate-900 p-5 rounded-lg bg-white space-y-2">
+                <div class="font-black text-xl text-slate-900 border-b-2 border-slate-200 pb-2">
+                    【東京都科技系統方案】 $103.4k ~ $152.25k
+                </div>
+                <div class="text-lg">
+                    <span class="font-bold text-emerald-800">✅ 優點：</span>月費降至最低（極致精簡預算），結合中鋼保全連線防護。
+                </div>
+                <div class="text-lg">
+                    <span class="font-bold text-rose-800">❌ 考量：</span>夜間 12 小時完全無現場人員，僅靠系統連線監控與巡邏車處置。
+                </div>
+            </div>
+
+            <!-- 國統選配清潔員 -->
+            <div class="border-2 border-slate-900 p-5 rounded-lg bg-white space-y-2">
+                <div class="font-black text-xl text-slate-900 border-b-2 border-slate-200 pb-2">
+                    【國統選配清潔員 (6小時)】 $30,778 /月
+                </div>
+                <div class="text-lg">
+                    <span class="font-bold text-emerald-800">✅ 分析：</span>評估是否將現行獨立清潔合約 ($40,000/月，8H) 整併至保全統一督導。
+                </div>
+                <div class="text-lg">
+                    <span class="font-bold text-blue-900">💡 費用與工時：</span>整併後每月可<strong>節省 $9,222 支出</strong>（工時由 8H 調整為 6H，需評估 6H 清潔量是否足夠）。
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 區塊 4：東京都 x 中鋼保全 智能系統保全運作機制 -->
+    <section class="space-y-4 pt-4">
+        <h2 class="text-2xl sm:text-3xl font-black border-l-8 border-slate-900 pl-3 text-slate-900">
+            四、 東京都 x 中鋼保全 智能系統保全運作機制
+        </h2>
+
+        <div class="border-2 border-slate-900 p-6 rounded-lg bg-slate-50 space-y-6 text-slate-900">
+            <div class="font-bold text-xl text-blue-900 border-b-2 border-slate-300 pb-2">
+                💡 夜間無人防護核心架構與科技連線運作
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg">
+                <div class="bg-white p-4 rounded border border-slate-300 space-y-1">
+                    <div class="font-bold text-slate-900">1. 二線警政與 24H 管制中心連線</div>
+                    <div class="text-slate-700">東京都前端硬體設備 + <strong>中鋼保全 24小時管制中心</strong> 後端連線備援，打造無縫警護體系。</div>
+                </div>
+
+                <div class="bg-white p-4 rounded border border-slate-300 space-y-1">
+                    <div class="font-bold text-slate-900">2. 警報影像彈跳 (Pop-up) 技術</div>
+                    <div class="text-slate-700">當門禁異常、車道故障或警報觸發時，中控螢幕 <strong>1~3 秒內自動彈出該區即時影像</strong>，精準判讀非誤報。</div>
+                </div>
+
+                <div class="bg-white p-4 rounded border border-slate-300 space-y-1">
+                    <div class="font-bold text-slate-900">3. 機電與環境防護移報</div>
+                    <div class="text-slate-700">涵蓋火災受信主機移報、地下室積水/污水泵高水位警報，即時掌握大樓重大機電環境異常。</div>
+                </div>
+
+                <div class="bg-white p-4 rounded border border-slate-300 space-y-1">
+                    <div class="font-bold text-slate-900">4. 緊急派勤 SOP 反應機制</div>
+                    <div class="text-slate-700">夜間確認異常即啟動 SOP：立即派遣機動巡邏保全抵達現場處置，並連線通報 110/119 及通知管委會幹部。</div>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded border border-slate-300 text-lg font-medium">
+                📱 <strong>手機遠端監看：</strong>授權管委會幹部與住戶透過手機 APP 遠端連線觀看社區公設與監視影像。
+            </div>
+
+            <!-- 新增：管委會必須追問的 Sensor 與硬體對接關鍵 -->
+            <div class="border-2 border-amber-500 bg-amber-50 p-5 rounded-lg space-y-3 text-slate-900">
+                <div class="font-black text-xl text-amber-950 flex items-center gap-2">
+                    ⚠️ 管委會必須追問的 Sensor 與硬體對接關鍵
+                </div>
+                
+                <div class="space-y-3 text-lg">
+                    <div class="font-bold text-slate-900">
+                        🔹 Sensor (感測器) 與傳輸主機需求：
+                    </div>
+                    <div class="text-slate-800 pl-4 border-l-4 border-amber-400 space-y-1">
+                        系統保全要在夜間順暢運作，<strong>必須完全仰賴 Sensor（門磁感應器、感水器、消防介面卡、監視器彈跳卡）</strong>。<br>
+                        社區現有的消防受信總機、地下室水位感應、門禁，必須透過移報模組對接至中鋼保全管制中心。
+                    </div>
+
+                    <div class="font-bold text-slate-900 pt-2">
+                        🔹 務必向東京都釐清的兩大隱形費用 / 施工細節：
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-base sm:text-lg">
+                        <div class="bg-white p-4 rounded border border-amber-300 space-y-1">
+                            <div class="font-bold text-amber-950">確認一：施工與硬體安裝費用歸屬？</div>
+                            <div class="text-slate-800">
+                                每月 $8,000 的系統保全月費，是否已經包含所有 Sensor、傳輸主機的施工安裝與設備租賃？還是管委會需要額外支付一筆<strong>「硬體安裝與線路工程費」</strong>？
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 rounded border border-amber-300 space-y-1">
+                            <div class="font-bold text-amber-950">確認二：現有社區舊硬體相容性？</div>
+                            <div class="text-slate-800">
+                                社區現若有舊 Sensor 故障，或既有監視器無法對接影像彈跳功能，是否需要由社區<strong>自費升級或更換新品</strong>？
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 區塊 5：附加服務與備註事項 -->
+    <section class="space-y-4 pt-4">
+        <h2 class="text-2xl sm:text-3xl font-black border-l-8 border-slate-900 pl-3 text-slate-900">
+            五、 附加服務與備註事項
+        </h2>
+
+        <div class="border-2 border-slate-900 rounded-lg overflow-hidden">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-900 text-white text-xl">
+                        <th class="px-4 py-3 border border-slate-900">比較項目</th>
+                        <th class="px-4 py-3 border border-slate-900 text-center">國統保全</th>
+                        <th class="px-4 py-3 border border-slate-900 text-center">東京都物業</th>
+                        <th class="px-4 py-3 border border-slate-900">備註說明</th>
+                    </tr>
+                </thead>
+                <tbody class="text-lg font-medium divide-y divide-slate-300">
+                    <tr class="bg-white">
+                        <td class="border border-slate-300 px-4 py-3 font-bold">公共意外責任險</td>
+                        <td class="border border-slate-300 px-4 py-3 text-center font-bold">2,400 萬元</td>
+                        <td class="border border-slate-300 px-4 py-3 text-center font-bold">2,400 萬元</td>
+                        <td class="border border-slate-300 px-4 py-3 text-slate-700">兩家保額相同</td>
+                    </tr>
+                    <tr class="bg-slate-50">
+                        <td class="border border-slate-300 px-4 py-3 font-bold">保全履約責任險</td>
+                        <td class="border border-slate-300 px-4 py-3 text-center font-bold">5,000 萬元</td>
+                        <td class="border border-slate-300 px-4 py-3 text-center font-bold">5,000 萬元</td>
+                        <td class="border border-slate-300 px-4 py-3 text-slate-700">兩家保額相同</td>
+                    </tr>
+                    <tr class="bg-white">
+                        <td class="border border-slate-300 px-4 py-3 font-bold">現場硬體支援</td>
+                        <td class="border border-slate-300 px-4 py-3 text-center">電腦主機、印表機</td>
+                        <td class="border border-slate-300 px-4 py-3 text-center">無線電、數位巡更機</td>
+                        <td class="border border-slate-300 px-4 py-3 text-slate-700">國統側重行政辦公；東京都側重巡邏通訊</td>
+                    </tr>
+                    <tr class="bg-slate-50">
+                        <td class="border border-slate-300 px-4 py-3 font-bold">環境養護附贈服務</td>
+                        <td class="border border-slate-300 px-4 py-3 text-center font-bold text-emerald-800">
+                            水塔2次 / 魚池3次<br>消毒2次 / 除塵2次
+                        </td>
+                        <td class="border border-slate-300 px-4 py-3 text-center text-slate-500">
+                            未特別載明
+                        </td>
+                        <td class="border border-slate-300 px-4 py-3 text-slate-700">
+                            * 須搭配簽訂清潔合約/選配清潔方案方可享有
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- 頁尾 -->
+    <footer class="border-t-2 border-slate-300 pt-4 text-center text-slate-600 text-base font-medium">
+        羅丹大廈管理委員會物業評估報告 • PKA 團隊 Beauty (前端專員) 製作 • 115/09/24
+    </footer>
+
+</body>
+</html>

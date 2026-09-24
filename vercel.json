@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/rodan-security/(.*)",
+      "destination": "/rodan-security/$1"
+    },
+    {
+      "source": "/rodan-security",
+      "destination": "/rodan-security/index.html"
+    },
+    {
       "source": "/vlms-hart",
       "destination": "/VLMS infra and furture plan/VLMS_HART_Signal_Extraction.html"
     },
