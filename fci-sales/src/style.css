@@ -651,14 +651,61 @@ body {
   align-items: center;
 }
 
-.dept-card.border-green { border-top: 3px solid var(--accent-emerald); }
-.dept-card.border-blue { border-top: 3px solid var(--accent-cyan); }
-.dept-card.border-purple { border-top: 3px solid var(--accent-purple); }
+.dept-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.dept-card:hover {
+  border-color: var(--border-highlight);
+  transform: translateY(-2px);
+}
+
+.dept-card.border-green { border-top: 3.5px solid var(--fluids-green); }
+.dept-card.border-blue { border-top: 3.5px solid var(--fluids-blue); }
+
+.dept-card-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dept-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+.badge-nonpower {
+  background: rgba(0, 157, 136, 0.15);
+  color: var(--fluids-green);
+  border: 1px solid rgba(0, 157, 136, 0.35);
+}
+
+.badge-powerepc {
+  background: rgba(47, 140, 204, 0.15);
+  color: var(--fluids-blue);
+  border: 1px solid rgba(47, 140, 204, 0.35);
+}
 
 .dept-title {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
-  align-self: flex-start;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
 }
 
 .dept-chart-wrapper {
@@ -667,18 +714,79 @@ body {
   height: 190px;
 }
 
+.text-nonpower {
+  color: var(--fluids-green) !important;
+}
+
+.text-powerepc {
+  color: var(--fluids-blue) !important;
+}
+
+/* 階層 2 金融戰情室指標清單 (Clean Enterprise Stat Grid) */
 .dept-stats-list {
   width: 100%;
   display: flex;
-  justify-content: space-around;
-  background: rgba(0, 0, 0, 0.25);
-  padding: 12px;
-  border-radius: var(--radius-sm);
-  font-size: 16px;
-  font-weight: 600;
+  background: var(--bg-tabs);
+  border: 1px solid var(--border-subtle);
+  padding: 16px 20px;
+  border-radius: 12px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
 }
-.dept-stats-list span {
-  margin-right: 6px;
+
+.dept-stats-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stats-group-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.stat-kv-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 0;
+  border-bottom: 1px dashed var(--border-subtle);
+  font-size: 13px;
+}
+
+.stat-kv-row:last-child {
+  border-bottom: none;
+}
+
+.stat-lbl {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.stat-ach-row {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: none;
+}
+
+.ach-badge-pill {
+  font-family: var(--font-family-numeric);
+  font-weight: 800;
+  font-size: 13.5px;
+  color: var(--fluids-green);
+  padding: 1px 8px;
+  border-radius: 6px;
+  background: rgba(0, 157, 136, 0.12);
+  border: 1px solid rgba(0, 157, 136, 0.25);
+}
+
+.dept-stats-divider {
+  width: 1px;
+  background: var(--border-subtle);
+  margin: 0 16px;
 }
 
 /* Leaderboard List */

@@ -11,7 +11,7 @@
       document.documentElement.setAttribute('data-theme', savedTheme);
     })();
   </script>
-  <link rel="stylesheet" href="./src/style.css?v=3.1">
+  <link rel="stylesheet" href="./src/style.css?v=3.2">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -180,56 +180,64 @@
           <div class="hierarchy-level2-grid" style="grid-template-columns: 1fr 1fr;">
             <!-- Non-Power 部門圓餅 -->
             <div class="dept-card border-green">
-              <h4 class="dept-title" style="font-size: 18px; color: #ffffff !important;">NONPOWER</h4>
+              <div class="dept-card-header">
+                <span class="dept-badge badge-nonpower">Non-Power</span>
+                <h4 class="dept-title">NONPOWER 部門達成率</h4>
+              </div>
               <div class="dept-chart-wrapper">
                 <canvas id="nonpower-doughnut-chart"></canvas>
                 <div class="doughnut-center-text">
                   <span class="center-lbl">達成率</span>
-                  <strong class="center-val num-font" id="nonpower-doughnut-pct" style="color: #ffffff !important;">0%</strong>
+                  <strong class="center-val num-font text-nonpower" id="nonpower-doughnut-pct">0%</strong>
                 </div>
               </div>
               <div class="dept-stats-list">
                 <div class="dept-stats-group">
-                  <div class="stats-group-title">銷售金額 (Sales Amount)</div>
-                  <div><span>目標:</span> <strong class="num-font" id="dept-nonpower-target">NT$ 0</strong></div>
-                  <div><span>成交:</span> <strong class="num-font" id="dept-nonpower-booked">NT$ 0</strong></div>
-                  <div><span>預估:</span> <strong class="num-font" id="dept-nonpower-forecast">NT$ 0</strong></div>
-                  <div><span>達成率:</span> <strong class="num-font" id="dept-nonpower-sales-pct">0.0%</strong></div>
+                  <div class="stats-group-title">💰 銷售金額 (Sales)</div>
+                  <div class="stat-kv-row"><span class="stat-lbl">目標</span> <strong class="num-font" id="dept-nonpower-target">NT$ 0</strong></div>
+                  <div class="stat-kv-row"><span class="stat-lbl">成交</span> <strong class="num-font" id="dept-nonpower-booked">NT$ 0</strong></div>
+                  <div class="stat-kv-row"><span class="stat-lbl">預估</span> <strong class="num-font" id="dept-nonpower-forecast">NT$ 0</strong></div>
+                  <div class="stat-kv-row stat-ach-row"><span class="stat-lbl">達成率</span> <span class="ach-badge-pill" id="dept-nonpower-sales-pct">0.0%</span></div>
                 </div>
-                <div class="dept-stats-group" style="border-left: 1px solid rgba(255,255,255,0.08); padding-left: 16px; margin-left: 16px;">
-                  <div class="stats-group-title">EBT 利潤 (EBT Amount)</div>
-                  <div><span>目標:</span> <strong class="num-font" id="dept-nonpower-ebt-target">NT$ 0</strong></div>
-                  <div><span>成交:</span> <strong class="num-font" id="dept-nonpower-ebt-booked">NT$ 0</strong></div>
-                  <div><span>預估:</span> <strong class="num-font" id="dept-nonpower-ebt-forecast">NT$ 0</strong></div>
-                  <div><span>達成率:</span> <strong class="num-font" id="dept-nonpower-ebt-pct">0.0%</strong></div>
+                <div class="dept-stats-divider"></div>
+                <div class="dept-stats-group">
+                  <div class="stats-group-title">📈 EBT 利潤 (Profit)</div>
+                  <div class="stat-kv-row"><span class="stat-lbl">目標</span> <strong class="num-font" id="dept-nonpower-ebt-target">NT$ 0</strong></div>
+                  <div class="stat-kv-row"><span class="stat-lbl">成交</span> <strong class="num-font" id="dept-nonpower-ebt-booked">NT$ 0</strong></div>
+                  <div class="stat-kv-row"><span class="stat-lbl">預估</span> <strong class="num-font" id="dept-nonpower-ebt-forecast">NT$ 0</strong></div>
+                  <div class="stat-kv-row stat-ach-row"><span class="stat-lbl">達成率</span> <span class="ach-badge-pill" id="dept-nonpower-ebt-pct">0.0%</span></div>
                 </div>
               </div>
             </div>
 
             <!-- Power & EPC 部門圓餅 -->
             <div class="dept-card border-blue">
-              <h4 class="dept-title" style="font-size: 18px; color: #ffffff !important;">POWER &amp; EPC</h4>
+              <div class="dept-card-header">
+                <span class="dept-badge badge-powerepc">Power & EPC</span>
+                <h4 class="dept-title">POWER &amp; EPC 部門達成率</h4>
+              </div>
               <div class="dept-chart-wrapper">
                 <canvas id="powerepc-doughnut-chart"></canvas>
                 <div class="doughnut-center-text">
                   <span class="center-lbl">達成率</span>
-                  <strong class="center-val num-font" id="powerepc-doughnut-pct" style="color: #ffffff !important;">0%</strong>
+                  <strong class="center-val num-font text-powerepc" id="powerepc-doughnut-pct">0%</strong>
                 </div>
               </div>
               <div class="dept-stats-list">
                 <div class="dept-stats-group">
-                  <div class="stats-group-title">銷售金額 (Sales Amount)</div>
-                  <div><span>目標:</span> <strong class="num-font" id="dept-powerepc-target">NT$ 0</strong></div>
-                  <div><span>成交:</span> <strong class="num-font" id="dept-powerepc-booked">NT$ 0</strong></div>
-                  <div><span>預估:</span> <strong class="num-font" id="dept-powerepc-forecast">NT$ 0</strong></div>
-                  <div><span>達成率:</span> <strong class="num-font" id="dept-powerepc-sales-pct">0.0%</strong></div>
+                  <div class="stats-group-title">💰 銷售金額 (Sales)</div>
+                  <div class="stat-kv-row"><span class="stat-lbl">目標</span> <strong class="num-font" id="dept-powerepc-target">NT$ 0</strong></div>
+                  <div class="stat-kv-row"><span class="stat-lbl">成交</span> <strong class="num-font" id="dept-powerepc-booked">NT$ 0</strong></div>
+                  <div class="stat-kv-row"><span class="stat-lbl">預估</span> <strong class="num-font" id="dept-powerepc-forecast">NT$ 0</strong></div>
+                  <div class="stat-kv-row stat-ach-row"><span class="stat-lbl">達成率</span> <span class="ach-badge-pill" id="dept-powerepc-sales-pct">0.0%</span></div>
                 </div>
-                <div class="dept-stats-group" style="border-left: 1px solid rgba(255,255,255,0.08); padding-left: 16px; margin-left: 16px;">
-                  <div class="stats-group-title">EBT 利潤 (EBT Amount)</div>
-                  <div><span>目標:</span> <strong class="num-font" id="dept-powerepc-ebt-target">NT$ 0</strong></div>
-                  <div><span>成交:</span> <strong class="num-font" id="dept-powerepc-ebt-booked">NT$ 0</strong></div>
-                  <div><span>預估:</span> <strong class="num-font" id="dept-powerepc-ebt-forecast">NT$ 0</strong></div>
-                  <div><span>達成率:</span> <strong class="num-font" id="dept-powerepc-ebt-pct">0.0%</strong></div>
+                <div class="dept-stats-divider"></div>
+                <div class="dept-stats-group">
+                  <div class="stats-group-title">📈 EBT 利潤 (Profit)</div>
+                  <div class="stat-kv-row"><span class="stat-lbl">目標</span> <strong class="num-font" id="dept-powerepc-ebt-target">NT$ 0</strong></div>
+                  <div class="stat-kv-row"><span class="stat-lbl">成交</span> <strong class="num-font" id="dept-powerepc-ebt-booked">NT$ 0</strong></div>
+                  <div class="stat-kv-row"><span class="stat-lbl">預估</span> <strong class="num-font" id="dept-powerepc-ebt-forecast">NT$ 0</strong></div>
+                  <div class="stat-kv-row stat-ach-row"><span class="stat-lbl">達成率</span> <span class="ach-badge-pill" id="dept-powerepc-ebt-pct">0.0%</span></div>
                 </div>
               </div>
             </div>
