@@ -466,10 +466,14 @@ function renderPrepaidCyclesBoard() {
     const completedInYear = filteredCycles.filter(c => c.isCompleted).length;
     const activeCycle = allCycles.find(c => !c.isCompleted) || (allCycles.length > 0 ? allCycles[allCycles.length - 1] : null);
     const activeCount = activeCycle ? activeCycle.items.length : 0;
-    // atRenewThreshold：純門檻，不看完卡狀態——已完卡會員（如柏村，10/10）也要能點「購新一期」。
-    // isWarning：既有續卡警示語意不變，維持「當期進行中且已滿門檻」才亮警示色塊/邊框。
-    const atRenewThreshold = activeCount >= RENEW_THRESHOLD;
-    const isWarning = atRenewThreshold && activeCycle && !activeCycle.isCompleted;
+    const remainingCount = mInfo ? mInfo.remainingCount : undefined;
+    const isRemainingZero = Number.isFinite(remainingCount) && remainingCount <= 0;
+    const isRemainingLow = Number.isFinite(remainingCount) && remainingCount <= 2;
+
+    // atRenewThreshold：當期滿8次 或 儲值次數已用盡(剩<=0次)，皆允許管理員點擊「購新一期」續卡
+    const atRenewThreshold = activeCount >= RENEW_THRESHOLD || isRemainingZero;
+    // isWarning：當期進行中且（滿8次 或 堂數告急<=2次）亮起警示色
+    const isWarning = (activeCount >= RENEW_THRESHOLD || isRemainingLow) && activeCycle && !activeCycle.isCompleted;
 
     const totalSessions = allCycles.reduce((sum, c) => sum + (c.items ? c.items.length : 0), 0);
     const yearCount = mInfo ? mInfo.year2026Count || 0 : 0;
@@ -480,7 +484,7 @@ function renderPrepaidCyclesBoard() {
     let warningBorderColor = '';
     let warningDotClass = '';
     if (isWarning) {
-      if (activeCount >= 10) {
+      if (activeCount >= 10 || isRemainingZero) {
         warningBorderColor = '#c23b3b';
         warningDotClass = 'bg-danger';
       } else if (activeCount === 9) {
@@ -492,8 +496,6 @@ function renderPrepaidCyclesBoard() {
       }
     }
 
-    const remainingCount = mInfo ? mInfo.remainingCount : undefined;
-    const isRemainingLow = Number.isFinite(remainingCount) && remainingCount <= 2;
     if (!warningBorderColor && isRemainingLow) {
       warningBorderColor = remainingCount <= 0 ? '#c23b3b' : '#d97706';
     }
@@ -536,7 +538,7 @@ function renderPrepaidCyclesBoard() {
         </button>`;
     } else if (isAdmin && !atRenewThreshold) {
       // disabled 屬性 + 無 onclick 雙重防呆：只靠 CSS pointer-events:none 擋不住鍵盤觸發。
-      renewButtonHtml = `<button disabled title="當期進度未達 8 次，尚不需續卡（目前 ${activeCount}/10）" class="h-9 px-3 rounded-lg text-xs font-semibold text-muted bg-surface cursor-not-allowed transition flex items-center gap-1 shrink-0">
+      renewButtonHtml = `<button disabled title="當期進度未達 8 次且尚有剩餘堂數（目前進度 ${activeCount}/10，剩餘 ${remainingCount ?? 0} 次）" class="h-9 px-3 rounded-lg text-xs font-semibold text-muted bg-surface cursor-not-allowed transition flex items-center gap-1 shrink-0">
           <i class="fa-solid fa-plus-circle"></i> 購新一期
         </button>`;
     }
@@ -711,7 +713,7 @@ async function submitAddMember() {
 
 // RENEW PASS / BUY NEW CYCLE MODAL LOGIC (記錄金額並充值)
 function openRenewPassModal(memberPageId, memberName) {
-  if (!memberPageId) return showToast('提示', '無法取得會員 ID', 'rose');
+  if (!memberPageId) return showToast('提示', `無法取得 ${memberName} 的會員 ID（該球員尚未在會員表建檔，請先點擊右上角【新增會員】）`, 'rose');
 
   document.getElementById('renewMemberPageIdInput').value = memberPageId;
   document.getElementById('renewModalMemberName').innerText = `球員: ${memberName}`;
