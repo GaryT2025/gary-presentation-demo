@@ -52,7 +52,22 @@ function getOfficialPlan(name) {
 // silently dropped the oldest records once a table grew past it).
 const MAX_SAFETY_PAGES = 1000;
 
-async function queryAllNotionDatabase(dbId) {
+// Option C: Notion Query Filter (skip pre-2026 data to cut ~15 pages / 1500 records)
+const CURRENT_YEAR_FILTER = {
+  timestamp: 'created_time',
+  created_time: {
+    on_or_after: '2026-01-01T00:00:00.000Z'
+  }
+};
+
+// In-memory stats cache (cleared on any write)
+let statsCache = {
+  data: null,
+  timestamp: 0
+};
+const STATS_CACHE_TTL_MS = 5 * 60 * 1000;
+
+async function queryAllNotionDatabase(dbId, filter = null, maxPages = MAX_SAFETY_PAGES) {
   let allResults = [];
   let hasMore = true;
   let nextCursor = undefined;
@@ -60,13 +75,17 @@ async function queryAllNotionDatabase(dbId) {
 
   while (hasMore) {
     pageCount++;
-    if (pageCount > MAX_SAFETY_PAGES) {
-      throw new Error(`queryAllNotionDatabase runaway-loop abort: dbId=${dbId} exceeded MAX_SAFETY_PAGES=${MAX_SAFETY_PAGES} (fetched ${allResults.length} records so far) without has_more resolving to false. This is a safety-guard abort, not a data-correctness truncation -- investigate Notion API behavior.`);
+    if (pageCount > maxPages) {
+      if (maxPages === MAX_SAFETY_PAGES) {
+        throw new Error(`queryAllNotionDatabase runaway-loop abort: dbId=${dbId} exceeded MAX_SAFETY_PAGES=${MAX_SAFETY_PAGES} (fetched ${allResults.length} records so far) without has_more resolving to false. This is a safety-guard abort, not a data-correctness truncation -- investigate Notion API behavior.`);
+      }
+      break;
     }
     const body = {
       page_size: 100,
       sorts: [{ timestamp: 'created_time', direction: 'descending' }]
     };
+    if (filter) body.filter = filter;
     if (nextCursor) body.start_cursor = nextCursor;
 
     const res = await fetch(`https://api.notion.com/v1/databases/${dbId}/query`, {
@@ -219,6 +238,199 @@ function calculatePrepaidCycles(attendanceHistory) {
   return cycles;
 }
 
+function computeFullStats(attendanceResults, memberNameMap, currentYear, currentMonthPrefix, currentMonthLabel) {
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const noshowCounts = {};
+  const dateCounts = {};
+  const playerStatsMap = {};
+  const casualWinnerByDate = {};
+
+  attendanceResults.forEach(p => {
+    const attendanceStatus = getPlainText(p.properties['出席情況']);
+    const originStatus = getPlainText(p.properties['Status']) || '已報名';
+    
+    let status = attendanceStatus || originStatus;
+    if (status === '放鳥') status = '未到';
+    if (status === '取消報名' || status === '報名取消') return;
+
+    const name = normalizeName((getPlainText(p.properties['姓名(Name)'])).trim());
+    if (!name || name === '5' || (!isNaN(name) && !NUMERIC_NAME_WHITELIST.has(name))) return;
+
+    const uId = getPlainText(p.properties['userId']);
+    const datePropVal = getDatePropVal(p.properties);
+    const createdDateVal = toTaiwanDateStr(p.created_time);
+    const finalDate = datePropVal || createdDateVal;
+
+    if (finalDate) {
+      dateCounts[finalDate] = (dateCounts[finalDate] || 0) + 1;
+    }
+
+    if (status === '未到' && finalDate) {
+      const pDate = new Date(finalDate);
+      if (pDate >= thirtyDaysAgo) {
+        noshowCounts[name] = (noshowCounts[name] || 0) + 1;
+      }
+    }
+
+    const officialPlan = getOfficialPlan(name);
+    const mInfo = memberNameMap[name] || { planType: officialPlan, remainingCount: 10 };
+    const resolvedPlan = mInfo.planType || officialPlan;
+
+    if (!mInfo.memberPageId && finalDate && finalDate.startsWith(currentYear)) {
+      const existing = casualWinnerByDate[finalDate];
+      if (!existing || new Date(p.created_time) < new Date(existing.createdTime)) {
+        casualWinnerByDate[finalDate] = { name, createdTime: p.created_time };
+      }
+    }
+
+    if (!playerStatsMap[name]) {
+      playerStatsMap[name] = {
+        name,
+        userId: uId,
+        planType: resolvedPlan,
+        remainingCount: mInfo.remainingCount,
+        year2026Count: 0,
+        monthCount: 0,
+        streakCount: 0,
+        history: []
+      };
+    }
+
+    const isValid = originStatus === '報名成功';
+
+    playerStatsMap[name].history.push({
+      date: finalDate,
+      status,
+      attendanceStatus,
+      originStatus,
+      isValid,
+      isAttended: attendanceStatus === '已出席',
+      id: p.id
+    });
+
+    if (isValid) {
+      if (finalDate && finalDate.startsWith(currentYear)) {
+        playerStatsMap[name].year2026Count += 1;
+        if (mInfo) mInfo.year2026Count = (mInfo.year2026Count || 0) + 1;
+        if (finalDate.startsWith(currentMonthPrefix)) {
+          playerStatsMap[name].monthCount += 1;
+          if (mInfo) mInfo.monthCount = (mInfo.monthCount || 0) + 1;
+        }
+      }
+    }
+  });
+
+  const prepaidCyclesMap = {};
+
+  function computeMaxStreak(history, datePrefix) {
+    let currentStreak = 0;
+    let maxStreak = 0;
+    const filtered = history
+      .filter(h => h.date && h.date.startsWith(datePrefix))
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    filtered.forEach(h => {
+      if (h.status === '未到' || h.status === '放鳥') {
+        currentStreak = 0;
+      } else if (h.isValid) {
+        currentStreak += 1;
+        if (currentStreak > maxStreak) maxStreak = currentStreak;
+      }
+    });
+    return maxStreak;
+  }
+
+  Object.values(playerStatsMap).forEach(p => {
+    p.streakCount = computeMaxStreak(p.history, currentYear);
+    p.monthStreakCount = computeMaxStreak(p.history, currentMonthPrefix);
+
+    const resolvedPlan = p.planType;
+    if (OFFICIAL_PREPAID.includes(p.name) && resolvedPlan === '儲值') {
+      prepaidCyclesMap[p.name] = calculatePrepaidCycles(p.history);
+    }
+  });
+
+  const availableDates = Object.keys(dateCounts)
+    .sort((a, b) => new Date(b) - new Date(a))
+    .map(d => ({ date: d, count: dateCounts[d] }));
+
+  const allPlayersList = Object.values(playerStatsMap);
+  const sortedYear = [...allPlayersList].sort((a, b) => {
+    if (b.year2026Count !== a.year2026Count) return b.year2026Count - a.year2026Count;
+    return a.name.localeCompare(b.name);
+  });
+
+  function buildCasualTally(entriesObj) {
+    const tally = {};
+    Object.values(entriesObj).forEach(entry => {
+      if (!tally[entry.name]) {
+        tally[entry.name] = { name: entry.name, wins: 0, lastWinDate: '' };
+      }
+      tally[entry.name].wins += 1;
+    });
+    Object.entries(entriesObj).forEach(([date, entry]) => {
+      const t = tally[entry.name];
+      if (t && (!t.lastWinDate || date > t.lastWinDate)) {
+        t.lastWinDate = date;
+      }
+    });
+    return Object.values(tally).sort((a, b) => {
+      if (b.wins !== a.wins) return b.wins - a.wins;
+      if (b.lastWinDate !== a.lastWinDate) return b.lastWinDate.localeCompare(a.lastWinDate);
+      return a.name.localeCompare(b.name);
+    });
+  }
+
+  const sortedCasualTally = buildCasualTally(casualWinnerByDate);
+  const monthCasualWinnerByDate = Object.fromEntries(
+    Object.entries(casualWinnerByDate).filter(([date]) => date.startsWith(currentMonthPrefix))
+  );
+  const sortedMonthCasualTally = buildCasualTally(monthCasualWinnerByDate);
+
+  const sortedStreak = [...allPlayersList].sort((a, b) => {
+    if (b.streakCount !== a.streakCount) return b.streakCount - a.streakCount;
+    return a.name.localeCompare(b.name);
+  });
+
+  const sortedMonthStreak = [...allPlayersList].sort((a, b) => {
+    if (b.monthStreakCount !== a.monthStreakCount) return b.monthStreakCount - a.monthStreakCount;
+    return a.name.localeCompare(b.name);
+  });
+
+  const sortedMonth = [...allPlayersList].sort((a, b) => {
+    if (b.monthCount !== a.monthCount) return b.monthCount - a.monthCount;
+    return a.name.localeCompare(b.name);
+  });
+
+  function toTopN(sorted, n, metricFn, mapper) {
+    return sorted.filter(p => metricFn(p) > 0).slice(0, n).map(mapper);
+  }
+
+  const funBanners = {
+    currentYear,
+    currentMonthPrefix,
+    currentMonthLabel,
+    yearly: {
+      attendanceKing: toTopN(sortedYear, 2, p => p.year2026Count, p => ({ name: p.name, count: p.year2026Count, planType: p.planType })),
+      streakKing: toTopN(sortedStreak, 2, p => p.streakCount, p => ({ name: p.name, streak: p.streakCount, planType: p.planType })),
+      fastestCasual: toTopN(sortedCasualTally, 2, p => p.wins, p => ({ name: p.name, wins: p.wins, lastWinDate: p.lastWinDate }))
+    },
+    monthly: {
+      attendanceKing: toTopN(sortedMonth, 2, p => p.monthCount, p => ({ name: p.name, count: p.monthCount, planType: p.planType })),
+      streakKing: toTopN(sortedMonthStreak, 2, p => p.monthStreakCount, p => ({ name: p.name, streak: p.monthStreakCount, planType: p.planType })),
+      fastestCasual: toTopN(sortedMonthCasualTally, 2, p => p.wins, p => ({ name: p.name, wins: p.wins, lastWinDate: p.lastWinDate }))
+    }
+  };
+
+  return {
+    funBanners,
+    prepaidCyclesMap,
+    availableDates,
+    noshowCounts
+  };
+}
+
 // Admin auth helpers (D-03, D-10). Env reads happen at call time inside these
 // functions or their callers — never as module-level consts — so a trailing
 // space in a dashboard-pasted value or a runtime env mutation (as the test
@@ -316,23 +528,222 @@ export default async function handler(req, res) {
       if (!verifyAdminToken(req)) {
         return res.status(401).json({ success: false, error: '需要管理者權限，請重新登入' });
       }
+      statsCache.data = null; // Invalidate stats cache on any authenticated write
     }
 
     // 1. GET api/attendance
     if (req.method === 'GET' && path === 'attendance') {
+      const scope = req.query.scope || 'all'; // 'kanban' | 'stats' | 'all'
       const targetDate = req.query.date || '';
-      // D-4: previously hardcoded '2026' / '2026-08' literals here meant the
-      // monthly leaderboard silently stopped advancing after 2026-08 forever.
-      // Derive both from today's Taiwan-timezone date string instead, via the
-      // same toTaiwanDateStr() timezone entry point used everywhere else in
-      // this file.
+
       const realTodayStr = toTaiwanDateStr(new Date().toISOString());
       const currentYear = realTodayStr.slice(0, 4);
       const currentMonthPrefix = realTodayStr.slice(0, 7);
       const currentMonthLabel = String(Number(realTodayStr.slice(5, 7)));
 
-      const attendanceResults = await queryAllNotionDatabase(ATTENDANCE_DB_ID);
-      const memberResults = await queryAllNotionDatabase(MEMBERS_DB_ID);
+      // ── SCOPE: STATS (Option A + C: Background loading for leaderboards & cycles) ──
+      if (scope === 'stats') {
+        if (statsCache.data && (Date.now() - statsCache.timestamp < STATS_CACHE_TTL_MS)) {
+          return res.status(200).json({
+            success: true,
+            scope: 'stats',
+            cached: true,
+            ...statsCache.data
+          });
+        }
+
+        // Option C: Filter only 2026 records from Notion (skips 1,500+ records from 2025)
+        const [attendanceResults, memberResults] = await Promise.all([
+          queryAllNotionDatabase(ATTENDANCE_DB_ID, CURRENT_YEAR_FILTER),
+          queryAllNotionDatabase(MEMBERS_DB_ID)
+        ]);
+
+        const memberNameMap = {};
+        memberResults.forEach(m => {
+          const props = m.properties;
+          const name = getPlainText(props['Name']) || getPlainText(props['item']) || '';
+          const planType = getPlainText(props['繳費類型']);
+          const count = props['Number'] ? (props['Number'].number ?? 0) : 0;
+          const lastPrepaidDate = props[LAST_PREPAID_DATE_PROP]?.date?.start || null;
+
+          if (name) {
+            memberNameMap[name] = {
+              memberPageId: m.id,
+              userId: getPlainText(props['userId']),
+              name,
+              planType,
+              remainingCount: count,
+              hasConfirmedPrepay: !!lastPrepaidDate,
+              lastPrepaidDate
+            };
+          }
+        });
+
+        const stats = computeFullStats(attendanceResults, memberNameMap, currentYear, currentMonthPrefix, currentMonthLabel);
+        statsCache.data = stats;
+        statsCache.timestamp = Date.now();
+
+        return res.status(200).json({
+          success: true,
+          scope: 'stats',
+          ...stats
+        });
+      }
+
+      // ── SCOPE: KANBAN (Option A: Ultra-fast path for immediate check-in < 1s) ──
+      if (scope === 'kanban') {
+        // Query members (1 page) + only recent attendance records (up to 3 pages = ~300 rows, covers > 30 days & recent 6+ sessions)
+        const [recentAttendance, memberResults] = await Promise.all([
+          queryAllNotionDatabase(ATTENDANCE_DB_ID, CURRENT_YEAR_FILTER, 3),
+          queryAllNotionDatabase(MEMBERS_DB_ID)
+        ]);
+
+        const memberNameMap = {};
+        const memberIdToPageId = {};
+        memberResults.forEach(m => {
+          const props = m.properties;
+          const userId = getPlainText(props['userId']);
+          const name = getPlainText(props['Name']) || getPlainText(props['item']) || '';
+          const planType = getPlainText(props['繳費類型']);
+          const count = props['Number'] ? (props['Number'].number ?? 0) : 0;
+          const lastPrepaidDate = props[LAST_PREPAID_DATE_PROP]?.date?.start || null;
+
+          const memberInfo = {
+            memberPageId: m.id,
+            userId,
+            name,
+            planType,
+            remainingCount: count,
+            hasConfirmedPrepay: !!lastPrepaidDate,
+            lastPrepaidDate
+          };
+
+          if (name) memberNameMap[name] = memberInfo;
+          memberIdToPageId[m.id] = memberInfo;
+        });
+
+        // If targetDate is specified and older than the recent 300 rows, query specifically for that date
+        let attendanceRows = recentAttendance;
+        if (targetDate && targetDate !== 'all') {
+          const hasTarget = recentAttendance.some(p => {
+            const datePropVal = getDatePropVal(p.properties);
+            const createdDateVal = toTaiwanDateStr(p.created_time);
+            return (datePropVal || createdDateVal) === targetDate;
+          });
+          if (!hasTarget) {
+            try {
+              const specificDateRows = await queryAllNotionDatabase(ATTENDANCE_DB_ID, {
+                property: '日期 (Date) ',
+                date: { equals: targetDate }
+              }, 5);
+              if (specificDateRows.length > 0) {
+                attendanceRows = recentAttendance.concat(specificDateRows);
+              }
+            } catch (err) {
+              console.warn('[badminton] Specific date fetch fallback:', err);
+            }
+          }
+        }
+
+        const now = new Date();
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        const noshowCounts = {};
+        const dateCounts = {};
+
+        attendanceRows.forEach(p => {
+          const attendanceStatus = getPlainText(p.properties['出席情況']);
+          const originStatus = getPlainText(p.properties['Status']) || '已報名';
+          let status = attendanceStatus || originStatus;
+          if (status === '放鳥') status = '未到';
+          if (status === '取消報名' || status === '報名取消') return;
+
+          const name = normalizeName((getPlainText(p.properties['姓名(Name)'])).trim());
+          if (!name || name === '5' || (!isNaN(name) && !NUMERIC_NAME_WHITELIST.has(name))) return;
+
+          const datePropVal = getDatePropVal(p.properties);
+          const createdDateVal = toTaiwanDateStr(p.created_time);
+          const finalDate = datePropVal || createdDateVal;
+
+          if (finalDate) {
+            dateCounts[finalDate] = (dateCounts[finalDate] || 0) + 1;
+          }
+
+          if (status === '未到' && finalDate) {
+            const pDate = new Date(finalDate);
+            if (pDate >= thirtyDaysAgo) {
+              noshowCounts[name] = (noshowCounts[name] || 0) + 1;
+            }
+          }
+        });
+
+        const availableDates = Object.keys(dateCounts)
+          .sort((a, b) => new Date(b) - new Date(a))
+          .map(d => ({ date: d, count: dateCounts[d] }));
+
+        let defaultDate = availableDates[0]?.date || realTodayStr;
+        if (availableDates.find(d => d.date === realTodayStr)) {
+          defaultDate = realTodayStr;
+        }
+
+        const activeDate = targetDate || defaultDate;
+        const list = [];
+
+        attendanceRows.forEach(p => {
+          const attendanceStatus = getPlainText(p.properties['出席情況']);
+          const originStatus = getPlainText(p.properties['Status']) || '已報名';
+          let status = attendanceStatus || originStatus;
+          if (status === '放鳥') status = '未到';
+          if (status === '取消報名' || status === '報名取消') return;
+
+          const name = normalizeName((getPlainText(p.properties['姓名(Name)'])).trim());
+          if (!name || name === '5' || (!isNaN(name) && !NUMERIC_NAME_WHITELIST.has(name))) return;
+
+          const uId = getPlainText(p.properties['userId']);
+          const datePropVal = getDatePropVal(p.properties);
+          const createdDateVal = toTaiwanDateStr(p.created_time);
+          const finalDate = datePropVal || createdDateVal;
+          const isPaid = p.properties['繳費?']?.checkbox || false;
+
+          const officialPlan = getOfficialPlan(name);
+          const mInfo = memberNameMap[name] || { planType: officialPlan, remainingCount: 10, memberPageId: null };
+          const resolvedPlan = mInfo.planType || officialPlan;
+
+          if (activeDate === 'all' || (finalDate && finalDate.startsWith(activeDate))) {
+            const noshowCount = noshowCounts[name] || 0;
+            const isBlacklisted = noshowCount >= 2;
+
+            list.push({
+              id: p.id,
+              name,
+              userId: uId,
+              date: finalDate,
+              createdTime: p.created_time,
+              status,
+              isPaid,
+              memberPageId: mInfo.memberPageId,
+              remainingCount: mInfo.remainingCount,
+              planType: resolvedPlan,
+              noshowCount,
+              isBlacklisted
+            });
+          }
+        });
+
+        return res.status(200).json({
+          success: true,
+          scope: 'kanban',
+          activeDate,
+          availableDates,
+          attendance: list,
+          members: Object.values(memberIdToPageId)
+        });
+      }
+
+      // ── SCOPE: ALL (Backwards compatibility & fallback) ──
+      const [attendanceResults, memberResults] = await Promise.all([
+        queryAllNotionDatabase(ATTENDANCE_DB_ID, CURRENT_YEAR_FILTER),
+        queryAllNotionDatabase(MEMBERS_DB_ID)
+      ]);
 
       const memberNameMap = {};
       const memberIdToPageId = {};
@@ -361,147 +772,11 @@ export default async function handler(req, res) {
         memberIdToPageId[m.id] = memberInfo;
       });
 
-      const now = new Date();
-      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      const noshowCounts = {};
-      const dateCounts = {};
-      const playerStatsMap = {};
-      const casualWinnerByDate = {};
+      const stats = computeFullStats(attendanceResults, memberNameMap, currentYear, currentMonthPrefix, currentMonthLabel);
+      statsCache.data = stats;
+      statsCache.timestamp = Date.now();
 
-      attendanceResults.forEach(p => {
-        const attendanceStatus = getPlainText(p.properties['出席情況']);
-        const originStatus = getPlainText(p.properties['Status']) || '已報名';
-        
-        let status = attendanceStatus || originStatus;
-        if (status === '放鳥') status = '未到';
-        if (status === '取消報名' || status === '報名取消') return;
-
-        const name = normalizeName((getPlainText(p.properties['姓名(Name)'])).trim());
-        if (!name || name === '5' || (!isNaN(name) && !NUMERIC_NAME_WHITELIST.has(name))) return;
-
-        const uId = getPlainText(p.properties['userId']);
-        const datePropVal = getDatePropVal(p.properties);
-        const createdDateVal = toTaiwanDateStr(p.created_time);
-        const finalDate = datePropVal || createdDateVal;
-
-        if (finalDate) {
-          dateCounts[finalDate] = (dateCounts[finalDate] || 0) + 1;
-        }
-
-        if (status === '未到' && finalDate) {
-          const pDate = new Date(finalDate);
-          if (pDate >= thirtyDaysAgo) {
-            // 一筆未到只計一次，統計一律以姓名為 key（延續 D-1：userId 是共用報名帳號，不可當個人統計 key）。
-            noshowCounts[name] = (noshowCounts[name] || 0) + 1;
-          }
-        }
-
-        const officialPlan = getOfficialPlan(name);
-        // D-1: 只依姓名解析會員，不再退回 userId 對照表。店家有共用報名帳號
-        // （小鄭／羽辰的 LINE userId 底下混著幾十個不相干的人名），userId 回退會把這些
-        // 陌生人的報名記錄整批誤歸到帳號主人名下——灌高其個人出席次數，也會讓點名時從
-        // 帳號主人的剩餘堂數扣款。Gary 裁定「用 Name 去統計，用 ID 難怪會錯」。
-        // 「同一人不同名字」（如 黃羽辰→羽辰、柳大俠→柳大神）改用 NAME_ALIASES 這個
-        // 刻意列舉的白名單機制處理，跟這裡拿掉的「大海撈針式」userId 回退是不同機制。
-        const mInfo = memberNameMap[name] || { planType: officialPlan, remainingCount: 10 };
-        const resolvedPlan = mInfo.planType || officialPlan;
-
-        // D-02/D-03: per-session-date 零打 race, computed year-wide (not from the
-        // date-filtered `list` below). Eligible = no real Members-DB record at all
-        // (mInfo.memberPageId is undefined for the fallback object above — that IS
-        // the falsy-memberPageId signal). Cancelled records already `return` above,
-        // so they are excluded for free. Keep the earliest-created_time record per date.
-        if (!mInfo.memberPageId && finalDate && finalDate.startsWith(currentYear)) {
-          const existing = casualWinnerByDate[finalDate];
-          if (!existing || new Date(p.created_time) < new Date(existing.createdTime)) {
-            casualWinnerByDate[finalDate] = { name, createdTime: p.created_time };
-          }
-        }
-
-        if (!playerStatsMap[name]) {
-          playerStatsMap[name] = {
-            name,
-            userId: uId,
-            planType: resolvedPlan,
-            remainingCount: mInfo.remainingCount,
-            year2026Count: 0,
-            monthCount: 0,
-            streakCount: 0,
-            history: []
-          };
-        }
-
-        // D-3: Gary's ruling — leaderboard/年度/月度 counts only recognize
-        // "報名成功" (registered successfully), regardless of attendanceStatus.
-        // This isValid feeds only the counters below; calculatePrepaidCycles()
-        // has its own independent AND-filter and is untouched.
-        const isValid = originStatus === '報名成功';
-
-        playerStatsMap[name].history.push({
-          date: finalDate,
-          status,
-          attendanceStatus,
-          originStatus,
-          isValid,
-          isAttended: attendanceStatus === '已出席',
-          id: p.id
-        });
-
-        if (isValid) {
-          if (finalDate && finalDate.startsWith(currentYear)) {
-            playerStatsMap[name].year2026Count += 1;
-            if (mInfo) mInfo.year2026Count = (mInfo.year2026Count || 0) + 1;
-            if (finalDate.startsWith(currentMonthPrefix)) {
-              playerStatsMap[name].monthCount += 1;
-              if (mInfo) mInfo.monthCount = (mInfo.monthCount || 0) + 1;
-            }
-          }
-        }
-      });
-
-      const prepaidCyclesMap = {};
-
-      // D-5/D-2: streak algorithm extracted into a named pure function so the
-      // yearly and monthly windows can never drift apart — same filter/sort/
-      // reset-order logic, just a different date-prefix input. Order inside
-      // is untouched verbatim from the original D-5 fix: check 未到/放鳥
-      // FIRST (reset), only then does isValid accumulate.
-      function computeMaxStreak(history, datePrefix) {
-        let currentStreak = 0;
-        let maxStreak = 0;
-        const filtered = history
-          .filter(h => h.date && h.date.startsWith(datePrefix))
-          .sort((a, b) => new Date(a.date) - new Date(b.date));
-
-        filtered.forEach(h => {
-          if (h.status === '未到' || h.status === '放鳥') {
-            currentStreak = 0;
-          } else if (h.isValid) {
-            currentStreak += 1;
-            if (currentStreak > maxStreak) maxStreak = currentStreak;
-          }
-        });
-        return maxStreak;
-      }
-
-      Object.values(playerStatsMap).forEach(p => {
-        p.streakCount = computeMaxStreak(p.history, currentYear);
-        // D-2: 月度榜跟年度榜做同樣三件事，只是把時間窗從 currentYear 換成 currentMonthPrefix。
-        p.monthStreakCount = computeMaxStreak(p.history, currentMonthPrefix);
-
-        const resolvedPlan = p.planType;
-
-        // 僅限官方儲值名單 (OFFICIAL_PREPAID) 且繳費類型為「儲值」者才列入儲值期別履歷看板
-        if (OFFICIAL_PREPAID.includes(p.name) && resolvedPlan === '儲值') {
-          prepaidCyclesMap[p.name] = calculatePrepaidCycles(p.history);
-        }
-      });
-
-      const availableDates = Object.keys(dateCounts)
-        .sort((a, b) => new Date(b) - new Date(a))
-        .map(d => ({ date: d, count: dateCounts[d] }));
-
-      // 優先顯示「今天」，若今天無開局，則自動倒退顯示最近一個「最後開場日期」
+      const availableDates = stats.availableDates;
       let defaultDate = availableDates[0]?.date || realTodayStr;
       if (availableDates.find(d => d.date === realTodayStr)) {
         defaultDate = realTodayStr;
@@ -513,7 +788,6 @@ export default async function handler(req, res) {
       attendanceResults.forEach(p => {
         const attendanceStatus = getPlainText(p.properties['出席情況']);
         const originStatus = getPlainText(p.properties['Status']) || '已報名';
-        
         let status = attendanceStatus || originStatus;
         if (status === '放鳥') status = '未到';
         if (status === '取消報名' || status === '報名取消') return;
@@ -528,12 +802,11 @@ export default async function handler(req, res) {
         const isPaid = p.properties['繳費?']?.checkbox || false;
 
         const officialPlan = getOfficialPlan(name);
-        // D-1: 同上，清單區塊也只依姓名解析，不再退回 userId。
         const mInfo = memberNameMap[name] || { planType: officialPlan, remainingCount: 10, memberPageId: null };
         const resolvedPlan = mInfo.planType || officialPlan;
 
         if (activeDate === 'all' || (finalDate && finalDate.startsWith(activeDate))) {
-          const noshowCount = noshowCounts[name] || 0;
+          const noshowCount = stats.noshowCounts[name] || 0;
           const isBlacklisted = noshowCount >= 2;
 
           list.push({
@@ -553,100 +826,14 @@ export default async function handler(req, res) {
         }
       });
 
-      const allPlayersList = Object.values(playerStatsMap);
-      // D-6: sorts now carry a name.localeCompare tie-break. Runner-up (2nd
-      // place) is exposed to the front end below, so tie order can no longer
-      // be left to Object.values() insertion order / sort() stability quirks.
-      const sortedYear = [...allPlayersList].sort((a, b) => {
-        if (b.year2026Count !== a.year2026Count) return b.year2026Count - a.year2026Count;
-        return a.name.localeCompare(b.name);
-      });
-
-      // D-02/D-03/D-04: tally per-date 零打 race wins (from casualWinnerByDate,
-      // populated year-wide above), tie-break most wins -> most recent lastWinDate
-      // -> name.localeCompare, for determinism. Extracted into a named function
-      // (D-2) so yearly and monthly can call the same tie-break logic against
-      // different slices of casualWinnerByDate without drifting apart.
-      function buildCasualTally(entriesObj) {
-        const tally = {};
-        Object.values(entriesObj).forEach(entry => {
-          if (!tally[entry.name]) {
-            tally[entry.name] = { name: entry.name, wins: 0, lastWinDate: '' };
-          }
-          tally[entry.name].wins += 1;
-        });
-        Object.entries(entriesObj).forEach(([date, entry]) => {
-          const t = tally[entry.name];
-          if (t && (!t.lastWinDate || date > t.lastWinDate)) {
-            t.lastWinDate = date;
-          }
-        });
-        return Object.values(tally).sort((a, b) => {
-          if (b.wins !== a.wins) return b.wins - a.wins;
-          if (b.lastWinDate !== a.lastWinDate) return b.lastWinDate.localeCompare(a.lastWinDate);
-          return a.name.localeCompare(b.name);
-        });
-      }
-
-      // casualWinnerByDate is already year-wide only (collected with
-      // finalDate.startsWith(currentYear) above) — do not re-filter it here.
-      const sortedCasualTally = buildCasualTally(casualWinnerByDate);
-      const monthCasualWinnerByDate = Object.fromEntries(
-        Object.entries(casualWinnerByDate).filter(([date]) => date.startsWith(currentMonthPrefix))
-      );
-      const sortedMonthCasualTally = buildCasualTally(monthCasualWinnerByDate);
-
-      const sortedStreak = [...allPlayersList].sort((a, b) => {
-        if (b.streakCount !== a.streakCount) return b.streakCount - a.streakCount;
-        return a.name.localeCompare(b.name);
-      });
-
-      // D-2: 月度連續出勤王排序，比照 sortedStreak 但 metric 換成 monthStreakCount。
-      const sortedMonthStreak = [...allPlayersList].sort((a, b) => {
-        if (b.monthStreakCount !== a.monthStreakCount) return b.monthStreakCount - a.monthStreakCount;
-        return a.name.localeCompare(b.name);
-      });
-
-      const sortedMonth = [...allPlayersList].sort((a, b) => {
-        if (b.monthCount !== a.monthCount) return b.monthCount - a.monthCount;
-        return a.name.localeCompare(b.name);
-      });
-
-      // D-6: turn a tie-broken sorted array into a top-N leaderboard — drops
-      // non-qualifiers (metric <= 0) and maps to the response shape. Replaces
-      // the old single-winner `sorted[0] && sorted[0].X > 0 ? sorted[0] : null`
-      // pattern now that runner-up (2nd place) is also surfaced for yearly stats.
-      function toTopN(sorted, n, metricFn, mapper) {
-        return sorted.filter(p => metricFn(p) > 0).slice(0, n).map(mapper);
-      }
-
-      // D-2: monthly mirrors yearly's three metrics exactly, just scoped to
-      // currentMonthPrefix instead of currentYear — same key names, same
-      // top-2 shape, so front end can consume both groups identically.
-      const funBanners = {
-        currentYear,
-        currentMonthPrefix,
-        currentMonthLabel,
-        yearly: {
-          attendanceKing: toTopN(sortedYear, 2, p => p.year2026Count, p => ({ name: p.name, count: p.year2026Count, planType: p.planType })),
-          streakKing: toTopN(sortedStreak, 2, p => p.streakCount, p => ({ name: p.name, streak: p.streakCount, planType: p.planType })),
-          fastestCasual: toTopN(sortedCasualTally, 2, p => p.wins, p => ({ name: p.name, wins: p.wins, lastWinDate: p.lastWinDate }))
-        },
-        monthly: {
-          attendanceKing: toTopN(sortedMonth, 2, p => p.monthCount, p => ({ name: p.name, count: p.monthCount, planType: p.planType })),
-          streakKing: toTopN(sortedMonthStreak, 2, p => p.monthStreakCount, p => ({ name: p.name, streak: p.monthStreakCount, planType: p.planType })),
-          fastestCasual: toTopN(sortedMonthCasualTally, 2, p => p.wins, p => ({ name: p.name, wins: p.wins, lastWinDate: p.lastWinDate }))
-        }
-      };
-
       return res.status(200).json({
         success: true,
         activeDate,
         availableDates,
         attendance: list,
         members: Object.values(memberIdToPageId),
-        prepaidCyclesMap,
-        funBanners
+        prepaidCyclesMap: stats.prepaidCyclesMap,
+        funBanners: stats.funBanners
       });
     }
 

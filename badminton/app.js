@@ -171,23 +171,31 @@ function statusLabel(status) {
   return '報名';
 }
 
-// Fetch Attendance and Member Data from Express API
+let isStatsLoading = false;
+
+// Fetch Attendance and Member Data (Fast Path: Kanban first, Stats in background)
 async function fetchAttendance(selectedDate = '') {
   const refreshIcon = document.getElementById('refreshIcon');
   refreshIcon.classList.add('fa-spin');
 
   try {
-    const res = await fetch(`api/attendance?date=${encodeURIComponent(selectedDate)}`);
+    // 方案 A: 先快速載入點名看板與人員名單 (< 1s)
+    const res = await fetch(`api/attendance?scope=kanban&date=${encodeURIComponent(selectedDate)}`);
     const data = await res.json();
 
     if (data.success) {
-      currentData = data;
+      currentData.attendance = data.attendance || [];
+      currentData.members = data.members || [];
+      currentData.activeDate = data.activeDate || '';
+      currentData.availableDates = data.availableDates || [];
+
       renderDateDropdown();
       renderKanban();
-      renderFunBanners();
-      renderPrepaidCyclesBoard();
       updateKPIs();
       clearBatchSelection();
+
+      // 背景非同步載入年度/月度指標榜與儲值期別履歷
+      fetchStats();
     } else {
       showToast('錯誤', data.error || '無法讀取 Notion 資料', 'rose');
     }
@@ -195,6 +203,31 @@ async function fetchAttendance(selectedDate = '') {
     showToast('連線失敗', '連線伺服器錯誤', 'rose');
   } finally {
     refreshIcon.classList.remove('fa-spin');
+  }
+}
+
+async function fetchStats() {
+  if (isStatsLoading) return;
+  isStatsLoading = true;
+
+  try {
+    const res = await fetch('api/attendance?scope=stats');
+    const data = await res.json();
+
+    if (data.success) {
+      currentData.funBanners = data.funBanners || {};
+      currentData.prepaidCyclesMap = data.prepaidCyclesMap || {};
+      if (data.availableDates && data.availableDates.length > currentData.availableDates.length) {
+        currentData.availableDates = data.availableDates;
+        renderDateDropdown();
+      }
+      renderFunBanners();
+      renderPrepaidCyclesBoard();
+    }
+  } catch (err) {
+    console.warn('[Badminton Stats] 背景指標載入失敗:', err);
+  } finally {
+    isStatsLoading = false;
   }
 }
 
@@ -398,7 +431,11 @@ function renderPrepaidCyclesBoard() {
   });
 
   if (memberNames.length === 0) {
-    container.innerHTML = `<div class="col-span-full py-10 text-center text-muted font-semibold text-base">尚無符合條件的儲值球員期別履歷</div>`;
+    if (isStatsLoading) {
+      container.innerHTML = `<div class="col-span-full py-10 text-center text-muted font-semibold text-base"><i class="fa-solid fa-spinner fa-spin mr-2"></i>履歷資料載入中...</div>`;
+    } else {
+      container.innerHTML = `<div class="col-span-full py-10 text-center text-muted font-semibold text-base">尚無符合條件的儲值球員期別履歷</div>`;
+    }
     return;
   }
 
