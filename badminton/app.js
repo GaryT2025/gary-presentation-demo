@@ -419,6 +419,11 @@ function renderPrepaidCyclesBoard() {
       const isRemainingLow = m && Number.isFinite(m.remainingCount) && m.remainingCount <= 2;
       const isCycleNearEnd = activeCount >= RENEW_THRESHOLD;
 
+      const remainingCount = m && Number.isFinite(m.remainingCount) ? m.remainingCount : undefined;
+      const toFinish = Math.max(0, 10 - activeCount);
+      const hasPrepaidNext = Number.isFinite(remainingCount) && remainingCount >= (toFinish + 10);
+      if (hasPrepaidNext) return false;
+
       return isRemainingLow || isCycleNearEnd;
     });
   }
@@ -470,10 +475,16 @@ function renderPrepaidCyclesBoard() {
     const isRemainingZero = Number.isFinite(remainingCount) && remainingCount <= 0;
     const isRemainingLow = Number.isFinite(remainingCount) && remainingCount <= 2;
 
-    // atRenewThreshold：當期滿8次 或 儲值次數已用盡(剩<=0次)，皆允許管理員點擊「購新一期」續卡
-    const atRenewThreshold = activeCount >= RENEW_THRESHOLD || isRemainingZero;
-    // isWarning：當期進行中且（滿8次 或 堂數告急<=2次）亮起警示色
-    const isWarning = (activeCount >= RENEW_THRESHOLD || isRemainingLow) && activeCycle && !activeCycle.isCompleted;
+    // 計算打完當期還需幾次出席（已完卡 10/10 則為 0）
+    const toFinishCurrent = Math.max(0, 10 - activeCount);
+    // 是否已經預先儲值了下一整期（餘額足夠付完當期＋下一期 10 次，例如小潘已完卡且有 10 次）
+    const hasPrepaidNextCycle = Number.isFinite(remainingCount) && remainingCount >= (toFinishCurrent + 10);
+
+    // atRenewThreshold：
+    // 尚未預繳下一期，且滿足（當期已滿 8 次 OR 剩餘堂數告急 <= 2 次），允許管理員點擊「購新一期」續卡
+    const atRenewThreshold = !hasPrepaidNextCycle && (activeCount >= RENEW_THRESHOLD || isRemainingLow);
+    // isWarning：未預繳下一期，且當期進行中（滿8次 或 堂數告急<=2次），才亮起警示色
+    const isWarning = !hasPrepaidNextCycle && (activeCount >= RENEW_THRESHOLD || isRemainingLow) && activeCycle && !activeCycle.isCompleted;
 
     const totalSessions = allCycles.reduce((sum, c) => sum + (c.items ? c.items.length : 0), 0);
     const yearCount = mInfo ? mInfo.year2026Count || 0 : 0;
@@ -496,7 +507,7 @@ function renderPrepaidCyclesBoard() {
       }
     }
 
-    if (!warningBorderColor && isRemainingLow) {
+    if (!warningBorderColor && isRemainingLow && !hasPrepaidNextCycle) {
       warningBorderColor = remainingCount <= 0 ? '#c23b3b' : '#d97706';
     }
 
@@ -537,8 +548,11 @@ function renderPrepaidCyclesBoard() {
           <i class="fa-solid fa-plus-circle"></i> 購新一期
         </button>`;
     } else if (isAdmin && !atRenewThreshold) {
+      const disabledTitle = hasPrepaidNextCycle
+        ? `已完成續卡儲值（目前剩餘 ${remainingCount} 次，已預繳下一期，尚無須續卡）`
+        : `當期進度未達 8 次且尚有剩餘堂數（目前進度 ${activeCount}/10，剩餘 ${remainingCount ?? 0} 次）`;
       // disabled 屬性 + 無 onclick 雙重防呆：只靠 CSS pointer-events:none 擋不住鍵盤觸發。
-      renewButtonHtml = `<button disabled title="當期進度未達 8 次且尚有剩餘堂數（目前進度 ${activeCount}/10，剩餘 ${remainingCount ?? 0} 次）" class="h-9 px-3 rounded-lg text-xs font-semibold text-muted bg-surface cursor-not-allowed transition flex items-center gap-1 shrink-0">
+      renewButtonHtml = `<button disabled title="${disabledTitle}" class="h-9 px-3 rounded-lg text-xs font-semibold text-muted bg-surface cursor-not-allowed transition flex items-center gap-1 shrink-0">
           <i class="fa-solid fa-plus-circle"></i> 購新一期
         </button>`;
     }
