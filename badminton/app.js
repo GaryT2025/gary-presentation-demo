@@ -715,9 +715,41 @@ async function submitAddMember() {
 function openRenewPassModal(memberPageId, memberName) {
   if (!memberPageId) return showToast('提示', `無法取得 ${memberName} 的會員 ID（該球員尚未在會員表建檔，請先點擊右上角【新增會員】）`, 'rose');
 
+  const mInfo = (currentData.members || []).find(m => m.name === memberName);
+  const cycles = (currentData.prepaidCyclesMap || {})[memberName] || [];
+  const activeCycle = cycles.find(c => !c.isCompleted) || (cycles.length > 0 ? cycles[cycles.length - 1] : null);
+  const activeCount = activeCycle && !activeCycle.isCompleted ? activeCycle.items.length : 0;
+  const currentCount = mInfo && Number.isFinite(mInfo.remainingCount) ? mInfo.remainingCount : 0;
+
+  // 計算新購一期實得堂數：
+  // 1. 若原本額度已用盡(剩0次/負數)且新期已開打(activeCount > 0)，購買10次自動扣抵當期已打堂數 (10 - activeCount)
+  // 2. 若原本尚有剩餘次數(currentCount > 0)，購買10次累加 (currentCount + 10)
+  // 3. 若原本剩0次且新期未開打，購買10次即剩餘 10 次
+  let defaultCount = 10;
+  const noteEl = document.getElementById('renewDeductNote');
+  if (currentCount <= 0 && activeCount > 0) {
+    defaultCount = Math.max(0, 10 - activeCount);
+    if (noteEl) {
+      noteEl.innerText = `💡 當期已出席 ${activeCount} 次（未扣點），新購 10 次扣除後剩餘 ${defaultCount} 次`;
+      noteEl.classList.remove('hidden');
+    }
+  } else if (currentCount > 0) {
+    defaultCount = currentCount + 10;
+    if (noteEl) {
+      noteEl.innerText = `💡 目前尚有 ${currentCount} 次，新購 10 次累積後剩餘 ${defaultCount} 次`;
+      noteEl.classList.remove('hidden');
+    }
+  } else {
+    defaultCount = 10;
+    if (noteEl) {
+      noteEl.innerText = `💡 新購 10 次，充值後剩餘 10 次`;
+      noteEl.classList.remove('hidden');
+    }
+  }
+
   document.getElementById('renewMemberPageIdInput').value = memberPageId;
   document.getElementById('renewModalMemberName').innerText = `球員: ${memberName}`;
-  document.getElementById('renewCountInput').value = '10';
+  document.getElementById('renewCountInput').value = String(defaultCount);
   document.getElementById('renewAmountInput').value = '20000';
   document.getElementById('renewPassModal').classList.remove('hidden');
 }
@@ -728,24 +760,25 @@ function closeRenewPassModal() {
 
 async function submitRenewPass() {
   const memberPageId = document.getElementById('renewMemberPageIdInput').value;
-  const addCount = document.getElementById('renewCountInput').value;
-  const amount = document.getElementById('renewAmountInput').value;
+  const targetCount = parseInt(document.getElementById('renewCountInput').value, 10);
+  const amount = parseInt(document.getElementById('renewAmountInput').value, 10) || 0;
 
   if (!memberPageId) return showToast('提示', '無效的會員 ID', 'rose');
+  if (isNaN(targetCount) || targetCount < 0) return showToast('提示', '請輸入有效的次數', 'rose');
 
-  showToast('續卡處理中...', `正在記錄繳費 $${amount} 並增加 ${addCount} 次...`, 'blue');
+  showToast('續卡處理中...', `正在記錄繳費 $${amount} 並更新剩餘 ${targetCount} 次...`, 'blue');
 
   try {
     const res = await fetch('api/members/renew', {
       method: 'POST',
       headers: authHeaders(),
-      body: JSON.stringify({ memberPageId, addCount, amount })
+      body: JSON.stringify({ memberPageId, targetCount, addCount: 10, amount })
     });
     if (res.status === 401) { forceLogout(); return; }
     const data = await res.json();
 
     if (data.success) {
-      showToast('購買/續卡成功！', `成功記錄繳費 $${amount}，次數充值 +${addCount} 次 (現剩餘 ${data.newCount} 次)`, 'emerald');
+      showToast('購買/續卡成功！', `成功記錄繳費 $${amount}，現剩餘 ${data.newCount} 次`, 'emerald');
       closeRenewPassModal();
       const activeDate = document.getElementById('dateSelectDropdown').value;
       fetchAttendance(activeDate);

@@ -868,14 +868,16 @@ export default async function handler(req, res) {
 
     // 3. POST api/members/renew
     if (req.method === 'POST' && path === 'members/renew') {
-      const { memberPageId, addCount = 10, amount = 0 } = req.body;
+      const { memberPageId, addCount = 10, amount = 0, targetCount } = req.body;
       if (!memberPageId) {
         return res.status(400).json({ success: false, error: 'Missing memberPageId' });
       }
 
       const page = await getNotionPage(memberPageId);
       const currentCount = page.properties['Number'] ? (page.properties['Number'].number ?? 0) : 0;
-      const newCount = currentCount + parseInt(addCount, 10);
+      const newCount = (targetCount !== undefined && targetCount !== null)
+        ? Math.max(0, parseInt(targetCount, 10))
+        : (currentCount + parseInt(addCount, 10));
       const todayTw = toTaiwanDateStr(new Date().toISOString());
 
       await updateNotionPage(memberPageId, {
