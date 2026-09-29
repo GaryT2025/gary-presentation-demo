@@ -104,8 +104,13 @@
         <p class="text-sm font-medium text-muted">當天未到</p>
         <h3 id="statNoshow" class="text-4xl font-bold text-danger mt-1">0</h3>
       </div>
-      <div class="card rounded-xl p-4">
-        <p class="text-sm font-medium text-muted">儲值快用完(&le;2次)</p>
+      <div onclick="openLowBalanceModal()" class="card rounded-xl p-4 cursor-pointer hover:border-warning/80 hover:shadow-md transition active:scale-[0.98] group" title="點擊檢視儲值快用完名單">
+        <div class="flex items-center justify-between">
+          <p class="text-sm font-medium text-muted">儲值快用完(&le;2次)</p>
+          <span class="text-xs text-warning font-semibold flex items-center gap-0.5 opacity-80 group-hover:opacity-100 transition">
+            查看名單 <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </span>
+        </div>
         <h3 id="statWarning" class="text-4xl font-bold text-warning mt-1">0</h3>
       </div>
     </section>
@@ -284,6 +289,9 @@
             <option value="all">全部歷史年份</option>
           </select>
           <input type="text" id="cycleMemberSearch" oninput="renderPrepaidCyclesBoard()" placeholder="搜尋儲值球員..." class="flex-1 min-w-[160px] h-11 rounded-lg border border-hairline bg-white px-3.5 text-base text-ink focus:outline-none focus:border-accent">
+          <button id="cycleWarningOnlyBtn" onclick="toggleCycleWarningFilter()" title="切換是否僅顯示餘額 ≤2 次人員" class="h-11 px-3 rounded-lg text-sm font-semibold border border-hairline bg-white text-muted hover:text-warning hover:border-warning/50 transition flex items-center gap-1.5 shrink-0">
+            <i class="fa-solid fa-triangle-exclamation"></i> <span>只看告急 (≤2次)</span>
+          </button>
         </div>
 
         <div id="cyclesGridContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
@@ -555,6 +563,42 @@
           <i class="fa-solid fa-plus-circle mr-1"></i> 續卡 +10次
         </button>
         <button onclick="closeMemberModal()" class="h-11 px-4 rounded-lg text-sm font-semibold text-muted bg-surface active:bg-surface-strong transition ml-auto">
+          關閉
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOW BALANCE MEMBERS MODAL (儲值告急名單) -->
+  <div id="lowBalanceModal" class="fixed inset-0 bg-ink/40 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-hairline rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-xl relative max-h-[90vh] flex flex-col">
+      <!-- Header -->
+      <div class="flex items-center justify-between border-b border-hairline pb-3 shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-full bg-warning-soft text-warning flex items-center justify-center font-bold text-base">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-ink">儲值快用完名單 (&le;2次)</h3>
+            <p id="lowBalanceModalSubtitle" class="text-xs text-muted">點擊球員可直接跳轉點名或查看期別履歷</p>
+          </div>
+        </div>
+        <button onclick="closeLowBalanceModal()" class="w-9 h-9 flex items-center justify-center rounded-full text-muted active:bg-surface">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- List Container (Scrollable) -->
+      <div id="lowBalanceList" class="flex-1 overflow-y-auto space-y-2 pr-1 text-sm min-h-[150px]">
+        <!-- Dynamic items -->
+      </div>
+
+      <!-- Footer Actions -->
+      <div class="pt-3 border-t border-hairline flex flex-wrap items-center justify-between gap-2 shrink-0">
+        <button onclick="viewAllLowBalanceInCycles()" class="h-10 px-3.5 rounded-lg text-xs font-semibold text-warning bg-warning-soft hover:bg-warning hover:text-white transition flex items-center gap-1.5">
+          <i class="fa-solid fa-arrows-spin"></i> 在期別履歷中檢視全部
+        </button>
+        <button onclick="closeLowBalanceModal()" class="h-10 px-4 rounded-lg text-xs font-semibold text-muted bg-surface active:bg-surface-strong transition ml-auto">
           關閉
         </button>
       </div>

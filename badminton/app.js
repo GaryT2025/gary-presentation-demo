@@ -1,5 +1,6 @@
 let currentData = { attendance: [], members: [], availableDates: [], activeDate: '', prepaidCyclesMap: {}, funBanners: {} };
 let layoutDensity = 'compact'; // 'compact' or 'normal'
+let cycleWarningOnly = false;
 
 // ===== Admin auth state (D-01, D-06) =====
 let adminToken = '';
@@ -407,6 +408,13 @@ function renderPrepaidCyclesBoard() {
 
   const cycleMap = currentData.prepaidCyclesMap || {};
   let memberNames = Object.keys(cycleMap);
+
+  if (cycleWarningOnly) {
+    memberNames = memberNames.filter(name => {
+      const m = (currentData.members || []).find(it => it.name === name);
+      return m && (m.planType === '儲值' || m.planType === '預繳10次') && m.remainingCount <= 2;
+    });
+  }
 
   if (keyword) {
     memberNames = memberNames.filter(n => n.toLowerCase().includes(keyword));
@@ -1172,5 +1180,157 @@ async function promptEditAttendanceDate(pageId, currentDate) {
     }
   } catch (err) {
     showToast('連線錯誤', '更新失敗', 'rose');
+  }
+}
+
+// TOGGLE CYCLE WARNING-ONLY FILTER (期別履歷僅看告急人員)
+function toggleCycleWarningFilter() {
+  cycleWarningOnly = !cycleWarningOnly;
+  const btn = document.getElementById('cycleWarningOnlyBtn');
+  if (btn) {
+    if (cycleWarningOnly) {
+      btn.className = 'h-11 px-3 rounded-lg text-sm font-semibold border border-warning bg-warning-soft text-warning transition flex items-center gap-1.5 shrink-0 shadow-sm';
+    } else {
+      btn.className = 'h-11 px-3 rounded-lg text-sm font-semibold border border-hairline bg-white text-muted hover:text-warning hover:border-warning/50 transition flex items-center gap-1.5 shrink-0';
+    }
+  }
+  renderPrepaidCyclesBoard();
+}
+
+// OPEN LOW BALANCE MEMBERS MODAL (儲值告急聯動清單)
+function openLowBalanceModal() {
+  const members = currentData.members || [];
+  const low = members.filter(m => (m.planType === '儲值' || m.planType === '預繳10次') && m.remainingCount <= 2);
+
+  // 排序：剩餘次數由少到多 (0 次最優先)，其次依照姓名排序
+  low.sort((a, b) => a.remainingCount - b.remainingCount || a.name.localeCompare(b.name, 'zh-Hant'));
+
+  const subtitle = document.getElementById('lowBalanceModalSubtitle');
+  if (subtitle) {
+    subtitle.innerText = `共 ${low.length} 位儲值球員餘額 ≤ 2 次，點擊可快速對帳或跳轉`;
+  }
+
+  const listEl = document.getElementById('lowBalanceList');
+  if (!listEl) return;
+  listEl.innerHTML = '';
+
+  if (low.length === 0) {
+    listEl.innerHTML = `
+      <div class="text-center py-8 text-muted font-semibold">
+        <i class="fa-solid fa-circle-check text-accent-strong text-2xl mb-2 block"></i>
+        太棒了！目前沒有儲值即將用罄的人員
+      </div>
+    `;
+  } else {
+    low.forEach(m => {
+      const item = document.createElement('div');
+      item.className = 'p-3 rounded-xl border border-hairline bg-white hover:border-warning/60 hover:shadow-sm transition space-y-2';
+
+      let countBadge = '';
+      if (m.remainingCount <= 0) {
+        countBadge = `<span class="bg-danger-soft text-danger text-xs font-bold px-2 py-0.5 rounded-full"><i class="fa-solid fa-triangle-exclamation mr-1"></i>剩 0 次 (已用罄)</span>`;
+      } else if (m.remainingCount === 1) {
+        countBadge = `<span class="bg-warning-soft text-warning text-xs font-bold px-2 py-0.5 rounded-full"><i class="fa-solid fa-clock mr-1"></i>剩 1 次</span>`;
+      } else {
+        countBadge = `<span class="bg-warning-soft text-warning text-xs font-bold px-2 py-0.5 rounded-full">剩 ${m.remainingCount} 次</span>`;
+      }
+
+      const lastDateInfo = m.lastPrepaidDate
+        ? `<span class="text-xs text-muted">上次儲值: ${m.lastPrepaidDate}</span>`
+        : `<span class="text-xs text-muted">未登記儲值日</span>`;
+
+      let adminRenewBtn = '';
+      if (isAdmin && m.memberPageId) {
+        adminRenewBtn = `
+          <button onclick="openRenewPassModal('${m.memberPageId}', '${m.name}'); closeLowBalanceModal();" title="立即為 ${m.name} 續卡充值" class="h-8 px-2.5 rounded-lg text-xs font-semibold text-warning bg-warning-soft hover:bg-warning hover:text-white transition flex items-center gap-1 shrink-0">
+            <i class="fa-solid fa-plus-circle"></i> 充值
+          </button>
+        `;
+      }
+
+      item.innerHTML = `
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="w-2.5 h-2.5 rounded-full bg-plan-prepaid shrink-0"></span>
+            <span class="font-bold text-ink text-base truncate">${m.name}</span>
+            ${countBadge}
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            ${adminRenewBtn}
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between gap-2 pt-1 border-t border-hairline/60">
+          ${lastDateInfo}
+          <div class="flex items-center gap-1.5">
+            <button onclick="locatePlayerInKanban('${m.name}')" title="跳轉至今日點名查看" class="h-7 px-2.5 rounded-md text-xs font-semibold text-accent-strong bg-accent-soft hover:bg-accent hover:text-white transition flex items-center gap-1">
+              <i class="fa-solid fa-border-all text-[11px]"></i> 今日點名
+            </button>
+            <button onclick="locatePlayerInCycles('${m.name}')" title="跳轉至期別履歷查看對帳明細" class="h-7 px-2.5 rounded-md text-xs font-semibold text-body bg-surface hover:bg-hairline transition flex items-center gap-1">
+              <i class="fa-solid fa-clock-rotate-left text-[11px]"></i> 期別履歷
+            </button>
+          </div>
+        </div>
+      `;
+
+      listEl.appendChild(item);
+    });
+  }
+
+  document.getElementById('lowBalanceModal').classList.remove('hidden');
+}
+
+function closeLowBalanceModal() {
+  const modal = document.getElementById('lowBalanceModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+// 聯動動作：在今日點名定位球員
+function locatePlayerInKanban(playerName) {
+  closeLowBalanceModal();
+  switchTab('kanban');
+  const searchInput = document.getElementById('kanbanQuickSearch');
+  if (searchInput) {
+    searchInput.value = playerName;
+    filterKanbanCards(playerName);
+    searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+// 聯動動作：在期別履歷定位球員
+function locatePlayerInCycles(playerName) {
+  closeLowBalanceModal();
+  switchTab('cycles');
+  const searchInput = document.getElementById('cycleMemberSearch');
+  if (searchInput) {
+    searchInput.value = playerName;
+  }
+  cycleWarningOnly = false;
+  const btn = document.getElementById('cycleWarningOnlyBtn');
+  if (btn) {
+    btn.className = 'h-11 px-3 rounded-lg text-sm font-semibold border border-hairline bg-white text-muted hover:text-warning hover:border-warning/50 transition flex items-center gap-1.5 shrink-0';
+  }
+  renderPrepaidCyclesBoard();
+  const container = document.getElementById('cyclesGridContainer');
+  if (container) {
+    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+// 聯動動作：在期別履歷中檢視所有告急球員
+function viewAllLowBalanceInCycles() {
+  closeLowBalanceModal();
+  switchTab('cycles');
+  cycleWarningOnly = true;
+  const btn = document.getElementById('cycleWarningOnlyBtn');
+  if (btn) {
+    btn.className = 'h-11 px-3 rounded-lg text-sm font-semibold border border-warning bg-warning-soft text-warning transition flex items-center gap-1.5 shrink-0 shadow-sm';
+  }
+  const searchInput = document.getElementById('cycleMemberSearch');
+  if (searchInput) searchInput.value = '';
+  renderPrepaidCyclesBoard();
+  const container = document.getElementById('cyclesGridContainer');
+  if (container) {
+    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }
