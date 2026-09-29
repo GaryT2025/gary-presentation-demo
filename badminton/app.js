@@ -412,7 +412,14 @@ function renderPrepaidCyclesBoard() {
   if (cycleWarningOnly) {
     memberNames = memberNames.filter(name => {
       const m = (currentData.members || []).find(it => it.name === name);
-      return m && (m.planType === '儲值' || m.planType === '預繳10次') && m.remainingCount <= 2;
+      const cycles = cycleMap[name] || [];
+      const activeCycle = cycles.find(c => !c.isCompleted) || (cycles.length > 0 ? cycles[cycles.length - 1] : null);
+      const activeCount = activeCycle ? activeCycle.items.length : 0;
+
+      const isRemainingLow = m && Number.isFinite(m.remainingCount) && m.remainingCount <= 2;
+      const isCycleNearEnd = activeCount >= RENEW_THRESHOLD;
+
+      return isRemainingLow || isCycleNearEnd;
     });
   }
 
@@ -485,6 +492,12 @@ function renderPrepaidCyclesBoard() {
       }
     }
 
+    const remainingCount = mInfo ? mInfo.remainingCount : undefined;
+    const isRemainingLow = Number.isFinite(remainingCount) && remainingCount <= 2;
+    if (!warningBorderColor && isRemainingLow) {
+      warningBorderColor = remainingCount <= 0 ? '#c23b3b' : '#d97706';
+    }
+
     const card = document.createElement('div');
     card.className = 'card rounded-xl p-4 space-y-3 relative transition-all duration-200';
     if (warningBorderColor) {
@@ -493,6 +506,17 @@ function renderPrepaidCyclesBoard() {
     }
 
     const memberPageId = mInfo ? mInfo.memberPageId : '';
+
+    let remainingBadge = '';
+    if (Number.isFinite(remainingCount)) {
+      if (remainingCount <= 0) {
+        remainingBadge = `<span class="bg-danger-soft text-danger text-xs font-bold px-2 py-0.5 rounded-full" title="儲值剩餘堂數">剩 0 次</span>`;
+      } else if (remainingCount <= 2) {
+        remainingBadge = `<span class="bg-warning-soft text-warning text-xs font-bold px-2 py-0.5 rounded-full" title="儲值剩餘堂數">剩 ${remainingCount} 次</span>`;
+      } else {
+        remainingBadge = `<span class="bg-surface text-muted text-xs font-medium px-2 py-0.5 rounded-full" title="儲值剩餘堂數">剩 ${remainingCount} 次</span>`;
+      }
+    }
 
     const warningBadge = isWarning
       ? `<span class="${warningDotClass} w-3 h-3 rounded-[3px] shrink-0" title="續卡提醒：當期已打 ${activeCount}/10 次" aria-label="續卡提醒：當期已打 ${activeCount}/10 次"></span>`
@@ -517,12 +541,20 @@ function renderPrepaidCyclesBoard() {
         </button>`;
     }
 
+    let progressNote = '';
+    if (activeCount >= 10) {
+      progressNote = ' <span class="text-danger font-bold text-xs">(已滿10次)</span>';
+    } else if (activeCount >= 8) {
+      progressNote = ` <span class="text-warning font-bold text-xs">(本期剩${10 - activeCount}次)</span>`;
+    }
+
     // Header
     card.innerHTML = `
       <div class="flex items-center justify-between gap-2 border-b border-hairline pb-2.5">
-        <div class="flex items-center gap-2 min-w-0">
+        <div class="flex items-center gap-2 min-w-0 flex-wrap">
           <span class="w-2.5 h-2.5 rounded-full bg-plan-prepaid shrink-0"></span>
           <h3 class="font-semibold text-ink text-base truncate active:text-accent-strong cursor-pointer" onclick="openMemberModal('${name}')">${name}</h3>
+          ${remainingBadge}
           ${warningBadge}
           ${prepayBadge}
         </div>
@@ -531,7 +563,7 @@ function renderPrepaidCyclesBoard() {
         </span>
       </div>
       <div class="flex items-center justify-between gap-2 text-sm">
-        <span class="text-muted">當期進度 <strong class="${isWarning ? 'text-warning' : 'text-accent-strong'} font-bold">${activeCount}/10</strong> ・ 總計 <strong class="text-ink font-bold">${totalSessions}</strong> 次</span>
+        <span class="text-muted">當期進度 <strong class="${isWarning ? 'text-warning' : 'text-accent-strong'} font-bold">${activeCount}/10</strong>${progressNote} ・ 總計 <strong class="text-ink font-bold">${totalSessions}</strong> 次</span>
         ${renewButtonHtml}
       </div>
     `;
@@ -1190,8 +1222,10 @@ function toggleCycleWarningFilter() {
   if (btn) {
     if (cycleWarningOnly) {
       btn.className = 'h-11 px-3 rounded-lg text-sm font-semibold border border-warning bg-warning-soft text-warning transition flex items-center gap-1.5 shrink-0 shadow-sm';
+      btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> <span>只看告急 (已啟用)</span>';
     } else {
       btn.className = 'h-11 px-3 rounded-lg text-sm font-semibold border border-hairline bg-white text-muted hover:text-warning hover:border-warning/50 transition flex items-center gap-1.5 shrink-0';
+      btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> <span>只看告急 (≤2次)</span>';
     }
   }
   renderPrepaidCyclesBoard();
@@ -1325,6 +1359,7 @@ function viewAllLowBalanceInCycles() {
   const btn = document.getElementById('cycleWarningOnlyBtn');
   if (btn) {
     btn.className = 'h-11 px-3 rounded-lg text-sm font-semibold border border-warning bg-warning-soft text-warning transition flex items-center gap-1.5 shrink-0 shadow-sm';
+    btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> <span>只看告急 (已啟用)</span>';
   }
   const searchInput = document.getElementById('cycleMemberSearch');
   if (searchInput) searchInput.value = '';
