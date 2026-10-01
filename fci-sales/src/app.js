@@ -742,6 +742,58 @@ function getFCIRealData() {
       '開立日期': '2026-09-06',
       '款項性質': '專案款',
       '業務組別': 'NonPower'
+    },
+    {
+      _ragicId: 'INV-2608',
+      'Sales Person': 'Jason',
+      '專案編號': 'PRJ-26-J01',
+      '已開發票金額 (NTD)': 22757580,
+      '本幣未稅金額': 22757580,
+      '開立年份': '2026',
+      '專案年份': '2026',
+      '開立月份': '9',
+      '開立日期': '2026-09-08',
+      '款項性質': '專案款',
+      '業務組別': 'NonPower'
+    },
+    {
+      _ragicId: 'INV-2609',
+      'Sales Person': 'Ping',
+      '專案編號': 'PRJ-26-P01',
+      '已開發票金額 (NTD)': 15200000,
+      '本幣未稅金額': 15200000,
+      '開立年份': '2026',
+      '專案年份': '2026',
+      '開立月份': '9',
+      '開立日期': '2026-09-07',
+      '款項性質': '專案款',
+      '業務組別': 'NonPower'
+    },
+    {
+      _ragicId: 'INV-2610',
+      'Sales Person': 'Neil',
+      '專案編號': 'PRJ-26-N01',
+      '已開發票金額 (NTD)': 18500000,
+      '本幣未稅金額': 18500000,
+      '開立年份': '2026',
+      '專案年份': '2026',
+      '開立月份': '9',
+      '開立日期': '2026-09-06',
+      '款項性質': '專案款',
+      '業務組別': 'NonPower'
+    },
+    {
+      _ragicId: 'INV-2611',
+      'Sales Person': 'Rex',
+      '專案編號': 'PRJ-26-R01',
+      '已開發票金額 (NTD)': 12800000,
+      '本幣未稅金額': 12800000,
+      '開立年份': '2026',
+      '專案年份': '2026',
+      '開立月份': '9',
+      '開立日期': '2026-09-05',
+      '款項性質': '專案款',
+      '業務組別': 'NonPower'
     }
   ];
 
@@ -1874,6 +1926,14 @@ function renderYtdSummaryReport(container, kpiContainer) {
       execTarget = (tRow && parseNumber(tRow['Execution Target'] || tRow['execTarget'])) || 12422486;
     } else if (memName === 'Sophie') {
       execTarget = (tRow && parseNumber(tRow['Execution Target'] || tRow['execTarget'])) || 65443403;
+    } else if (memName === 'Jason') {
+      execTarget = (tRow && parseNumber(tRow['Execution Target'] || tRow['execTarget'])) || 55000000;
+    } else if (memName === 'Ping') {
+      execTarget = (tRow && parseNumber(tRow['Execution Target'] || tRow['execTarget'])) || 45533825;
+    } else if (memName === 'Neil') {
+      execTarget = (tRow && parseNumber(tRow['Execution Target'] || tRow['execTarget'])) || 150000000;
+    } else if (memName === 'Rex') {
+      execTarget = (tRow && parseNumber(tRow['Execution Target'] || tRow['execTarget'])) || 117872760;
     } else {
       execTarget = tRow ? parseNumber(tRow['Execution Target'] || tRow['execTarget']) : 0;
     }
