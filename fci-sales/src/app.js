@@ -878,6 +878,19 @@ function bindEvents() {
     groupFilter.onchange = (e) => {
       appState.selectedGroupFilter = e.target.value;
       appState.selectedSales = 'ALL';
+      
+      // # [READY_FOR_REVIEW] - 同步連動階層 4 部門過濾
+      if (e.target.value === 'Non-Power' || e.target.value === 'NonPower') {
+        appState.reportDept = 'NonPower';
+      } else if (e.target.value === 'Power' || e.target.value === 'Power&EPC') {
+        appState.reportDept = 'Power';
+      } else {
+        appState.reportDept = 'ALL';
+      }
+      const deptSelect = document.getElementById('report-dept-select');
+      if (deptSelect) {
+        deptSelect.value = appState.reportDept;
+      }
       populateSalesDropdown();
       renderDashboard();
     };
@@ -1109,7 +1122,8 @@ function getFilteredDataset() {
     const matchYear = (!selectedYear || yr === selectedYear);
 
     const salesName = (t['Sales Person'] || t['salesPerson'] || '').toString().trim();
-    const matchGroup = matchesDepartmentFilter(mapRosterGroupToBucket(getDepartmentByOwner(salesName)), selectedGroupFilter);
+    const isCharlie = normalizeOwnerName(salesName) === 'Charlie';
+    const matchGroup = isCharlie ? true : matchesDepartmentFilter(mapRosterGroupToBucket(getDepartmentByOwner(salesName)), selectedGroupFilter);
     const matchSales = (selectedSales === 'ALL' || normalizeOwnerName(salesName) === selectedSales);
 
     return matchYear && matchGroup && matchSales;
@@ -1377,15 +1391,38 @@ function renderLeaderboard(orders, cases, targets) {
     salesStats[s].forecast += forecastAmt;
   });
   const fciTwSales = new Set();
+  const selectedGroup = normalizeGroupFilterValue(appState.selectedGroupFilter);
+
   targets.forEach(t => {
     const s = normalizeOwnerName(t['Sales Person'] || t['salesPerson'] || '未指派');
     if (s !== '未指派') fciTwSales.add(s);
     if (!salesStats[s]) salesStats[s] = { booked: 0, quoted: 0, forecast: 0, target: 0 };
-    salesStats[s].target += parseNumber(t['Sales Amount Target'] || t['salesTarget']);
+    
+    let tAmt = parseNumber(t['Sales Amount Target'] || t['salesTarget']);
+    if (s === 'Charlie') {
+      if (selectedGroup === 'NonPower') {
+        tAmt = parseNumber(t['NonPower Sales Target']) || 6500000;
+      } else if (selectedGroup === 'Power' || selectedGroup === 'Power&EPC') {
+        tAmt = parseNumber(t['Power Sales Target']) || 243500000;
+      }
+    }
+    salesStats[s].target += tAmt;
   });
 
+  // # [READY_FOR_REVIEW] - 階層 3 排行榜連動業務團隊篩選
   const sortedSales = Object.keys(salesStats)
     .filter(s => fciTwSales.has(s) && s !== '未指派')
+    .filter(s => {
+      if (!selectedGroup || selectedGroup === 'ALL') return true;
+      const dept = getDepartmentByOwner(s); // 'NonPower' | 'Power&EPC' | 'MTO'
+      if (selectedGroup === 'NonPower') {
+        return dept === 'NonPower' || s === 'Charlie';
+      }
+      if (selectedGroup === 'Power' || selectedGroup === 'Power&EPC') {
+        return dept === 'Power&EPC' || s === 'Charlie';
+      }
+      return true;
+    })
     .sort((a, b) => {
       const achA = salesStats[a].target > 0 ? (salesStats[a].booked / salesStats[a].target) : 0;
       const achB = salesStats[b].target > 0 ? (salesStats[b].booked / salesStats[b].target) : 0;
@@ -1579,7 +1616,21 @@ function setupHierarchyLevel4Events() {
   if (deptSelect) {
     deptSelect.onchange = (e) => {
       appState.reportDept = e.target.value;
-      renderHierarchyLevel4();
+      // # [READY_FOR_REVIEW] - 雙向同步頂部 group-filter-top
+      if (e.target.value === 'NonPower') {
+        appState.selectedGroupFilter = 'Non-Power';
+      } else if (e.target.value === 'Power') {
+        appState.selectedGroupFilter = 'Power';
+      } else {
+        appState.selectedGroupFilter = 'ALL';
+      }
+      const topFilter = document.getElementById('group-filter-top');
+      if (topFilter) {
+        topFilter.value = appState.selectedGroupFilter;
+      }
+      appState.selectedSales = 'ALL';
+      populateSalesDropdown();
+      renderDashboard();
     };
   }
 
@@ -1592,6 +1643,11 @@ function renderHierarchyLevel4() {
   const container = document.getElementById('report-table-container');
   const kpiContainer = document.getElementById('report-kpi-summary');
   if (!container || !kpiContainer) return;
+
+  const deptSelect = document.getElementById('report-dept-select');
+  if (deptSelect && appState.reportDept) {
+    deptSelect.value = appState.reportDept;
+  }
 
   if (appState.reportMode === 'monthly') {
     renderMonthlyBookedReport(container, kpiContainer);
@@ -1986,9 +2042,11 @@ function renderYtdSummaryReport(container, kpiContainer) {
   const npRows = NON_POWER_MEMBERS.map(m => calcMemberRow(m, 'Non Power'));
   const powerRows = POWER_EPC_MEMBERS.map(m => calcMemberRow(m, 'Power&EPC'));
 
-  // 部門過濾
-  let displayNp = (appState.reportDept === 'ALL' || appState.reportDept === 'NonPower');
-  let displayPower = (appState.reportDept === 'ALL' || appState.reportDept === 'Power');
+  // 部門過濾 (同時連動 reportDept 與 selectedGroupFilter)
+  // # [READY_FOR_REVIEW] - 階層 4 報表連動業務團隊篩選
+  const effectiveDept = appState.reportDept || (appState.selectedGroupFilter === 'Non-Power' ? 'NonPower' : appState.selectedGroupFilter);
+  let displayNp = (effectiveDept === 'ALL' || effectiveDept === 'NonPower');
+  let displayPower = (effectiveDept === 'ALL' || effectiveDept === 'Power' || effectiveDept === 'Power&EPC');
 
   // 計算小計與加總
   function sumGroup(rows) {
