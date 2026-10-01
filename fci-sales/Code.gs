@@ -578,19 +578,13 @@ function syncInvoicesWithSubtable() {
       const execTarget = cleanAmount(m[M.execTarget]);
       const yearlyExecAchieved = cleanAmount(m[M.yearlyExecAchieved]);
 
-      // 遍歷物件找出子表格 (符合 _subtable_ 前綴或包含子表欄位 EID)
-      let subtableObj = null;
-      for (const k in m) {
-        if (k.startsWith("_subtable_") && typeof m[k] === "object") {
-          subtableObj = m[k];
-          break;
-        }
-      }
+      // 鎖定發票清單子表格 _subtable_1003717 (或包含 S.invoicedAmountNtd / S.projectId 的子表格)
+      let subtableObj = m["_subtable_1003717"] || null;
       if (!subtableObj) {
         for (const k in m) {
-          if (m[k] && typeof m[k] === "object" && !Array.isArray(m[k])) {
+          if (k.startsWith("_subtable_") && typeof m[k] === "object" && !Array.isArray(m[k])) {
             const sampleSub = Object.values(m[k])[0];
-            if (sampleSub && typeof sampleSub === "object" && (sampleSub[S.projectId] !== undefined || sampleSub[S.invoicedAmountNtd] !== undefined)) {
+            if (sampleSub && typeof sampleSub === "object" && (sampleSub[S.invoicedAmountNtd] !== undefined || sampleSub[S.projectId] !== undefined)) {
               subtableObj = m[k];
               break;
             }
