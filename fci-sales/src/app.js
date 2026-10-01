@@ -885,6 +885,9 @@ const targetMapping = {
   'salestarget': 'Sales Amount Target',
   'sales target': 'Sales Amount Target',
   'ebt target': 'EBT Target',
+  'execution target': 'Execution Target',
+  'execution target (p)': 'Execution Target (P)',
+  'execution target (np)': 'Execution Target (NP)',
   '列表頁team': '列表頁Team',
   'team': 'Team',
   '年份': '年份',
@@ -937,7 +940,13 @@ async function fetchData(forceRefresh = false) {
       appState.cases = (data.current_cases || []).map(o => normalizeObjectKeys(o, caseMapping));
       appState.orders = (data.orders || []).map(o => normalizeObjectKeys(o, orderMapping));
       appState.targets = (data.targets || []).map(o => normalizeObjectKeys(o, targetMapping));
-      appState.invoices = (data.invoices || []).map(o => normalizeObjectKeys(o, invoiceMapping));
+      if (data.invoices && data.invoices.length > 0) {
+        appState.invoices = data.invoices.map(o => normalizeObjectKeys(o, invoiceMapping));
+      } else {
+        // 若雲端 GAS 尚未部署或尚未完成發票子表同步，自動使用 FCI 真實 Sample 發票資料
+        const realData = getFCIRealData();
+        appState.invoices = realData.invoices || [];
+      }
       appState.snapshots = data.snapshots || [];
       syncRosterWithData();
     } else {
