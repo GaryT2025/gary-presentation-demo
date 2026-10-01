@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2026 Fluids Taiwan Monthly Management Meeting – Power & EPC (Sep 2026)</title>
+  <style>
+    /* ─── CSS RESET ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ─── DESIGN TOKENS (FCI-Spirit Corporate Palette) ─── */
+    :root {
+      --primary:        #009D88; /* FLUIDS Green Pantone 2402C */
+      --primary-dark:   #007A6A;
+      --primary-light:  #E0F2F1;
+      --primary-soft:   #F0F9F8;
+      --blue:           #2F8CCC; /* Power & EPC Pantone 2144C */
+      --blue-light:     #EAF3FA;
+      --blue-soft:      #F4F9FD;
+      --light-green:    #8DC556; /* Growth Light Green Pantone 7488C */
+      --light-green-bg: #F3F9EE;
+      --yellow:         #F7B012; /* Amber Yellow Pantone 137C */
+      --yellow-light:   #FEF7E7;
+      --red:            #E53935; /* Alert Red */
+      --red-light:      #FDECEC;
+      --text:           #3E3A39; /* Pantone Black 7C */
+      --text-muted:     #666160;
+      --white:          #FFFFFF;
+      --card-bg:        #FAFAFA;
+      --border:         #D8D8D8;
+      --border-soft:    #EEEEEE;
+      --shadow-sm:      0 2px 8px rgba(0,0,0,0.06);
+      --shadow-md:      0 8px 24px rgba(0,0,0,0.08);
+    }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background-color: #1a1a1a;
+      font-family: 'Calibri', 'Microsoft JhengHei', '微軟正黑體', -apple-system, sans-serif;
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      user-select: none;
+    }
+
+    /* ─── 16:9 SLIDE CONTAINER ─── */
+    #deck-wrapper {
+      width: 1920px;
+      height: 1080px;
+      position: relative;
+      background: var(--white);
+      transform-origin: center center;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      padding: 42px 68px 24px 68px;
+      background: var(--white);
+      box-sizing: border-box;
+    }
+
+    .slide.active {
+      display: flex;
+    }
+
+    /* ─── MASTER HEADER & FOOTER ─── */
+    .master-header {
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-shrink: 0;
+    }
+    .master-cat {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--blue);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .master-title {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+    }
+    .master-bar {
+      width: 56px;
+      height: 4px;
+      background-color: var(--primary);
+      margin-top: 8px;
+      border-radius: 2px;
+    }
+    .master-right {
+      text-align: right;
+    }
+    .master-dept {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .master-meta {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .master-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .master-footer {
+      height: 40px;
+      border-top: 3px solid var(--primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 10px;
+      flex-shrink: 0;
+      margin-top: 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .master-page-num {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      font-family: 'Calibri', sans-serif;
+    }
+
+    /* ─── NAV CONTROLS ─── */
+    .nav-hint {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      z-index: 9999;
+      pointer-events: none;
+      display: flex;
+      gap: 12px;
+    }
+    .nav-btn {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 50px;
+      height: 50px;
+      background: rgba(0, 157, 136, 0.8);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      z-index: 9999;
+    }
+    .nav-btn:hover { background: var(--primary); }
+    .prev-btn { left: 20px; }
+    .next-btn { right: 20px; }
+  </style>
+</head>
+<body>
+
+  <button class="nav-btn prev-btn" onclick="prevSlide()">❮</button>
+  <button class="nav-btn next-btn" onclick="nextSlide()">❯</button>
+  <div class="nav-hint">
+    <span>切換投影片：鍵盤 [← / →] 或 [空白鍵]</span>
+    <span id="page-indicator">01 / 12</span>
+  </div>
+
+  <div id="deck-wrapper">
+
+    <!-- ========================================== -->
+    <!-- SLIDE 1: COVER -->
+    <!-- ========================================== -->
+    <div class="slide active" id="slide-1" style="padding: 70px 90px 50px 90px; justify-content: space-between;">
+      <div style="display: flex; align-items: center;">
+        <div style="font-size: 40px; font-weight: 900; color: var(--primary); letter-spacing: -0.02em;">
+          FLUIDS <span style="color: var(--text);">CONTROL</span>
+        </div>
+      </div>
+
+      <div style="max-width: 1200px; margin-top: -30px;">
+        <div style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 20px; border-radius: 24px; background-color: var(--blue-light); color: var(--blue); font-size: 20px; font-weight: 800; letter-spacing: 0.06em; margin-bottom: 20px;">
+          <span style="width: 10px; height: 10px; border-radius: 50%; background-color: var(--blue);"></span>
+          2026 FLUIDS TAIWAN MONTHLY MANAGEMENT MEETING
+        </div>
+        <h1 style="font-size: 64px; font-weight: 900; color: var(--text); line-height: 1.15; letter-spacing: -0.02em;">
+          Power & EPC 業務管理月報
+        </h1>
+        <p style="font-size: 26px; color: var(--text-muted); margin-top: 14px; font-weight: 600;">
+          業績回顧、重大專案得失分析、次月預測與 3.45 億 Make Up 攻堅儲備
+        </p>
+
+        <div style="display: flex; gap: 40px; margin-top: 36px; padding-top: 24px; border-top: 2px solid var(--border-soft);">
+          <div>
+            <div style="font-size: 14px; color: var(--text-muted); font-weight: 700;">簡報主管 (PRESENTER)</div>
+            <div style="font-size: 24px; font-weight: 800; color: var(--text); margin-top: 4px;">Quentin</div>
+          </div>
+          <div>
+            <div style="font-size: 14px; color: var(--text-muted); font-weight: 700;">報告部門 (DEPARTMENT)</div>
+            <div style="font-size: 24px; font-weight: 800; color: var(--blue); margin-top: 4px;">Power & EPC</div>
+          </div>
+          <div>
+            <div style="font-size: 14px; color: var(--text-muted); font-weight: 700;">統計月份 (PERIOD)</div>
+            <div style="font-size: 24px; font-weight: 800; color: var(--primary); margin-top: 4px;">2026/09 (Sep 2026)</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; border-top: 3px solid var(--primary); padding-top: 12px;">
+        <div style="font-size: 14px; color: #A09D9C; font-weight: 600;">Fluids Control Co., Ltd. • Strictly Confidential</div>
+        <div style="font-size: 14px; font-weight: 700; color: var(--primary);">01 / 12</div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 2: AGENDA -->
+    <!-- ========================================== -->
+    <div class="slide" id="slide-2">
+      <div class="master-header">
+        <div>
+          <div class="master-cat">Overview</div>
+          <h2 class="master-title">會議議程與核心報告架構</h2>
+          <div class="master-bar"></div>
+        </div>
+        <div class="master-right">
+          <div class="master-dept">Power & EPC 業務管理月會</div>
+          <div class="master-meta">2026/09 • Present by Quentin</div>
+        </div>
+      </div>
+      <div class="master-content" style="display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 24px; padding: 10px 0;">
+        <div style="background: var(--card-bg); border-radius: 16px; border: 1.5px solid var(--border); padding: 30px 32px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden;">
+          <div style="position: absolute; top: 0; left: 0; width: 6px; height: 100%; background: var(--primary);"></div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 38px; font-weight: 900; color: var(--primary);">01</span>
+            <span style="font-size: 14px; font-weight: 700; padding: 4px 12px; border-radius: 12px; background: #fff; border: 1px solid var(--border); color: var(--text-muted);">核心指標</span>
+          </div>
+          <div>
+            <h3 style="font-size: 26px; font-weight: 800; color: var(--text); margin: 14px 0 8px 0;">Monthly Sales Review</h3>
+            <p style="font-size: 18px; color: var(--text-muted); line-height: 1.45;">9 月業績、獲利 EBT 與年度累積達成率檢核</p>
+          </div>
+        </div>
+
+        <div style="background: var(--card-bg); border-radius: 16px; border: 1.5px solid var(--border); padding: 30px 32px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden;">
+          <div style="position: absolute; top: 0; left: 0; width: 6px; height: 100%; background: var(--blue);"></div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 38px; font-weight: 900; color: var(--blue);">02</span>
+            <span style="font-size: 14px; font-weight: 700; padding: 4px 12px; border-radius: 12px; background: #fff; border: 1px solid var(--border); color: var(--text-muted);">落差分析</span>
+          </div>
+          <div>
+            <h3 style="font-size: 26px; font-weight: 800; color: var(--text); margin: 14px 0 8px 0;">Forecast v.s. Result</h3>
+            <p style="font-size: 18px; color: var(--text-muted); line-height: 1.45;">89M 案源執行進度追蹤與額外追加成交明細</p>
+          </div>
+        </div>
+
+        <div style="background: var(--card-bg); border-radius: 16px; border: 1.5px solid var(--border); padding: 30px 32px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden;">
+          <div style="position: absolute; top: 0; left: 0; width: 6px; height: 100%; background: var(--red);"></div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 38px; font-weight: 900; color: var(--red);">03</span>
+            <span style="font-size: 14px; font-weight: 700; padding: 4px 12px; border-radius: 12px; background: #fff; border: 1px solid var(--border); color: var(--text-muted);">風控防護</span>
+          </div>
+          <div>
+            <h3 style="font-size: 26px; font-weight: 800; color: var(--text); margin: 14px 0 8px 0;">Monthly Review (Lose & Event)</h3>
+            <p style="font-size: 18px; color: var(--text-muted); line-height: 1.45;">痛失中鼎 3,800 萬專案深度檢討與原廠策略因應</p>
+          </div>
+        </div>
+
+        <div style="background: var(--card-bg); border-radius: 16px; border: 1.5px solid var(--border); padding: 30px 32px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden;">
+          <div style="position: absolute; top: 0; left: 0; width: 6px; height: 100%; background: var(--primary);"></div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 38px; font-weight: 900; color: var(--primary);">04</span>
+            <span style="font-size: 14px; font-weight: 700; padding: 4px 12px; border-radius: 12px; background: #fff; border: 1px solid var(--border); color: var(--text-muted);">攻堅蓄勢</span>
+          </div>
+          <div>
+            <h3 style="font-size: 26px; font-weight: 800; color: var(--text); margin: 14px 0 8px 0;">Outlook & Make Up Plan</h3>
+            <p style="font-size: 18px; color: var(--text-muted); line-height: 1.45;">次月 8,310 萬預測與 3.45 億追補業績儲備案源庫</p>
+          </div>
+        </div>
+
+        <div style="background: var(--card-bg); border-radius: 16px; border: 1.5px solid var(--border); padding: 30px 32px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden;">
+          <div style="position: absolute; top: 0; left: 0; width: 6px; height: 100%; background: var(--blue);"></div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 38px; font-weight: 900; color: var(--blue);">05</span>
+            <span style="font-size: 14px; font-weight: 700; padding: 4px 12px; border-radius: 12px; background: #fff; border: 1px solid var(--border); color: var(--text-muted);">協作支援</span>
+          </div>
+          <div>
+            <h3 style="font-size: 26px; font-weight: 800; color: var(--text); margin: 14px 0 8px 0;">Coordination (跨部門協同)</h3>
+            <p style="font-size: 18px; color: var(--text-muted); line-height: 1.45;">管理部、Service 現場、Marketing 專案交付進展</p>
+          </div>
+        </div>
+
+        <div style="background: var(--card-bg); border-radius: 16px; border: 1.5px solid var(--border); padding: 30px 32px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden;">
+          <div style="position: absolute; top: 0; left: 0; width: 6px; height: 100%; background: var(--yellow);"></div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 38px; font-weight: 900; color: var(--yellow);">06</span>
+            <span style="font-size: 14px; font-weight: 700; padding: 4px 12px; border-radius: 12px; background: #fff; border: 1px solid var(--border); color: var(--text-muted);">業務水庫</span>
+          </div>
+          <div>
+            <h3 style="font-size: 26px; font-weight: 800; color: var(--text); margin: 14px 0 8px 0;">CRM Sales Silo (業務戰情)</h3>
+            <p style="font-size: 18px; color: var(--text-muted); line-height: 1.45;">4 位業務漏斗水庫、成立專案金額與個人轉化率</p>
+          </div>
+        </div>
+      </div>
+      <div class="master-footer">
+        <span>Fluids Control Co., Ltd. • Facilitation Control Innovation</span>
+        <span class="master-page-num">02 / 12</span>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 3: SALES REVIEW -->
+    <!-- ========================================== -->
+    <div class="slide" id="slide-3">
+      <div class="master-header">
+        <div>
+          <div class="master-cat">Section 01</div>
+          <h2 class="master-title">Monthly Sales Review – Power & EPC 業績檢核</h2>
+          <div class="master-bar"></div>
+        </div>
+        <div class="master-right">
+          <div class="master-dept">Power & EPC 業務管理月會</div>
+          <div class="master-meta">2026/09 • Present by Quentin</div>
+        </div>
+      </div>
+      <div class="master-content" style="gap: 20px;">
+        <div style="display: grid; grid-template-columns: 1.1fr 1fr; gap: 24px; flex: 1;">
+          <!-- 月度 -->
+          <div style="background: var(--card-bg); border-radius: 16px; border: 1.5px solid var(--border); padding: 24px 28px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <div style="font-size: 22px; font-weight: 800; color: var(--text);">當月業績檢核 (Monthly Review - Sep 2026)</div>
+              <span style="font-size: 14px; color: var(--text-muted); font-weight: 600;">單位: NT$ 10K (萬元)</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px;">
+              <div style="background: #fff; padding: 16px 18px; border-radius: 12px; border: 1px solid var(--border);">
+                <div style="font-size: 15px; color: var(--text-muted); font-weight: 700;">業績目標 (Target)</div>
+                <div style="font-size: 34px; font-weight: 900; color: var(--text); margin: 6px 0 2px 0;">6,988</div>
+                <div style="font-size: 13px; color: var(--text-muted);">預算基準目標</div>
+              </div>
+              <div style="background: #fff; padding: 16px 18px; border-radius: 12px; border: 1px solid var(--border);">
+                <div style="font-size: 15px; color: var(--text-muted); font-weight: 700;">次月展望 (Outlook)</div>
+                <div style="font-size: 34px; font-weight: 900; color: var(--blue); margin: 6px 0 2px 0;">9,000</div>
+                <div style="font-size: 13px; color: var(--blue); font-weight: 600;">原預估案量</div>
+              </div>
+              <div style="background: var(--primary-light); padding: 16px 18px; border-radius: 12px; border: 1.5px solid var(--primary);">
+                <div style="font-size: 15px; color: var(--primary-dark); font-weight: 700;">實際訂單 (Booking)</div>
+                <div style="font-size: 34px; font-weight: 900; color: var(--primary-dark); margin: 6px 0 2px 0;">3,027</div>
+                <div style="font-size: 13px; color: var(--red); font-weight: 700;">落差 -66%</div>
+              </div>
+            </div>
+            <div style="background: #fff; border-radius: 12px; border: 1px solid var(--border); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-size: 15px; color: var(--text-muted); font-weight: 700;">當月營業毛利 (EBT)</div>
+                <div style="font-size: 30px; font-weight: 900; color: var(--text); margin-top: 2px;">
+                  NT$ 442 萬 <span style="font-size: 16px; color: var(--text-muted); font-weight: 600; margin-left: 10px;">(目標: 620 萬)</span>
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 15px; color: var(--text-muted); font-weight: 700;">實際獲利率 (EBT Rate)</div>
+                <div style="font-size: 36px; font-weight: 900; color: var(--primary); margin-top: 2px;">
+                  14.6% <span style="font-size: 15px; color: var(--primary-dark); font-weight: 700; margin-left: 8px;">(高於預估 6%)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 年度 -->
+          <div style="background: var(--card-bg); border-radius: 16px; border: 1.5px solid var(--border); padding: 24px 28px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <div style="font-size: 22px; font-weight: 800; color: var(--text);">年度累積績效 (Yearly YTD Performance)</div>
+              <span style="font-size: 14px; color: var(--text-muted); font-weight: 600;">全年度目標基準</span>
+            </div>
+            <div style="background: #fff; padding: 18px 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 14px;">
+              <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                <span style="font-size: 17px; font-weight: 700; color: var(--text);">年度銷售目標達成率 (Sales Ach.)</span>
+                <span style="font-size: 32px; font-weight: 900; color: var(--blue);">64%</span>
+              </div>
+              <div style="width: 100%; height: 12px; background: var(--border-soft); border-radius: 6px; margin: 10px 0 6px 0; overflow: hidden;">
+                <div style="width: 64%; height: 100%; background: var(--blue); border-radius: 6px;"></div>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 14px; color: var(--text-muted);">
+                <span>累計訂單: NT$ 53,610 萬</span>
+                <span>年度目標: NT$ 83,850 萬</span>
+              </div>
+            </div>
+            <div style="background: var(--light-green-bg); padding: 18px 20px; border-radius: 12px; border: 1.5px solid var(--light-green);">
+              <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                <span style="font-size: 17px; font-weight: 800; color: #3B6B18;">年度 EBT 獲利爆發達成率 (EBT Ach.)</span>
+                <span style="font-size: 36px; font-weight: 900; color: #2E7D32;">168%</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+                <div style="font-size: 15px; color: #3B6B18; font-weight: 600;">
+                  累計 EBT: NT$ 12,485 萬 (目標 7,430 萬)
+                </div>
+                <div style="font-size: 18px; font-weight: 800; color: #2E7D32;">
+                  YTD EBT%: 23.3%
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 報價量能 -->
+        <div style="background: #fff; border-radius: 14px; border: 1.5px solid var(--border); padding: 18px 32px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 20px;">
+            <div style="width: 52px; height: 52px; border-radius: 12px; background: var(--primary-light); color: var(--primary-dark); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 900;">$</div>
+            <div>
+              <div style="font-size: 15px; color: var(--text-muted); font-weight: 700;">2026 全年累積報價水準</div>
+              <div style="font-size: 26px; font-weight: 800; color: var(--text); margin-top: 2px;">
+                總計 <span style="color: var(--blue);">192</span> 筆，總報價金額 <span style="color: var(--primary);">NT$ 251,165 萬</span> (約 25.1 億元)
+              </div>
+            </div>
+          </div>
+          <div style="padding-left: 36px; border-left: 2px solid var(--border-soft); display: flex; gap: 36px; align-items: center;">
+            <div>
+              <div style="font-size: 14px; color: var(--text-muted); font-weight: 700;">當月報價筆數</div>
+              <div style="font-size: 28px; font-weight: 900; color: var(--text); margin-top: 2px;">30 <span style="font-size: 16px; font-weight: 600;">筆</span></div>
+            </div>
+            <div>
+              <div style="font-size: 14px; color: var(--text-muted); font-weight: 700;">當月報價金額</div>
+              <div style="font-size: 28px; font-weight: 900; color: var(--primary); margin-top: 2px;">NT$ 27,002 萬</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="master-footer">
+        <span>Fluids Control Co., Ltd. • Facilitation Control Innovation</span>
+        <span class="master-page-num">03 / 12</span>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 4: FORECAST VS RESULT -->
+    <!-- ========================================== -->
+    <div class="slide" id="slide-4">
+      <div class="master-header">
+        <div>
+          <div class="master-cat">Section 02</div>
+          <h2 class="master-title">Forecast v.s Result – 2026 Aug NTD 89M 案源檢核</h2>
+          <div class="master-bar"></div>
+        </div>
+        <div class="master-right">
+          <div class="master-dept">Power & EPC 業務管理月會</div>
+          <div class="master-meta">2026/09 • Present by Quentin</div>
+        </div>
+      </div>
+      <div class="master-content" style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+        <div style="background: var(--card-bg); border-radius: 16px; border: 1.5px solid var(--border); padding: 22px 24px; display: flex; flex-direction: column;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <div style="font-size: 20px; font-weight: 800; color: var(--text);">89M 預測專案執行明細追蹤</div>
+            <span style="font-size: 14px; color: var(--primary-dark); font-weight: 700; background: var(--primary-light); padding: 4px 10px; border-radius: 8px;">8 大核心追蹤案源</span>
+          </div>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 9px;">
+            <div style="background: #fff; border-radius: 10px; border: 1px solid var(--border-soft); padding: 11px 18px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-size: 17px; font-weight: 800; color: var(--text);">TPC興達新機組機械HP Valves備品</div>
+                <div style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">跑簽辦流程中</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 19px; font-weight: 900; color: var(--text);">NT$ 33,000,000</div>
+                <span style="font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: var(--blue-light); color: var(--blue);">進行中</span>
+              </div>
+            </div>
+            <div style="background: #fff; border-radius: 10px; border: 1px solid var(--border-soft); padding: 11px 18px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-size: 17px; font-weight: 800; color: var(--text);">TPC興達複循環Meggitt備品一批</div>
+                <div style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">9/10 開標</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 19px; font-weight: 900; color: var(--text);">NT$ 10,000,000</div>
+                <span style="font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: var(--blue-light); color: var(--blue);">等標期</span>
+              </div>
+            </div>
+            <div style="background: #fff; border-radius: 10px; border: 1px solid var(--border-soft); padding: 11px 18px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-size: 17px; font-weight: 800; color: var(--text);">CTCI大林Gate On-Off Valve</div>
+                <div style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">專案成立中，增至 NTD 6,500,000</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 19px; font-weight: 900; color: var(--text);">NT$ 5,000,000</div>
+                <span style="font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: var(--light-green-bg); color: #2E7D32;">追加擴大</span>
+              </div>
+            </div>
+            <div style="background: #fff; border-radius: 10px; border: 1px solid var(--border-soft); padding: 11px 18px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-size: 17px; font-weight: 800; color: var(--text);">CTCI大林MOV for NG</div>
+                <div style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">專案成立中，增至 NTD 8,800,000</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 19px; font-weight: 900; color: var(--text);">NT$ 7,500,000</div>
+                <span style="font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: var(--light-green-bg); color: #2E7D32;">追加擴大</span>
+              </div>
+            </div>
+            <div style="background: #fff; border-radius: 10px; border: 1px solid var(--border-soft); padding: 11px 18px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-size: 17px; font-weight: 800; color: var(--text);">TPC大潭SVI定位器升級案</div>
+                <div style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">評估備援方案</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 19px; font-weight: 900; color: var(--text);">NT$ 12,000,000</div>
+                <span style="font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: var(--yellow-light); color: #B78103;">追蹤中</span>
+              </div>
+            </div>
+            <div style="background: #fff; border-radius: 10px; border: 1px solid var(--border-soft); padding: 11px 18px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-size: 17px; font-weight: 800; color: var(--text);">CTCI七接Cryo CV</div>
+                <div style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">澄清中，Scope未確認</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 19px; font-weight: 900; color: var(--text);">NT$ 8,000,000</div>
+                <span style="font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: var(--yellow-light); color: #B78103;">澄清中</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+          <div style="background: var(--card-bg); border-radius: 16px; border: 1.5px solid var(--border); padding: 22px 24px;">
+            <div style="font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 14px;">額外成交案款 (Additional)</div>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <div style="background: #fff; border-radius: 10px; border: 1px solid var(--border-soft); padding: 14px 16px;">
+                <div style="font-size: 16px; font-weight: 700; color: var(--text);">TPC大林飛灰倉DRS備品一批</div>
+                <div style="font-size: 24px; font-weight: 900; color: var(--primary); margin-top: 4px;">NT$ 2,746,800</div>
+              </div>
+              <div style="background: #fff; border-radius: 10px; border: 1px solid var(--border-soft); padding: 14px 16px;">
+                <div style="font-size: 16px; font-weight: 700; color: var(--text);">其他零星備品案款 (Others)</div>
+                <div style="font-size: 24px; font-weight: 900; color: var(--primary); margin-top: 4px;">NT$ 882,000</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="flex: 1; background: var(--blue-soft); border-radius: 16px; border: 1.5px solid var(--blue); padding: 22px 24px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="font-size: 20px; font-weight: 800; color: var(--blue); margin-bottom: 8px;">案源落差分析 (Deviation Insight)</div>
+              <p style="font-size: 16px; color: var(--text); line-height: 1.5;">
+                1. <strong>興達新機組 (3,300萬)</strong> 因台電內部簽辦流程遞延，預計轉入次月落實。<br />
+                2. <strong>大林 Gate 與 MOV 案</strong> 規模逆勢擴大（由 1,250 萬增至 1,530 萬）。<br />
+                3. 整體獲利結構優質，高毛利產品比重推升 EBT Rate 達 14.6%。
+              </p>
+            </div>
+            <div style="background: #fff; padding: 12px 16px; border-radius: 10px; font-size: 14px; font-weight: 700; color: var(--blue);">
+              策略提示：全力緊盯 9/10 興達開標與簽辦決標節奏
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="master-footer">
+        <span>Fluids Control Co., Ltd. • Facilitation Control Innovation</span>
+        <span class="master-page-num">04 / 12</span>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 5: MAJOR LOSE -->
+    <!-- ========================================== -->
+    <div class="slide" id="slide-5">
+      <div class="master-header">
+        <div>
+          <div class="master-cat">Section 03</div>
+          <h2 class="master-title">Monthly Review – 重大得失檢討與風控</h2>
+          <div class="master-bar"></div>
+        </div>
+        <div class="master-right">
+          <div class="master-dept">Power & EPC 業務管理月會</div>
+          <div class="master-meta">2026/09 • Present by Quentin</div>
+        </div>
+      </div>
+      <div class="master-content" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px;">
+        <div style="background: var(--red-light); border-radius: 16px; border: 2px solid var(--red); padding: 28px 32px; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 15px; font-weight: 800; background: var(--red); color: #fff; padding: 4px 14px; border-radius: 12px;">MAJOR LOSE LIST (PROJ > USD 100K)</span>
+              <span style="font-size: 18px; font-weight: 800; color: var(--red);">損失金額 NT$ 38,000,000</span>
+            </div>
+            <div style="margin-top: 24px;">
+              <div style="font-size: 16px; color: var(--text-muted); font-weight: 700;">客戶名稱與工程標號</div>
+              <div style="font-size: 32px; font-weight: 900; color: var(--text); margin-top: 4px;">CTCI 中鼎工程 — 25P5999A02-IH7A.01</div>
+            </div>
+            <div style="background: #fff; border-radius: 12px; padding: 20px 22px; margin-top: 20px; border: 1px solid #FFCDD2;">
+              <div style="font-size: 16px; font-weight: 800; color: var(--red);">根本原因探討 (Root Cause)</div>
+              <p style="font-size: 20px; font-weight: 700; color: var(--text); margin-top: 8px; line-height: 1.4;">
+                Rotork 原廠未達目標價，價格競爭落差過大導致痛失大單
+              </p>
+            </div>
+          </div>
+          <div style="background: #fff; border-radius: 12px; padding: 18px 22px; border: 1.5px solid var(--primary);">
+            <div style="font-size: 16px; font-weight: 800; color: var(--primary-dark);">後續因應策略與談判對策</div>
+            <p style="font-size: 17px; color: var(--text); margin-top: 6px; line-height: 1.45;">
+              重新檢視 Rotork 原廠報價防護協議，建立同業競標目標價倒推反饋機制，投標前 15 天啟動原廠專案特價協議，杜絕標準牌價應戰。
+            </p>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+          <div style="background: var(--light-green-bg); border-radius: 16px; border: 2px solid var(--light-green); padding: 28px 30px;">
+            <span style="font-size: 15px; font-weight: 800; background: #2E7D32; color: #fff; padding: 4px 14px; border-radius: 12px;">MAJOR SUCCESS & POSITIVE EVENT</span>
+            <div style="font-size: 26px; font-weight: 900; color: #1B5E20; margin-top: 18px;">獲利率 (EBT Rate) 逆勢衝上 14.6%</div>
+            <p style="font-size: 18px; color: var(--text); margin-top: 10px; line-height: 1.5;">
+              本月持續收攏高毛利利基型訂單，整體 EBT Rate 逆勢攀升至 14.60% (遠高於預算目標 9%)。在單月訂單量受台電流程影響延滯的背景下，獲利品質展現強大防禦力。
+            </p>
+          </div>
+
+          <div style="flex: 1; background: var(--card-bg); border-radius: 16px; border: 1.5px solid var(--border); padding: 24px 28px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="font-size: 20px; font-weight: 800; color: var(--text);">業務風控與報價門檻原則</div>
+            <ul style="font-size: 17px; color: var(--text-muted); line-height: 1.7; padding-left: 22px;">
+              <li><strong>專案級競標 (PROJ &gt; 3,000萬)</strong>：於投標前 15 天啟動原廠專案特價協議。</li>
+              <li><strong>重大敗標覆盤</strong>：建立 Rotork 報價歷史資料庫，掌握得標競業折讓底線。</li>
+              <li><strong>分散單一案源風險</strong>：加速啟動中鼎洲際與核三等 Make Up 替代專案。</li>
+            </ul>
+            <div style="font-size: 15px; font-weight: 700; color: var(--blue);">
+              執行落實：每月 5 號前由 Quentin 覆盤重大案源價差
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="master-footer">
+        <span>Fluids Control Co., Ltd. • Facilitation Control Innovation</span>
+        <span class="master-page-num">05 / 12</span>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 6: OUTLOOK -->
+    <!-- ========================================== -->
+    <div class="slide" id="slide-6">
+      <div class="master-header">
+        <div>
+          <div class="master-cat">Section 04</div>
+          <h2 class="master-title">Outlook – 次月業績預測清單與落點目標</h2>
+          <div class="master-bar"></div>
+        </div>
+        <div class="master-right">
+          <div class="master-dept">Power & EPC 業務管理月會</div>
+          <div class="master-meta">2026/09 • Present by Quentin</div>
+        </div>
+      </div>
+      <div class="master-content" style="gap: 20px;">
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px;">
+          <div style="background: #fff; padding: 16px 20px; border-radius: 14px; border: 1.5px solid var(--border);">
+            <div style="font-size: 14px; color: var(--text-muted); font-weight: 700;">在手確定訂單 (On-Hand)</div>
+            <div style="font-size: 32px; font-weight: 900; color: var(--text); margin: 4px 0;">NT$ 1,540 萬</div>
+            <div style="font-size: 13px; color: var(--text-muted);">預估 EBT: -90 萬</div>
+          </div>
+          <div style="background: #fff; padding: 16px 20px; border-radius: 14px; border: 1.5px solid var(--border);">
+            <div style="font-size: 14px; color: var(--text-muted); font-weight: 700;">潛在可望訂單 (Potential)</div>
+            <div style="font-size: 32px; font-weight: 900; color: var(--blue); margin: 4px 0;">NT$ 6,770 萬</div>
+            <div style="font-size: 13px; color: var(--blue); font-weight: 600;">預估 EBT: 670 萬</div>
+          </div>
+          <div style="background: var(--primary-light); padding: 16px 20px; border-radius: 14px; border: 2px solid var(--primary);">
+            <div style="font-size: 14px; color: var(--primary-dark); font-weight: 700;">合計預測金額 (Sub-total)</div>
+            <div style="font-size: 34px; font-weight: 900; color: var(--primary-dark); margin: 4px 0;">NT$ 8,310 萬</div>
+            <div style="font-size: 13px; color: var(--primary-dark); font-weight: 700;">預估獲利 EBT: 580 萬</div>
+          </div>
+          <div style="background: var(--card-bg); padding: 16px 20px; border-radius: 14px; border: 1.5px solid var(--border);">
+            <div style="font-size: 14px; color: var(--text-muted); font-weight: 700;">次月業績目標 (Target)</div>
+            <div style="font-size: 34px; font-weight: 900; color: var(--text); margin: 4px 0;">NT$ 8,500 萬</div>
+            <div style="font-size: 13px; color: #2E7D32; font-weight: 700;">達成覆蓋率 97.8%</div>
+          </div>
+        </div>
+
+        <div style="flex: 1; display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; min-height: 0;">
+          <div style="background: var(--card-bg); border-radius: 14px; border: 1px solid var(--border); padding: 18px 20px; display: flex; flex-direction: column;">
+            <div style="font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 12px;">在手確定訂單明細 (On-Hand: 15.4M)</div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div style="background: #fff; border-radius: 10px; padding: 12px 16px; border: 1px solid var(--border-soft); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-size: 16px; font-weight: 700; color: var(--text);">CTCI大林Gate On-Off Valve</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">類別: POW&EPC</div>
+                </div>
+                <div style="font-size: 18px; font-weight: 900; color: var(--text);">NT$ 6,500,000</div>
+              </div>
+              <div style="background: #fff; border-radius: 10px; padding: 12px 16px; border: 1px solid var(--border-soft); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-size: 16px; font-weight: 700; color: var(--text);">CTCI大林MOV for NG</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">類別: POW&EPC</div>
+                </div>
+                <div style="font-size: 18px; font-weight: 900; color: var(--text);">NT$ 8,800,000</div>
+              </div>
+              <div style="background: #fff; border-radius: 10px; padding: 12px 16px; border: 1px solid var(--border-soft); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-size: 16px; font-weight: 700; color: var(--text);">力升(大穎)/核二ABB流量計</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">類別: MRO</div>
+                </div>
+                <div style="font-size: 18px; font-weight: 900; color: var(--text);">NT$ 166,000</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="background: var(--card-bg); border-radius: 14px; border: 1px solid var(--border); padding: 18px 20px; display: flex; flex-direction: column;">
+            <div style="font-size: 18px; font-weight: 800; color: var(--blue); margin-bottom: 12px;">潛在重點突破訂單 (Potential: 67.7M)</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div style="background: #fff; border-radius: 10px; padding: 10px 14px; border: 1px solid var(--border-soft);">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text);">TPC興達新機組機械HP Valves備品</div>
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 4px;">
+                  <span style="font-size: 17px; font-weight: 900; color: var(--blue);">NT$ 33,000,000</span>
+                  <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">簽辦預算中</span>
+                </div>
+              </div>
+              <div style="background: #fff; border-radius: 10px; padding: 10px 14px; border: 1px solid var(--border-soft);">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text);">TPC興達複循環Meggitt備品一批</div>
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 4px;">
+                  <span style="font-size: 17px; font-weight: 900; color: var(--blue);">NT$ 12,000,000</span>
+                  <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">9/10 開標</span>
+                </div>
+              </div>
+              <div style="background: #fff; border-radius: 10px; padding: 10px 14px; border: 1px solid var(--border-soft);">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text);">CTCI七接Cryo CV</div>
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 4px;">
+                  <span style="font-size: 17px; font-weight: 900; color: var(--blue);">NT$ 8,000,000</span>
+                  <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">技術澄清</span>
+                </div>
+              </div>
+              <div style="background: #fff; border-radius: 10px; padding: 10px 14px; border: 1px solid var(--border-soft);">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text);">TPC核三定位器備品</div>
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 4px;">
+                  <span style="font-size: 17px; font-weight: 900; color: var(--blue);">NT$ 6,000,000</span>
+                  <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">9/15 開標</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="master-footer">
+        <span>Fluids Control Co., Ltd. • Facilitation Control Innovation</span>
+        <span class="master-page-num">06 / 12</span>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 7: MAKE UP PLAN -->
+    <!-- ========================================== -->
+    <div class="slide" id="slide-7">
+      <div class="master-header">
+        <div>
+          <div class="master-cat">Section 04</div>
+          <h2 class="master-title">Outlook – 追補業績儲備案源庫 (Make Up Plan 345M)</h2>
+          <div class="master-bar"></div>
+        </div>
+        <div class="master-right">
+          <div class="master-dept">Power & EPC 業務管理月會</div>
+          <div class="master-meta">2026/09 • Present by Quentin</div>
+        </div>
+      </div>
+      <div class="master-content" style="gap: 18px;">
+        <div style="background: var(--blue-soft); border-radius: 14px; border: 1.5px solid var(--blue); padding: 16px 28px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 14px; color: var(--blue); font-weight: 800;">MAKE UP PLAN TOTAL CAPACITY</div>
+            <div style="font-size: 28px; font-weight: 900; color: var(--text); margin-top: 2px;">
+              儲備案源共計 8 大關鍵專案，總儲備規模達 <span style="color: var(--blue);">NT$ 34,500 萬元</span> (3.45 億元)
+            </div>
+          </div>
+          <span style="font-size: 16px; font-weight: 800; background: var(--blue); color: #fff; padding: 8px 18px; border-radius: 20px;">跨月攻堅主軸</span>
+        </div>
+
+        <div style="flex: 1; background: var(--card-bg); border-radius: 14px; border: 1.5px solid var(--border); padding: 16px 24px; display: flex; flex-direction: column;">
+          <div style="display: grid; grid-template-columns: 60px 1.8fr 140px 160px 1fr; padding: 10px 16px; border-bottom: 2px solid var(--border); font-size: 15px; font-weight: 800; color: var(--text-muted);">
+            <span>序號</span>
+            <span>專案項目與工項名稱</span>
+            <span style="text-align: center;">預計下單日</span>
+            <span style="text-align: right;">金額 (萬元)</span>
+            <span style="padding-left: 24px;">量體比例可視化</span>
+          </div>
+          <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-around;">
+            <div style="display: grid; grid-template-columns: 60px 1.8fr 140px 160px 1fr; align-items: center; padding: 8px 16px; background: #fff; border-radius: 8px; border: 1px solid var(--border-soft);">
+              <span style="font-weight: 800; color: var(--text-muted); font-size: 16px;">1</span>
+              <span style="font-weight: 800; color: var(--text); font-size: 17px;">CTCI洲際LNG Regas Cryogenic SRV FA</span>
+              <span style="text-align: center; font-size: 14px; font-weight: 700; color: var(--primary-dark);">2026/09</span>
+              <span style="text-align: right; font-size: 20px; font-weight: 900; color: var(--text);">NT$ 3,000</span>
+              <div style="padding-left: 24px;"><div style="width: 100%; height: 10px; background: #E2E8F0; border-radius: 5px; overflow: hidden;"><div style="width: 18.7%; height: 100%; background: var(--blue);"></div></div></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 60px 1.8fr 140px 160px 1fr; align-items: center; padding: 8px 16px; background: var(--primary-light); border-radius: 8px; border: 1px solid var(--border-soft);">
+              <span style="font-weight: 800; color: var(--text-muted); font-size: 16px;">2</span>
+              <span style="font-weight: 800; color: var(--text); font-size: 17px;">CTCI洲際LNG Regas Send Out Gas Metering System</span>
+              <span style="text-align: center; font-size: 14px; font-weight: 700; color: var(--primary-dark);">2026/09</span>
+              <span style="text-align: right; font-size: 20px; font-weight: 900; color: var(--text);">NT$ 7,000</span>
+              <div style="padding-left: 24px;"><div style="width: 100%; height: 10px; background: #E2E8F0; border-radius: 5px; overflow: hidden;"><div style="width: 43.7%; height: 100%; background: var(--primary);"></div></div></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 60px 1.8fr 140px 160px 1fr; align-items: center; padding: 8px 16px; background: #fff; border-radius: 8px; border: 1px solid var(--border-soft);">
+              <span style="font-weight: 800; color: var(--text-muted); font-size: 16px;">3</span>
+              <span style="font-weight: 800; color: var(--text); font-size: 17px;">CTCI洲際LNG Regas Special Material Dual Plate Check Valve (IVT)</span>
+              <span style="text-align: center; font-size: 14px; font-weight: 700; color: var(--primary-dark);">2026/09</span>
+              <span style="text-align: right; font-size: 20px; font-weight: 900; color: var(--text);">NT$ 1,300</span>
+              <div style="padding-left: 24px;"><div style="width: 100%; height: 10px; background: #E2E8F0; border-radius: 5px; overflow: hidden;"><div style="width: 8.1%; height: 100%; background: var(--blue);"></div></div></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 60px 1.8fr 140px 160px 1fr; align-items: center; padding: 8px 16px; background: var(--primary-light); border-radius: 8px; border: 1px solid var(--border-soft);">
+              <span style="font-weight: 800; color: var(--text-muted); font-size: 16px;">4</span>
+              <span style="font-weight: 800; color: var(--text); font-size: 17px;">TPC核三Namco Limit Switch</span>
+              <span style="text-align: center; font-size: 14px; font-weight: 700; color: var(--blue);">2026/10</span>
+              <span style="text-align: right; font-size: 20px; font-weight: 900; color: var(--text);">NT$ 16,000</span>
+              <div style="padding-left: 24px;"><div style="width: 100%; height: 10px; background: #E2E8F0; border-radius: 5px; overflow: hidden;"><div style="width: 100%; height: 100%; background: var(--primary);"></div></div></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 60px 1.8fr 140px 160px 1fr; align-items: center; padding: 8px 16px; background: #fff; border-radius: 8px; border: 1px solid var(--border-soft);">
+              <span style="font-weight: 800; color: var(--text-muted); font-size: 16px;">5</span>
+              <span style="font-weight: 800; color: var(--text); font-size: 17px;">北區處新建桃廠配氣站工程</span>
+              <span style="text-align: center; font-size: 14px; font-weight: 700; color: var(--blue);">2026/10</span>
+              <span style="text-align: right; font-size: 20px; font-weight: 900; color: var(--text);">NT$ 400</span>
+              <div style="padding-left: 24px;"><div style="width: 100%; height: 10px; background: #E2E8F0; border-radius: 5px; overflow: hidden;"><div style="width: 2.5%; height: 100%; background: var(--blue);"></div></div></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 60px 1.8fr 140px 160px 1fr; align-items: center; padding: 8px 16px; background: #fff; border-radius: 8px; border: 1px solid var(--border-soft);">
+              <span style="font-weight: 800; color: var(--text-muted); font-size: 16px;">6</span>
+              <span style="font-weight: 800; color: var(--text); font-size: 17px;">GE 整改興達/台中天然氣機組球閥驅動器</span>
+              <span style="text-align: center; font-size: 14px; font-weight: 700; color: var(--blue);">2026/10</span>
+              <span style="text-align: right; font-size: 20px; font-weight: 900; color: var(--text);">NT$ 300</span>
+              <div style="padding-left: 24px;"><div style="width: 100%; height: 10px; background: #E2E8F0; border-radius: 5px; overflow: hidden;"><div style="width: 1.8%; height: 100%; background: var(--blue);"></div></div></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 60px 1.8fr 140px 160px 1fr; align-items: center; padding: 8px 16px; background: #fff; border-radius: 8px; border: 1px solid var(--border-soft);">
+              <span style="font-weight: 800; color: var(--text-muted); font-size: 16px;">7</span>
+              <span style="font-weight: 800; color: var(--text); font-size: 17px;">CTCI 通霄BOP MOV</span>
+              <span style="text-align: center; font-size: 14px; font-weight: 700; color: var(--blue);">2026/10</span>
+              <span style="text-align: right; font-size: 20px; font-weight: 900; color: var(--text);">NT$ 5,300</span>
+              <div style="padding-left: 24px;"><div style="width: 100%; height: 10px; background: #E2E8F0; border-radius: 5px; overflow: hidden;"><div style="width: 33.1%; height: 100%; background: var(--blue);"></div></div></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 60px 1.8fr 140px 160px 1fr; align-items: center; padding: 8px 16px; background: #fff; border-radius: 8px; border: 1px solid var(--border-soft);">
+              <span style="font-weight: 800; color: var(--text-muted); font-size: 16px;">8</span>
+              <span style="font-weight: 800; color: var(--text); font-size: 17px;">CTCI通霄BOP Pneumatic Gate Valve</span>
+              <span style="text-align: center; font-size: 14px; font-weight: 700; color: var(--blue);">2026/10</span>
+              <span style="text-align: right; font-size: 20px; font-weight: 900; color: var(--text);">NT$ 1,200</span>
+              <div style="padding-left: 24px;"><div style="width: 100%; height: 10px; background: #E2E8F0; border-radius: 5px; overflow: hidden;"><div style="width: 7.5%; height: 100%; background: var(--blue);"></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="master-footer">
+        <span>Fluids Control Co., Ltd. • Facilitation Control Innovation</span>
+        <span class="master-page-num">07 / 12</span>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 8: COORDINATION -->
+    <!-- ========================================== -->
+    <div class="slide" id="slide-8">
+      <div class="master-header">
+        <div>
+          <div class="master-cat">Section 05</div>
+          <h2 class="master-title">Coordination – 跨部門協同與工程專案支援</h2>
+          <div class="master-bar"></div>
+        </div>
+        <div class="master-right">
+          <div class="master-dept">Power & EPC 業務管理月會</div>
+          <div class="master-meta">2026/09 • Present by Quentin</div>
+        </div>
+      </div>
+      <div class="master-content" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+        <div style="background: var(--card-bg); border-radius: 16px; border: 1.5px solid var(--border); padding: 24px 26px; display: flex; flex-direction: column;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+            <span style="width: 36px; height: 36px; border-radius: 10px; background: var(--blue-light); color: var(--blue); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px;">管</span>
+            <div style="font-size: 22px; font-weight: 800; color: var(--text);">管理部協作推進</div>
+          </div>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 12px;">
+            <div style="background: #fff; border-radius: 10px; padding: 14px 16px; border: 1px solid var(--border-soft); font-size: 16px; color: var(--text); font-weight: 600; line-height: 1.4;">• 專案交貨進度全面動態追蹤與物流排程</div>
+            <div style="background: #fff; border-radius: 10px; padding: 14px 16px; border: 1px solid var(--border-soft); font-size: 16px; color: var(--text); font-weight: 600; line-height: 1.4;">• 異常單 (NCR) / 客訴進度閉環跟進</div>
+            <div style="background: #fff; border-radius: 10px; padding: 14px 16px; border: 1px solid var(--border-soft); font-size: 16px; color: var(--text); font-weight: 600; line-height: 1.4;">• 未開發票案件進度追蹤與沖銷核銷</div>
+            <div style="background: #fff; border-radius: 10px; padding: 14px 16px; border: 1px solid var(--border-soft); font-size: 16px; color: var(--text); font-weight: 600; line-height: 1.4;">• Ragic 介面優化與業務自動化表單對齊</div>
+            <div style="background: #fff; border-radius: 10px; padding: 14px 16px; border: 1px solid var(--border-soft); font-size: 16px; color: var(--text); font-weight: 600; line-height: 1.4;">• 倉管理貨作業與安全庫存盤點協調</div>
+          </div>
+        </div>
+
+        <div style="background: var(--card-bg); border-radius: 16px; border: 1.5px solid var(--border); padding: 24px 26px; display: flex; flex-direction: column;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+            <span style="width: 36px; height: 36px; border-radius: 10px; background: var(--primary-light); color: var(--primary-dark); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px;">服</span>
+            <div style="font-size: 22px; font-weight: 800; color: var(--text);">Service 技術服務</div>
+          </div>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 12px;">
+            <div style="background: #fff; border-radius: 10px; padding: 14px 16px; border: 1px solid var(--border-soft); font-size: 16px; color: var(--text); font-weight: 600; line-height: 1.4;">• 大潭儀資定位器備援應變方案建立</div>
+            <div style="background: #fff; border-radius: 10px; padding: 14px 16px; border: 1px solid var(--border-soft); font-size: 16px; color: var(--text); font-weight: 600; line-height: 1.4;">• 塑化公用四廠 EPACO 現場異常第一時間緊急處理</div>
+            <div style="background: #fff; border-radius: 10px; padding: 14px 16px; border: 1px solid var(--border-soft); font-size: 16px; color: var(--text); font-weight: 600; line-height: 1.4;">• 大潭八、九號機鍋爐飼水閥改善報告跨部門協作</div>
+            <div style="background: #fff; border-radius: 10px; padding: 14px 16px; border: 1px solid var(--border-soft); font-size: 16px; color: var(--text); font-weight: 600; line-height: 1.4;">• 屏東空軍一指部 (COX 311AHT 流量測檯更新工程)</div>
+          </div>
+        </div>
+
+        <div style="background: var(--card-bg); border-radius: 16px; border: 1.5px solid var(--border); padding: 24px 26px; display: flex; flex-direction: column;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+            <span style="width: 36px; height: 36px; border-radius: 10px; background: var(--yellow-light); color: #B78103; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px;">行</span>
+            <div style="font-size: 22px; font-weight: 800; color: var(--text);">MRKG 專案行銷</div>
+          </div>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 12px;">
+            <div style="background: #fff; border-radius: 10px; padding: 14px 16px; border: 1px solid var(--border-soft); font-size: 16px; color: var(--text); font-weight: 600; line-height: 1.4;">• TPC 大潭 81/82 驅動器技術改善升級提案</div>
+            <div style="background: #fff; border-radius: 10px; padding: 14px 16px; border: 1px solid var(--border-soft); font-size: 16px; color: var(--text); font-weight: 600; line-height: 1.4;">• TPC 興達 80/90 減壓站維護保養年度計畫彙整</div>
+            <div style="background: #fff; border-radius: 10px; padding: 14px 16px; border: 1px solid var(--border-soft); font-size: 16px; color: var(--text); font-weight: 600; line-height: 1.4;">• 中鼎大林 RFCC Blac 閥門更新重大專案攻堅</div>
+          </div>
+        </div>
+      </div>
+      <div class="master-footer">
+        <span>Fluids Control Co., Ltd. • Facilitation Control Innovation</span>
+        <span class="master-page-num">08 / 12</span>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 9: CRM OVERVIEW -->
+    <!-- ========================================== -->
+    <div class="slide" id="slide-9">
+      <div class="master-header">
+        <div>
+          <div class="master-cat">Section 06</div>
+          <h2 class="master-title">CRM Sales Silo – 業務團隊總體漏斗與蓄水池</h2>
+          <div class="master-bar"></div>
+        </div>
+        <div class="master-right">
+          <div class="master-dept">Power & EPC 業務管理月會</div>
+          <div class="master-meta">2026/09 • Present by Quentin</div>
+        </div>
+      </div>
+      <div class="master-content" style="gap: 20px;">
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px;">
+          <!-- Hayashi -->
+          <div style="background: var(--primary-light); border-radius: 14px; border: 1.5px solid var(--primary); padding: 20px 22px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 20px; font-weight: 800; color: var(--text);">林惠美</span>
+                <span style="font-size: 13px; color: var(--text-muted); font-weight: 600;">Hayashi Lin</span>
+              </div>
+              <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">年度目標: NT$ 1.60 億</div>
+            </div>
+            <div style="margin: 14px 0;">
+              <div style="font-size: 13px; color: var(--text-muted); font-weight: 700;">年度業績達成率</div>
+              <div style="font-size: 40px; font-weight: 900; color: var(--primary-dark);">204%</div>
+            </div>
+            <div style="border-top: 1px solid var(--border-soft); paddingTop: 10px; font-size: 13px; color: var(--text-muted);">
+              成立專案: <strong style="color: var(--text);">30 筆</strong> (NT$ 3.25 億)
+            </div>
+          </div>
+
+          <!-- Shawn -->
+          <div style="background: var(--card-bg); border-radius: 14px; border: 1.5px solid var(--border); padding: 20px 22px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 20px; font-weight: 800; color: var(--text);">徐舜偉</span>
+                <span style="font-size: 13px; color: var(--text-muted); font-weight: 600;">Shawn Hsu</span>
+              </div>
+              <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">年度目標: NT$ 1.15 億</div>
+            </div>
+            <div style="margin: 14px 0;">
+              <div style="font-size: 13px; color: var(--text-muted); font-weight: 700;">年度業績達成率</div>
+              <div style="font-size: 40px; font-weight: 900; color: var(--blue);">54%</div>
+            </div>
+            <div style="border-top: 1px solid var(--border-soft); paddingTop: 10px; font-size: 13px; color: var(--text-muted);">
+              成立專案: <strong style="color: var(--text);">9 筆</strong> (NT$ 6,203 萬)
+            </div>
+          </div>
+
+          <!-- Canni -->
+          <div style="background: var(--card-bg); border-radius: 14px; border: 1.5px solid var(--border); padding: 20px 22px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 20px; font-weight: 800; color: var(--text);">張凱寧</span>
+                <span style="font-size: 13px; color: var(--text-muted); font-weight: 600;">Canni Chang</span>
+              </div>
+              <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">年度目標: NT$ 1.60 億</div>
+            </div>
+            <div style="margin: 14px 0;">
+              <div style="font-size: 13px; color: var(--text-muted); font-weight: 700;">年度業績達成率</div>
+              <div style="font-size: 40px; font-weight: 900; color: var(--blue);">59%</div>
+            </div>
+            <div style="border-top: 1px solid var(--border-soft); paddingTop: 10px; font-size: 13px; color: var(--text-muted);">
+              成立專案: <strong style="color: var(--text);">24 筆</strong> (NT$ 9,386 萬)
+            </div>
+          </div>
+
+          <!-- Yen -->
+          <div style="background: var(--card-bg); border-radius: 14px; border: 1.5px solid var(--border); padding: 20px 22px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 20px; font-weight: 800; color: var(--text);">吳雙延</span>
+                <span style="font-size: 13px; color: var(--text-muted); font-weight: 600;">Yen Wu</span>
+              </div>
+              <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">年度目標: NT$ 1.60 億</div>
+            </div>
+            <div style="margin: 14px 0;">
+              <div style="font-size: 13px; color: var(--text-muted); font-weight: 700;">年度業績達成率</div>
+              <div style="font-size: 40px; font-weight: 900; color: var(--yellow);">15%</div>
+            </div>
+            <div style="border-top: 1px solid var(--border-soft); paddingTop: 10px; font-size: 13px; color: var(--text-muted);">
+              成立專案: <strong style="color: var(--text);">6 筆</strong> (NT$ 2,356 萬)
+            </div>
+          </div>
+        </div>
+
+        <div style="flex: 1; background: #fff; border-radius: 14px; border: 1.5px solid var(--border); padding: 20px 28px; display: flex; flex-direction: column; justify-content: space-between;">
+          <div style="font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 8px;">商機漏斗階段筆數分佈矩陣 (Pipeline Stages Matrix)</div>
+          <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;">
+            <div style="background: var(--card-bg); border-radius: 12px; border: 1.5px solid var(--border-soft); padding: 16px 18px; text-align: center;">
+              <div style="font-size: 15px; font-weight: 700; color: var(--text-muted);">商機挖掘</div>
+              <div style="font-size: 36px; font-weight: 900; color: var(--primary-dark); margin: 6px 0;">23 <span style="font-size: 16px; font-weight: 600;">筆</span></div>
+              <div style="font-size: 12px; color: var(--text-muted);">轉化推進中</div>
+            </div>
+            <div style="background: var(--card-bg); border-radius: 12px; border: 1.5px solid var(--border-soft); padding: 16px 18px; text-align: center;">
+              <div style="font-size: 15px; font-weight: 700; color: var(--text-muted);">初步接洽</div>
+              <div style="font-size: 36px; font-weight: 900; color: var(--primary-dark); margin: 6px 0;">24 <span style="font-size: 16px; font-weight: 600;">筆</span></div>
+              <div style="font-size: 12px; color: var(--text-muted);">轉化推進中</div>
+            </div>
+            <div style="background: var(--blue-light); border-radius: 12px; border: 1.5px solid var(--blue); padding: 16px 18px; text-align: center;">
+              <div style="font-size: 15px; font-weight: 700; color: var(--text-muted);">確認需求</div>
+              <div style="font-size: 36px; font-weight: 900; color: var(--blue); margin: 6px 0;">87 <span style="font-size: 16px; font-weight: 600;">筆</span></div>
+              <div style="font-size: 12px; color: var(--text-muted);">核心蓄水主力</div>
+            </div>
+            <div style="background: var(--card-bg); border-radius: 12px; border: 1.5px solid var(--border-soft); padding: 16px 18px; text-align: center;">
+              <div style="font-size: 15px; font-weight: 700; color: var(--text-muted);">報價澄清</div>
+              <div style="font-size: 36px; font-weight: 900; color: var(--primary-dark); margin: 6px 0;">13 <span style="font-size: 16px; font-weight: 600;">筆</span></div>
+              <div style="font-size: 12px; color: var(--text-muted);">轉化推進中</div>
+            </div>
+            <div style="background: var(--card-bg); border-radius: 12px; border: 1.5px solid var(--border-soft); padding: 16px 18px; text-align: center;">
+              <div style="font-size: 15px; font-weight: 700; color: var(--text-muted);">訂單完成</div>
+              <div style="font-size: 36px; font-weight: 900; color: var(--primary-dark); margin: 6px 0;">4 <span style="font-size: 16px; font-weight: 600;">筆</span></div>
+              <div style="font-size: 12px; color: var(--text-muted);">轉化推進中</div>
+            </div>
+          </div>
+          <div style="font-size: 14px; color: var(--text-muted); text-align: right; margin-top: 6px;">
+            註：全團隊「確認需求」階段高達 87 筆專案，為 Q4 與 2027 上半年最龐大之轉換蓄水池。
+          </div>
+        </div>
+      </div>
+      <div class="master-footer">
+        <span>Fluids Control Co., Ltd. • Facilitation Control Innovation</span>
+        <span class="master-page-num">09 / 12</span>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 10: CRM HAYASHI & SHAWN -->
+    <!-- ========================================== -->
+    <div class="slide" id="slide-10">
+      <div class="master-header">
+        <div>
+          <div class="master-cat">Section 06</div>
+          <h2 class="master-title">CRM Sales Silo – 林惠美 (Hayashi) & 徐舜偉 (Shawn)</h2>
+          <div class="master-bar"></div>
+        </div>
+        <div class="master-right">
+          <div class="master-dept">Power & EPC 業務管理月會</div>
+          <div class="master-meta">2026/09 • Present by Quentin</div>
+        </div>
+      </div>
+      <div class="master-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <!-- Hayashi -->
+        <div style="background: var(--card-bg); border-radius: 16px; border: 1.5px solid var(--border); padding: 22px 24px; display: flex; flex-direction: column; justify-content: space-between;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <div style="font-size: 26px; font-weight: 900; color: var(--text);">林惠美 <span style="font-size: 16px; color: var(--text-muted); font-weight: 600;">(Hayashi Lin)</span></div>
+              <div style="font-size: 14px; color: var(--text-muted); margin-top: 2px;">年度目標: NT$ 1.60 億</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 13px; color: var(--text-muted); font-weight: 700;">達成率</div>
+              <div style="font-size: 36px; font-weight: 900; color: var(--primary);">204%</div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0;">
+            <div style="background: #fff; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-soft);">
+              <div style="font-size: 12px; color: var(--text-muted);">成立專案金額</div>
+              <div style="font-size: 18px; font-weight: 900; color: var(--primary-dark); margin-top: 2px;">NT$ 32,574 萬</div>
+              <div style="font-size: 11px; color: var(--text-muted);">共 30 筆</div>
+            </div>
+            <div style="background: #fff; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-soft);">
+              <div style="font-size: 12px; color: var(--text-muted);">總報價金額</div>
+              <div style="font-size: 18px; font-weight: 900; color: var(--blue); margin-top: 2px;">NT$ 67,875 萬</div>
+              <div style="font-size: 11px; color: var(--text-muted);">共 68 筆</div>
+            </div>
+            <div style="background: #fff; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-soft);">
+              <div style="font-size: 12px; color: var(--text-muted);">在案預算水庫</div>
+              <div style="font-size: 18px; font-weight: 900; color: var(--text); margin-top: 2px;">NT$ 27,321 萬</div>
+              <div style="font-size: 11px; color: var(--text-muted);">蓄勢待轉化</div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <div style="font-size: 14px; font-weight: 800; color: var(--text-muted);">商機漏斗狀態 (Pipeline Silo)</div>
+            <div style="display: grid; grid-template-columns: 80px 1fr 40px; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text);">商機挖掘</span>
+              <div style="width: 100%; height: 18px; background: #fff; border-radius: 4px; overflow: hidden;"><div style="width: 42.8%; height: 100%; background: var(--blue);"></div></div>
+              <span style="font-size: 14px; font-weight: 800; color: var(--text); text-align: right;">12</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 80px 1fr 40px; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text);">初步接洽</span>
+              <div style="width: 100%; height: 18px; background: #fff; border-radius: 4px; overflow: hidden;"><div style="width: 14.3%; height: 100%; background: var(--blue);"></div></div>
+              <span style="font-size: 14px; font-weight: 800; color: var(--text); text-align: right;">4</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 80px 1fr 40px; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text);">確認需求</span>
+              <div style="width: 100%; height: 18px; background: #fff; border-radius: 4px; overflow: hidden;"><div style="width: 67.8%; height: 100%; background: var(--primary);"></div></div>
+              <span style="font-size: 14px; font-weight: 800; color: var(--text); text-align: right;">19</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 80px 1fr 40px; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text);">報價澄清</span>
+              <div style="width: 100%; height: 18px; background: #fff; border-radius: 4px; overflow: hidden;"><div style="width: 28.5%; height: 100%; background: var(--blue);"></div></div>
+              <span style="font-size: 14px; font-weight: 800; color: var(--text); text-align: right;">8</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 80px 1fr 40px; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text);">訂單完成</span>
+              <div style="width: 100%; height: 18px; background: #fff; border-radius: 4px; overflow: hidden;"><div style="width: 4%; height: 100%; background: #ccc;"></div></div>
+              <span style="font-size: 14px; font-weight: 800; color: var(--text); text-align: right;">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shawn -->
+        <div style="background: var(--card-bg); border-radius: 16px; border: 1.5px solid var(--border); padding: 22px 24px; display: flex; flex-direction: column; justify-content: space-between;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <div style="font-size: 26px; font-weight: 900; color: var(--text);">徐舜偉 <span style="font-size: 16px; color: var(--text-muted); font-weight: 600;">(Shawn Hsu)</span></div>
+              <div style="font-size: 14px; color: var(--text-muted); margin-top: 2px;">年度目標: NT$ 1.15 億</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 13px; color: var(--text-muted); font-weight: 700;">達成率</div>
+              <div style="font-size: 36px; font-weight: 900; color: var(--blue);">54%</div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0;">
+            <div style="background: #fff; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-soft);">
+              <div style="font-size: 12px; color: var(--text-muted);">成立專案金額</div>
+              <div style="font-size: 18px; font-weight: 900; color: var(--primary-dark); margin-top: 2px;">NT$ 6,204 萬</div>
+              <div style="font-size: 11px; color: var(--text-muted);">共 9 筆</div>
+            </div>
+            <div style="background: #fff; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-soft);">
+              <div style="font-size: 12px; color: var(--text-muted);">總報價金額</div>
+              <div style="font-size: 18px; font-weight: 900; color: var(--blue); margin-top: 2px;">NT$ 81,784 萬</div>
+              <div style="font-size: 11px; color: var(--text-muted);">共 40 筆</div>
+            </div>
+            <div style="background: #fff; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-soft);">
+              <div style="font-size: 12px; color: var(--text-muted);">在案預算水庫</div>
+              <div style="font-size: 18px; font-weight: 900; color: var(--text); margin-top: 2px;">NT$ 68,885 萬</div>
+              <div style="font-size: 11px; color: var(--text-muted);">蓄勢待轉化</div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <div style="font-size: 14px; font-weight: 800; color: var(--text-muted);">商機漏斗狀態 (Pipeline Silo)</div>
+            <div style="display: grid; grid-template-columns: 80px 1fr 40px; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text);">商機挖掘</span>
+              <div style="width: 100%; height: 18px; background: #fff; border-radius: 4px; overflow: hidden;"><div style="width: 21.4%; height: 100%; background: var(--blue);"></div></div>
+              <span style="font-size: 14px; font-weight: 800; color: var(--text); text-align: right;">6</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 80px 1fr 40px; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text);">初步接洽</span>
+              <div style="width: 100%; height: 18px; background: #fff; border-radius: 4px; overflow: hidden;"><div style="width: 25%; height: 100%; background: var(--blue);"></div></div>
+              <span style="font-size: 14px; font-weight: 800; color: var(--text); text-align: right;">7</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 80px 1fr 40px; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text);">確認需求</span>
+              <div style="width: 100%; height: 18px; background: #fff; border-radius: 4px; overflow: hidden;"><div style="width: 67.8%; height: 100%; background: var(--primary);"></div></div>
+              <span style="font-size: 14px; font-weight: 800; color: var(--text); text-align: right;">19</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 80px 1fr 40px; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text);">報價澄清</span>
+              <div style="width: 100%; height: 18px; background: #fff; border-radius: 4px; overflow: hidden;"><div style="width: 8%; height: 100%; background: var(--blue);"></div></div>
+              <span style="font-size: 14px; font-weight: 800; color: var(--text); text-align: right;">1</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 80px 1fr 40px; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text);">訂單完成</span>
+              <div style="width: 100%; height: 18px; background: #fff; border-radius: 4px; overflow: hidden;"><div style="width: 8%; height: 100%; background: var(--primary);"></div></div>
+              <span style="font-size: 14px; font-weight: 800; color: var(--text); text-align: right;">1</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="master-footer">
+        <span>Fluids Control Co., Ltd. • Facilitation Control Innovation</span>
+        <span class="master-page-num">10 / 12</span>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 11: CRM CANNI & YEN -->
+    <!-- ========================================== -->
+    <div class="slide" id="slide-11">
+      <div class="master-header">
+        <div>
+          <div class="master-cat">Section 06</div>
+          <h2 class="master-title">CRM Sales Silo – 張凱寧 (Canni) & 吳雙延 (Yen)</h2>
+          <div class="master-bar"></div>
+        </div>
+        <div class="master-right">
+          <div class="master-dept">Power & EPC 業務管理月會</div>
+          <div class="master-meta">2026/09 • Present by Quentin</div>
+        </div>
+      </div>
+      <div class="master-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <!-- Canni -->
+        <div style="background: var(--card-bg); border-radius: 16px; border: 1.5px solid var(--border); padding: 22px 24px; display: flex; flex-direction: column; justify-content: space-between;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <div style="font-size: 26px; font-weight: 900; color: var(--text);">張凱寧 <span style="font-size: 16px; color: var(--text-muted); font-weight: 600;">(Canni Chang)</span></div>
+              <div style="font-size: 14px; color: var(--text-muted); margin-top: 2px;">年度目標: NT$ 1.60 億</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 13px; color: var(--text-muted); font-weight: 700;">達成率</div>
+              <div style="font-size: 36px; font-weight: 900; color: var(--blue);">59%</div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0;">
+            <div style="background: #fff; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-soft);">
+              <div style="font-size: 12px; color: var(--text-muted);">成立專案金額</div>
+              <div style="font-size: 18px; font-weight: 900; color: var(--primary-dark); margin-top: 2px;">NT$ 9,387 萬</div>
+              <div style="font-size: 11px; color: var(--text-muted);">共 24 筆</div>
+            </div>
+            <div style="background: #fff; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-soft);">
+              <div style="font-size: 12px; color: var(--text-muted);">總報價金額</div>
+              <div style="font-size: 18px; font-weight: 900; color: var(--blue); margin-top: 2px;">NT$ 29,633 萬</div>
+              <div style="font-size: 11px; color: var(--text-muted);">共 47 筆</div>
+            </div>
+            <div style="background: #fff; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-soft);">
+              <div style="font-size: 12px; color: var(--text-muted);">在案預算水庫</div>
+              <div style="font-size: 18px; font-weight: 900; color: var(--text); margin-top: 2px;">NT$ 19,770 萬</div>
+              <div style="font-size: 11px; color: var(--text-muted);">蓄勢待轉化</div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <div style="font-size: 14px; font-weight: 800; color: var(--text-muted);">商機漏斗狀態 (Pipeline Silo)</div>
+            <div style="display: grid; grid-template-columns: 80px 1fr 40px; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text);">商機挖掘</span>
+              <div style="width: 100%; height: 18px; background: #fff; border-radius: 4px; overflow: hidden;"><div style="width: 17.8%; height: 100%; background: var(--blue);"></div></div>
+              <span style="font-size: 14px; font-weight: 800; color: var(--text); text-align: right;">5</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 80px 1fr 40px; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text);">初步接洽</span>
+              <div style="width: 100%; height: 18px; background: #fff; border-radius: 4px; overflow: hidden;"><div style="width: 42.8%; height: 100%; background: var(--blue);"></div></div>
+              <span style="font-size: 14px; font-weight: 800; color: var(--text); text-align: right;">12</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 80px 1fr 40px; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text);">確認需求</span>
+              <div style="width: 100%; height: 18px; background: #fff; border-radius: 4px; overflow: hidden;"><div style="width: 100%; height: 100%; background: var(--primary);"></div></div>
+              <span style="font-size: 14px; font-weight: 800; color: var(--text); text-align: right;">28</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 80px 1fr 40px; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text);">報價澄清</span>
+              <div style="width: 100%; height: 18px; background: #fff; border-radius: 4px; overflow: hidden;"><div style="width: 12%; height: 100%; background: var(--blue);"></div></div>
+              <span style="font-size: 14px; font-weight: 800; color: var(--text); text-align: right;">2</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 80px 1fr 40px; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text);">訂單完成</span>
+              <div style="width: 100%; height: 18px; background: #fff; border-radius: 4px; overflow: hidden;"><div style="width: 4%; height: 100%; background: #ccc;"></div></div>
+              <span style="font-size: 14px; font-weight: 800; color: var(--text); text-align: right;">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Yen -->
+        <div style="background: var(--card-bg); border-radius: 16px; border: 1.5px solid var(--border); padding: 22px 24px; display: flex; flex-direction: column; justify-content: space-between;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <div style="font-size: 26px; font-weight: 900; color: var(--text);">吳雙延 <span style="font-size: 16px; color: var(--text-muted); font-weight: 600;">(Yen Wu)</span></div>
+              <div style="font-size: 14px; color: var(--text-muted); margin-top: 2px;">年度目標: NT$ 1.60 億</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 13px; color: var(--text-muted); font-weight: 700;">達成率</div>
+              <div style="font-size: 36px; font-weight: 900; color: var(--yellow);">15%</div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0;">
+            <div style="background: #fff; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-soft);">
+              <div style="font-size: 12px; color: var(--text-muted);">成立專案金額</div>
+              <div style="font-size: 18px; font-weight: 900; color: var(--primary-dark); margin-top: 2px;">NT$ 2,356 萬</div>
+              <div style="font-size: 11px; color: var(--text-muted);">共 6 筆</div>
+            </div>
+            <div style="background: #fff; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-soft);">
+              <div style="font-size: 12px; color: var(--text-muted);">總報價金額</div>
+              <div style="font-size: 18px; font-weight: 900; color: var(--blue); margin-top: 2px;">NT$ 71,873 萬</div>
+              <div style="font-size: 11px; color: var(--text-muted);">共 37 筆</div>
+            </div>
+            <div style="background: #fff; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-soft);">
+              <div style="font-size: 12px; color: var(--text-muted);">在案預算水庫</div>
+              <div style="font-size: 18px; font-weight: 900; color: var(--text); margin-top: 2px;">NT$ 43,403 萬</div>
+              <div style="font-size: 11px; color: var(--text-muted);">蓄勢待轉化</div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <div style="font-size: 14px; font-weight: 800; color: var(--text-muted);">商機漏斗狀態 (Pipeline Silo)</div>
+            <div style="display: grid; grid-template-columns: 80px 1fr 40px; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text);">商機挖掘</span>
+              <div style="width: 100%; height: 18px; background: #fff; border-radius: 4px; overflow: hidden;"><div style="width: 4%; height: 100%; background: #ccc;"></div></div>
+              <span style="font-size: 14px; font-weight: 800; color: var(--text); text-align: right;">0</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 80px 1fr 40px; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text);">初步接洽</span>
+              <div style="width: 100%; height: 18px; background: #fff; border-radius: 4px; overflow: hidden;"><div style="width: 8%; height: 100%; background: var(--blue);"></div></div>
+              <span style="font-size: 14px; font-weight: 800; color: var(--text); text-align: right;">1</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 80px 1fr 40px; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text);">確認需求</span>
+              <div style="width: 100%; height: 18px; background: #fff; border-radius: 4px; overflow: hidden;"><div style="width: 75%; height: 100%; background: var(--primary);"></div></div>
+              <span style="font-size: 14px; font-weight: 800; color: var(--text); text-align: right;">21</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 80px 1fr 40px; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text);">報價澄清</span>
+              <div style="width: 100%; height: 18px; background: #fff; border-radius: 4px; overflow: hidden;"><div style="width: 12%; height: 100%; background: var(--blue);"></div></div>
+              <span style="font-size: 14px; font-weight: 800; color: var(--text); text-align: right;">2</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 80px 1fr 40px; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text);">訂單完成</span>
+              <div style="width: 100%; height: 18px; background: #fff; border-radius: 4px; overflow: hidden;"><div style="width: 15%; height: 100%; background: var(--primary);"></div></div>
+              <span style="font-size: 14px; font-weight: 800; color: var(--text); text-align: right;">3</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="master-footer">
+        <span>Fluids Control Co., Ltd. • Facilitation Control Innovation</span>
+        <span class="master-page-num">11 / 12</span>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 12: CLOSING -->
+    <!-- ========================================== -->
+    <div class="slide" id="slide-12" style="background: var(--primary-dark); justify-content: center; align-items: center; text-align: center;">
+      <div style="max-width: 1000px; margin-top: -40px;">
+        <div style="font-size: 44px; font-weight: 900; color: #fff; letter-spacing: 0.04em; margin-bottom: 24px;">
+          FLUIDS <span style="color: var(--neon, #06D6AD);">CONTROL</span>
+        </div>
+        <h2 style="font-size: 54px; font-weight: 900; color: #fff; margin: 0; letter-spacing: 0.02em;">
+          感謝聆聽 • 齊心攻堅 3.45 億專案
+        </h2>
+        <p style="font-size: 24px; color: rgba(255, 255, 255, 0.85); margin-top: 16px; font-weight: 600;">
+          Power & EPC 部門 • 2026 年 9 月業務管理月會報告
+        </p>
+
+        <div style="display: inline-flex; gap: 40px; margin-top: 40px; padding: 16px 40px; border-radius: 30px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; font-size: 18px; font-weight: 700;">
+          <span>簡報主管: Quentin</span>
+          <span>•</span>
+          <span>年度 EBT 達成率: 168%</span>
+          <span>•</span>
+          <span>次月預測: 8,310 萬元</span>
+        </div>
+      </div>
+
+      <div style="position: absolute; bottom: 30px; width: 100%; display: flex; justify-content: space-between; padding: 0 68px; font-size: 14px; color: rgba(255,255,255,0.6); font-weight: 600;">
+        <span>Fluids Control Co., Ltd. • Facilitating Control Innovation</span>
+        <span>12 / 12</span>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 12;
+
+    function updateSlide() {
+      document.querySelectorAll('.slide').forEach((slide, index) => {
+        slide.classList.toggle('active', index + 1 === currentSlide);
+      });
+      document.getElementById('page-indicator').textContent = 
+        String(currentSlide).padStart(2, '0') + ' / ' + String(totalSlides).padStart(2, '0');
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        currentSlide++;
+        updateSlide();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        currentSlide--;
+        updateSlide();
+      }
+    }
+
+    // 鍵盤左右鍵切換
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        prevSlide();
+      }
+    });
+
+    // 自動等比縮放自適應螢幕
+    function resizeDeck() {
+      const deck = document.getElementById('deck-wrapper');
+      const scaleX = window.innerWidth / 1920;
+      const scaleY = window.innerHeight / 1080;
+      const scale = Math.min(scaleX, scaleY) * 0.98;
+      deck.style.transform = `scale(${scale})`;
+    }
+
+    window.addEventListener('resize', resizeDeck);
+    window.addEventListener('load', resizeDeck);
+    resizeDeck();
+  </script>
+</body>
+</html>

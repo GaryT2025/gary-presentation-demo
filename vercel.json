@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/power-epc-monthly",
+      "destination": "/Power_EPC_Monthly_Meeting_202609.html"
+    },
+    {
       "source": "/rodan-security/(.*)",
       "destination": "/rodan-security/$1"
     },
