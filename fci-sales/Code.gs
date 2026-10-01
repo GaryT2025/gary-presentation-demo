@@ -77,17 +77,22 @@ const SYNC_CONFIG = {
   "業績目標": {
     url: "https://ap7.ragic.com/FCIGroup/forms24/21",
     subtable: "_subtable_1022832"
+  },
+  "專案開立發票": {
+    url: "https://ap7.ragic.com/FCIGroup/yearly-report/8"
   }
 };
 
 /**
  * 一鍵同步所有 Ragic 資料表
+ * # [READY_FOR_REVIEW] - Includes Invoices Subtable Sync
  */
 function sync_所有資料() {
   console.log("=== 開始同步所有 Ragic 資料表 ===");
   syncRagicToSheet();
   syncOrders();
   syncPerformanceTargetWithSubtable();
+  syncInvoicesWithSubtable();
   console.log("=== 所有 Ragic 資料表同步完成 ===");
 }
 
@@ -512,6 +517,141 @@ function syncPerformanceTargetWithSubtable() {
 }
 
 /**
+ * 3.1 同步專案開立發票並開展子表格 (專案開立發票)
+ * # [READY_FOR_REVIEW] - Phase 1 Ragic Project Invoices Subtable Sync
+ */
+function syncInvoicesWithSubtable() {
+  const tableName = "專案開立發票";
+  const config = SYNC_CONFIG[tableName];
+  console.log(`[${tableName}] 開始子表展開同步...`);
+
+  // 主表記錄 EID: Sales Person: "1021266", Execution Target: "1037049", Yearly Execution Achieved: "1037050"
+  const M = {
+    salesPerson: "1021266",
+    execTarget: "1037049",
+    yearlyExecAchieved: "1037050"
+  };
+
+  // 子表格 EID: 專案編號: "1004075", 已開發票金額 (NTD): "1037028", 開立年份: "1031853", 專案年份: "1037021", 開立月份: "1031854", 開立日期: "1003683", 本幣未稅金額: "1039066", 款項性質: "1004671", 業務組別: "1004076"
+  const S = {
+    projectId: "1004075",
+    invoicedAmountNtd: "1037028",
+    invoiceYear: "1031853",
+    projectYear: "1037021",
+    invoiceMonth: "1031854",
+    invoiceDate: "1003683",
+    untaxedAmount: "1039066",
+    paymentNature: "1004671",
+    group: "1004076"
+  };
+
+  const headers = [
+    "_row_key", "_ragicId", "Sales Person", "Execution Target", "Yearly Execution Achieved",
+    "專案編號", "已開發票金額 (NTD)", "開立年份", "專案年份", "開立月份", "開立日期", "本幣未稅金額", "款項性質", "業務組別"
+  ];
+
+  const apiUrl = `${config.url}?v=3&api&naming=EID&limit=2000`;
+  const response = UrlFetchApp.fetch(encodeURI(apiUrl), {
+    headers: { "Authorization": "Basic " + R_API_KEY },
+    muteHttpExceptions: true
+  });
+
+  if (response.getResponseCode() !== 200) {
+    console.error(`[${tableName}] API 抓取失敗 code=${response.getResponseCode()}`);
+    return;
+  }
+
+  const data = JSON.parse(response.getContentText());
+  const rows = [];
+
+  const cleanAmount = (v) => {
+    if (v === undefined || v === null || v === "") return 0;
+    if (typeof v === 'number') return v;
+    const cleaned = String(v).replace(/[^0-9.-]/g, '').trim();
+    return parseFloat(cleaned) || 0;
+  };
+
+  Object.entries(data)
+    .filter(([key, val]) => val && typeof val === "object")
+    .forEach(([mid, m]) => {
+      const salesPerson = m[M.salesPerson] || "";
+      const execTarget = cleanAmount(m[M.execTarget]);
+      const yearlyExecAchieved = cleanAmount(m[M.yearlyExecAchieved]);
+
+      // 遍歷物件找出子表格 (符合 _subtable_ 前綴或包含子表欄位 EID)
+      let subtableObj = null;
+      for (const k in m) {
+        if (k.startsWith("_subtable_") && typeof m[k] === "object") {
+          subtableObj = m[k];
+          break;
+        }
+      }
+      if (!subtableObj) {
+        for (const k in m) {
+          if (m[k] && typeof m[k] === "object" && !Array.isArray(m[k])) {
+            const sampleSub = Object.values(m[k])[0];
+            if (sampleSub && typeof sampleSub === "object" && (sampleSub[S.projectId] !== undefined || sampleSub[S.invoicedAmountNtd] !== undefined)) {
+              subtableObj = m[k];
+              break;
+            }
+          }
+        }
+      }
+
+      if (subtableObj) {
+        Object.entries(subtableObj).forEach(([sk, s]) => {
+          if (!s || typeof s !== "object") return;
+          const invoiceYear = s[S.invoiceYear] ? String(s[S.invoiceYear]).trim() : "";
+          const pId = s[S.projectId] ? String(s[S.projectId]).trim() : "";
+          const rowKey = `${mid}-${sk}-${pId}`;
+
+          rows.push([
+            rowKey,
+            mid,
+            salesPerson,
+            execTarget,
+            yearlyExecAchieved,
+            pId,
+            cleanAmount(s[S.invoicedAmountNtd]),
+            invoiceYear,
+            s[S.projectYear] ? String(s[S.projectYear]).trim() : "",
+            s[S.invoiceMonth] ? String(s[S.invoiceMonth]).trim() : "",
+            s[S.invoiceDate] ? String(s[S.invoiceDate]).trim() : "",
+            cleanAmount(s[S.untaxedAmount]),
+            s[S.paymentNature] ? String(s[S.paymentNature]).trim() : "",
+            s[S.group] ? String(s[S.group]).trim() : ""
+          ]);
+        });
+      }
+    });
+
+  // 依 mid 及專案編號排序
+  rows.sort((a, b) => (Number(a[1]) - Number(b[1])) || String(a[5]).localeCompare(String(b[5])));
+
+  const ss = SpreadsheetApp.openById(R_SS_ID);
+  let sheet = ss.getSheetByName(tableName);
+  if (!sheet) sheet = ss.insertSheet(tableName);
+
+  const prevLastRow = sheet.getLastRow();
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+
+  if (rows.length > 0) {
+    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+  }
+
+  // 清理尾部多餘資料 (禁止 DELETE 操作，填入空值覆蓋)
+  const prevDataRows = Math.max(0, prevLastRow - 1);
+  if (prevDataRows > rows.length) {
+    const surplus = prevDataRows - rows.length;
+    const blankRow = new Array(headers.length).fill("");
+    sheet.getRange(2 + rows.length, 1, surplus, headers.length)
+         .setValues(Array.from({ length: surplus }, () => blankRow.slice()));
+  }
+
+  console.log(`[${tableName}] 子表展開完成：主記錄 ${Object.keys(data).length} ➔ 展開 ${rows.length} 列。`);
+}
+
+/**
  * 4. 每週一 6:00 建立週快照，並運算統計 KPI (summary)
  */
 function createWeeklySnapshot() {
@@ -639,6 +779,7 @@ function doGet(e) {
       current_cases: getSheetData("Current_Cases"),
       orders: getSheetData("接單"),
       targets: getSheetData("業績目標"),
+      invoices: getSheetData("專案開立發票"),
       snapshots: getSheetData("Snapshot_History")
     };
 

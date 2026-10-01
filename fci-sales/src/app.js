@@ -20,6 +20,7 @@ let appState = {
   cases: [],
   orders: [],
   targets: [],
+  invoices: [], // # [READY_FOR_REVIEW] 專案開立發票
   snapshots: [],
   activeTab: 'tab-achievement',
   selectedGroupFilter: 'ALL',
@@ -648,10 +649,107 @@ function getFCIRealData() {
     if (o.status === undefined) o.status = '簽核完成';
   });
 
+  // 2026 真實 Sample 發票資料 (對齊 Sample PDF)
+  // # [READY_FOR_REVIEW] - 預置 2026 年專案開立發票樣本
+  const mockInvoices = [
+    {
+      _ragicId: 'INV-2601',
+      'Sales Person': 'Charlie',
+      '專案編號': 'PRJ-26-C01',
+      '已開發票金額 (NTD)': 2695100,
+      '本幣未稅金額': 2695100,
+      '開立年份': '2026',
+      '專案年份': '2026',
+      '開立月份': '9',
+      '開立日期': '2026-09-10',
+      '款項性質': '專案款',
+      '業務組別': 'NonPower'
+    },
+    {
+      _ragicId: 'INV-2602',
+      'Sales Person': 'Charlie',
+      '專案編號': 'PRJ-26-C02',
+      '已開發票金額 (NTD)': 94708087,
+      '本幣未稅金額': 94708087,
+      '開立年份': '2026',
+      '專案年份': '2026',
+      '開立月份': '9',
+      '開立日期': '2026-09-10',
+      '款項性質': '專案款',
+      '業務組別': 'Power&EPC'
+    },
+    {
+      _ragicId: 'INV-2603',
+      'Sales Person': 'Canni',
+      '專案編號': 'PRJ-26-CN01',
+      '已開發票金額 (NTD)': 28801368,
+      '本幣未稅金額': 28801368,
+      '開立年份': '2026',
+      '專案年份': '2026',
+      '開立月份': '9',
+      '開立日期': '2026-09-08',
+      '款項性質': '專案款',
+      '業務組別': 'Power&EPC'
+    },
+    {
+      _ragicId: 'INV-2604',
+      'Sales Person': 'Hayashi',
+      '專案編號': 'PRJ-26-H01',
+      '已開發票金額 (NTD)': 96716471,
+      '本幣未稅金額': 96716471,
+      '開立年份': '2026',
+      '專案年份': '2026',
+      '開立月份': '9',
+      '開立日期': '2026-09-05',
+      '款項性質': '專案款',
+      '業務組別': 'Power&EPC'
+    },
+    {
+      _ragicId: 'INV-2605',
+      'Sales Person': 'Shawn',
+      '專案編號': 'PRJ-26-S01',
+      '已開發票金額 (NTD)': 356000,
+      '本幣未稅金額': 356000,
+      '開立年份': '2026',
+      '專案年份': '2026',
+      '開立月份': '9',
+      '開立日期': '2026-09-02',
+      '款項性質': '專案款',
+      '業務組別': 'Power&EPC'
+    },
+    {
+      _ragicId: 'INV-2606',
+      'Sales Person': 'Yen',
+      '專案編號': 'PRJ-26-Y01',
+      '已開發票金額 (NTD)': 29609467,
+      '本幣未稅金額': 29609467,
+      '開立年份': '2026',
+      '專案年份': '2026',
+      '開立月份': '9',
+      '開立日期': '2026-09-09',
+      '款項性質': '專案款',
+      '業務組別': 'Power&EPC'
+    },
+    {
+      _ragicId: 'INV-2607',
+      'Sales Person': 'Sophie',
+      '專案編號': 'PRJ-26-SP01',
+      '已開發票金額 (NTD)': 3339510,
+      '本幣未稅金額': 3339510,
+      '開立年份': '2026',
+      '專案年份': '2026',
+      '開立月份': '9',
+      '開立日期': '2026-09-06',
+      '款項性質': '專案款',
+      '業務組別': 'NonPower'
+    }
+  ];
+
   return {
     current_cases: mockCases,
     orders: mockOrders,
     targets: mockTargets,
+    invoices: mockInvoices,
     snapshots: []
   };
 }
@@ -793,6 +891,25 @@ const targetMapping = {
   'year': '年份'
 };
 
+// # [READY_FOR_REVIEW] - 專案開立發票欄位對齊
+const invoiceMapping = {
+  'sales person': 'Sales Person',
+  'salesperson': 'Sales Person',
+  'execution target': 'Execution Target',
+  'yearly execution achieved': 'Yearly Execution Achieved',
+  '專案編號': '專案編號',
+  '已開發票金額 (ntd)': '已開發票金額 (NTD)',
+  '已開發票金額': '已開發票金額 (NTD)',
+  '開立年份': '開立年份',
+  '專案年份': '專案年份',
+  '開立月份': '開立月份',
+  '開立日期': '開立日期',
+  '本幣未稅金額': '本幣未稅金額',
+  '款項性質': '款項性質',
+  '業務組別': '業務組別',
+  'group': '業務組別'
+};
+
 function normalizeObjectKeys(obj, keyMapping) {
   if (!obj || typeof obj !== 'object') return obj;
   const newObj = {};
@@ -820,6 +937,7 @@ async function fetchData(forceRefresh = false) {
       appState.cases = (data.current_cases || []).map(o => normalizeObjectKeys(o, caseMapping));
       appState.orders = (data.orders || []).map(o => normalizeObjectKeys(o, orderMapping));
       appState.targets = (data.targets || []).map(o => normalizeObjectKeys(o, targetMapping));
+      appState.invoices = (data.invoices || []).map(o => normalizeObjectKeys(o, invoiceMapping));
       appState.snapshots = data.snapshots || [];
       syncRosterWithData();
     } else {
@@ -831,6 +949,7 @@ async function fetchData(forceRefresh = false) {
     appState.cases = realData.current_cases;
     appState.orders = realData.orders;
     appState.targets = realData.targets;
+    appState.invoices = realData.invoices || [];
     appState.snapshots = realData.snapshots;
     syncRosterWithData();
   } finally {
@@ -1728,6 +1847,54 @@ function renderYtdSummaryReport(container, kpiContainer) {
     const targetEbtRate = salesTarget > 0 ? (ebtTarget / salesTarget * 100) : 10;
     const achEbtRate = salesBooked > 0 ? (ebtBooked / salesBooked * 100) : 0;
 
+    // # [READY_FOR_REVIEW] - 專案開立發票 (Execution Target & Achieved)
+    let execTarget = 0;
+    if (memName === 'Charlie') {
+      if (targetGroup === 'Non Power') {
+        execTarget = (tRow && parseNumber(tRow['Execution Target (NP)'])) || 4367909;
+      } else {
+        execTarget = (tRow && parseNumber(tRow['Execution Target (P)'])) || 147829104;
+      }
+    } else if (memName === 'Canni') {
+      execTarget = (tRow && parseNumber(tRow['Execution Target'] || tRow['execTarget'])) || 72732508;
+    } else if (memName === 'Hayashi') {
+      execTarget = (tRow && parseNumber(tRow['Execution Target'] || tRow['execTarget'])) || 121974521;
+    } else if (memName === 'Shawn') {
+      execTarget = (tRow && parseNumber(tRow['Execution Target'] || tRow['execTarget'])) || 144888955;
+    } else if (memName === 'Yen') {
+      execTarget = (tRow && parseNumber(tRow['Execution Target'] || tRow['execTarget'])) || 12422486;
+    } else if (memName === 'Sophie') {
+      execTarget = (tRow && parseNumber(tRow['Execution Target'] || tRow['execTarget'])) || 65443403;
+    } else {
+      execTarget = tRow ? parseNumber(tRow['Execution Target'] || tRow['execTarget']) : 0;
+    }
+
+    // 篩選當年度且業務姓名相符之發票；若為 Charlie，依據發票的業務組別嚴格分流
+    const memInvoices = (appState.invoices || []).filter(inv => {
+      const yr = (inv['開立年份'] || inv['invoiceYear'] || inv['年份'] || getYearFromDateStr(inv['開立日期'] || '')).toString().trim();
+      if (yr && selectedYear && yr !== selectedYear) return false;
+
+      const invSales = normalizeOwnerName(inv['Sales Person'] || inv['salesPerson'] || inv['owner'] || '');
+      if (invSales !== memName) return false;
+
+      if (memName === 'Charlie') {
+        const invGroup = (inv['業務組別'] || inv['group'] || '').toString().toLowerCase();
+        if (targetGroup === 'Non Power') {
+          return invGroup.includes('non') || invGroup.includes('nonpower');
+        } else {
+          return invGroup.includes('power') || invGroup.includes('epc') || invGroup.includes('mto');
+        }
+      }
+      return true;
+    });
+
+    const execAchieved = memInvoices.reduce((sum, inv) => {
+      const amt = parseNumber(inv['已開發票金額 (NTD)'] || inv['本幣未稅金額'] || inv['amount'] || 0);
+      return sum + amt;
+    }, 0);
+
+    const execAchRate = execTarget > 0 ? (execAchieved / execTarget * 100) : 0;
+
     return {
       team: targetGroup,
       name: memName,
@@ -1740,7 +1907,10 @@ function renderYtdSummaryReport(container, kpiContainer) {
       ebtAch,
       targetEbtRate,
       achEbtRate,
-      orderQty
+      orderQty,
+      execTarget,
+      execAchieved,
+      execAchRate
     };
   }
 
@@ -1758,6 +1928,8 @@ function renderYtdSummaryReport(container, kpiContainer) {
     const eTarget = rows.reduce((s, r) => s + r.ebtTarget, 0);
     const eBooked = rows.reduce((s, r) => s + r.ebtBooked, 0);
     const qty = rows.reduce((s, r) => s + r.orderQty, 0);
+    const exTarget = rows.reduce((s, r) => s + (r.execTarget || 0), 0);
+    const exAchieved = rows.reduce((s, r) => s + (r.execAchieved || 0), 0);
     return {
       salesTarget: sTarget,
       salesBooked: sBooked,
@@ -1767,7 +1939,10 @@ function renderYtdSummaryReport(container, kpiContainer) {
       ebtAch: eTarget > 0 ? (eBooked / eTarget * 100) : 0,
       targetEbtRate: sTarget > 0 ? (eTarget / sTarget * 100) : 10,
       achEbtRate: sBooked > 0 ? (eBooked / sBooked * 100) : 0,
-      orderQty: qty
+      orderQty: qty,
+      execTarget: exTarget,
+      execAchieved: exAchieved,
+      execAchRate: exTarget > 0 ? (exAchieved / exTarget * 100) : 0
     };
   }
 
@@ -1835,6 +2010,9 @@ function renderYtdSummaryReport(container, kpiContainer) {
         <td class="col-right num-font" style="color: var(--text-muted);">${formatPercent(r.targetEbtRate, 0)}</td>
         <td class="col-right num-font" style="color: var(--fluids-yellow); font-weight: 600;">${formatPercent(r.achEbtRate, 0)}</td>
         <td class="col-center num-font" style="font-weight: 700;">${r.orderQty}</td>
+        <td class="col-right num-font">${formatNumberWithCommas(r.execTarget, 0)}</td>
+        <td class="col-right num-font" style="font-weight: 700; color: #a78bfa;">${formatNumberWithCommas(r.execAchieved, 0)}</td>
+        <td class="col-right">${renderAchCell(r.execAchRate)}</td>
       </tr>
     `;
   }
@@ -1854,6 +2032,9 @@ function renderYtdSummaryReport(container, kpiContainer) {
           <th class="col-right" style="min-width: 85px;">Target Rate</th>
           <th class="col-right" style="min-width: 85px;">Ach. Rate</th>
           <th class="col-center" style="min-width: 80px;">Order Q'ty</th>
+          <th class="col-right" style="min-width: 120px;">Exec. Target</th>
+          <th class="col-right" style="min-width: 130px;">Exec. Achieved</th>
+          <th class="col-right" style="min-width: 110px;">Exec. Ach.</th>
         </tr>
       </thead>
       <tbody>
@@ -1878,6 +2059,9 @@ function renderYtdSummaryReport(container, kpiContainer) {
         <td class="col-right num-font">${formatPercent(npSubtotal.targetEbtRate, 0)}</td>
         <td class="col-right num-font" style="font-weight: 700;">${formatPercent(npSubtotal.achEbtRate, 0)}</td>
         <td class="col-center num-font" style="font-weight: 700;">${npSubtotal.orderQty}</td>
+        <td class="col-right num-font">${formatNumberWithCommas(npSubtotal.execTarget, 0)}</td>
+        <td class="col-right num-font" style="font-weight: 700; color: #a78bfa;">${formatNumberWithCommas(npSubtotal.execAchieved, 0)}</td>
+        <td class="col-right">${renderAchCell(npSubtotal.execAchRate)}</td>
       </tr>
     `;
   }
@@ -1901,6 +2085,9 @@ function renderYtdSummaryReport(container, kpiContainer) {
         <td class="col-right num-font">${formatPercent(powerSubtotal.targetEbtRate, 0)}</td>
         <td class="col-right num-font" style="font-weight: 700;">${formatPercent(powerSubtotal.achEbtRate, 0)}</td>
         <td class="col-center num-font" style="font-weight: 700;">${powerSubtotal.orderQty}</td>
+        <td class="col-right num-font">${formatNumberWithCommas(powerSubtotal.execTarget, 0)}</td>
+        <td class="col-right num-font" style="font-weight: 700; color: #a78bfa;">${formatNumberWithCommas(powerSubtotal.execAchieved, 0)}</td>
+        <td class="col-right">${renderAchCell(powerSubtotal.execAchRate)}</td>
       </tr>
     `;
   }
@@ -1918,6 +2105,9 @@ function renderYtdSummaryReport(container, kpiContainer) {
         <td class="col-right num-font">${formatPercent(companyTotal.targetEbtRate, 0)}</td>
         <td class="col-right num-font" style="font-weight: 800;">${formatPercent(companyTotal.achEbtRate, 0)}</td>
         <td class="col-center num-font" style="font-weight: 800;">${companyTotal.orderQty}</td>
+        <td class="col-right num-font">${formatNumberWithCommas(companyTotal.execTarget, 0)}</td>
+        <td class="col-right num-font" style="font-weight: 800; color: #c084fc;">${formatNumberWithCommas(companyTotal.execAchieved, 0)}</td>
+        <td class="col-right">${renderAchCell(companyTotal.execAchRate)}</td>
       </tr>
     </tbody>
   </table>
