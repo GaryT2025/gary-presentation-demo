@@ -399,7 +399,7 @@ function renderPrepaidCyclesBoard() {
   if (!container) return;
 
   const yearSelect = document.getElementById('cycleYearSelect');
-  const searchInput = document.getElementById('kanbanQuickSearch') || document.getElementById('cycleMemberSearch');
+  const searchInput = document.getElementById('kanbanQuickSearch');
 
   const targetYear = yearSelect ? yearSelect.value : '2026';
   const keyword = searchInput ? searchInput.value.trim().toLowerCase() : '';
@@ -1200,9 +1200,7 @@ function switchTab(tab) {
   if (tab === 'kanban') {
     kanbanSec.classList.remove('hidden');
     kanbanBtn.className = 'tab-btn active text-base font-semibold pb-2.5 flex items-center gap-2';
-    if (query) {
-      filterKanbanCards(query);
-    }
+    filterKanbanCards(query || '');
   } else if (tab === 'cycles') {
     cyclesSec.classList.remove('hidden');
     cyclesBtn.className = 'tab-btn active text-base font-semibold pb-2.5 flex items-center gap-2';
