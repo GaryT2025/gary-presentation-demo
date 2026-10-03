@@ -203,10 +203,20 @@ function calculatePrepaidCycles(attendanceHistory) {
     .filter(h => h.originStatus === '報名成功' && h.attendanceStatus === '已出席')
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 
+  const seenDates = new Set();
+  const dedupedAttendances = [];
+  for (const item of validAttendances) {
+    if (!item.date) continue;
+    if (!seenDates.has(item.date)) {
+      seenDates.add(item.date);
+      dedupedAttendances.push(item);
+    }
+  }
+
   const cycles = [];
   let currentCycle = null;
 
-  validAttendances.forEach((item, index) => {
+  dedupedAttendances.forEach((item, index) => {
     const cycleIndex = Math.floor(index / 10) + 1;
     const positionInCycle = (index % 10) + 1;
 

@@ -185,7 +185,7 @@
       <div class="flex flex-wrap items-center gap-2.5">
         <div class="relative flex-1 min-w-[180px]">
           <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-soft"></i>
-          <input type="text" id="kanbanQuickSearch" oninput="filterKanbanCards(this.value)" placeholder="快速找球員..." class="w-full h-11 rounded-lg border border-hairline bg-white pl-10 pr-3 text-base text-ink focus:outline-none focus:border-accent">
+          <input type="text" id="kanbanQuickSearch" oninput="onGlobalSearch(this.value)" placeholder="快速找球員（看板與期別履歷同步查找）..." class="w-full h-11 rounded-lg border border-hairline bg-white pl-10 pr-3 text-base text-ink focus:outline-none focus:border-accent">
         </div>
         <div class="flex items-center gap-1.5">
           <button onclick="setLayoutDensity('compact')" id="densityCompactBtn" class="density-btn active h-11 px-3 rounded-lg text-sm font-semibold">緊湊</button>
@@ -283,7 +283,6 @@
             <option value="2025">2025 年</option>
             <option value="all">全部歷史年份</option>
           </select>
-          <input type="text" id="cycleMemberSearch" oninput="renderPrepaidCyclesBoard()" placeholder="搜尋儲值球員..." class="flex-1 min-w-[160px] h-11 rounded-lg border border-hairline bg-white px-3.5 text-base text-ink focus:outline-none focus:border-accent">
           <button id="cycleWarningOnlyBtn" onclick="toggleCycleWarningFilter()" title="切換是否僅顯示餘額 ≤2 次人員" class="h-11 px-3 rounded-lg text-sm font-semibold border border-hairline bg-white text-muted hover:text-warning hover:border-warning/50 transition flex items-center gap-1.5 shrink-0">
             <i class="fa-solid fa-triangle-exclamation"></i> <span>只看告急 (≤2次)</span>
           </button>

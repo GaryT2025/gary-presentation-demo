@@ -399,7 +399,7 @@ function renderPrepaidCyclesBoard() {
   if (!container) return;
 
   const yearSelect = document.getElementById('cycleYearSelect');
-  const searchInput = document.getElementById('cycleMemberSearch');
+  const searchInput = document.getElementById('kanbanQuickSearch') || document.getElementById('cycleMemberSearch');
 
   const targetYear = yearSelect ? yearSelect.value : '2026';
   const keyword = searchInput ? searchInput.value.trim().toLowerCase() : '';
@@ -955,6 +955,12 @@ function createCardElement(item) {
   return card;
 }
 
+// GLOBAL SEARCH: 同時查找今日點名看板與期別履歷
+function onGlobalSearch(query) {
+  filterKanbanCards(query);
+  renderPrepaidCyclesBoard();
+}
+
 // INSTANT PLAYER CARD FILTER
 function filterKanbanCards(query) {
   const cards = document.querySelectorAll('.kanban-card');
@@ -1188,9 +1194,15 @@ function switchTab(tab) {
   kanbanBtn.className = 'tab-btn text-base font-semibold pb-2.5 flex items-center gap-2';
   cyclesBtn.className = 'tab-btn text-base font-semibold pb-2.5 flex items-center gap-2';
 
+  const searchInput = document.getElementById('kanbanQuickSearch');
+  const query = searchInput ? searchInput.value : '';
+
   if (tab === 'kanban') {
     kanbanSec.classList.remove('hidden');
     kanbanBtn.className = 'tab-btn active text-base font-semibold pb-2.5 flex items-center gap-2';
+    if (query) {
+      filterKanbanCards(query);
+    }
   } else if (tab === 'cycles') {
     cyclesSec.classList.remove('hidden');
     cyclesBtn.className = 'tab-btn active text-base font-semibold pb-2.5 flex items-center gap-2';
@@ -1375,7 +1387,7 @@ function locatePlayerInKanban(playerName) {
   const searchInput = document.getElementById('kanbanQuickSearch');
   if (searchInput) {
     searchInput.value = playerName;
-    filterKanbanCards(playerName);
+    onGlobalSearch(playerName);
     searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 }
@@ -1384,7 +1396,7 @@ function locatePlayerInKanban(playerName) {
 function locatePlayerInCycles(playerName) {
   closeLowBalanceModal();
   switchTab('cycles');
-  const searchInput = document.getElementById('cycleMemberSearch');
+  const searchInput = document.getElementById('kanbanQuickSearch');
   if (searchInput) {
     searchInput.value = playerName;
   }
@@ -1393,7 +1405,7 @@ function locatePlayerInCycles(playerName) {
   if (btn) {
     btn.className = 'h-11 px-3 rounded-lg text-sm font-semibold border border-hairline bg-white text-muted hover:text-warning hover:border-warning/50 transition flex items-center gap-1.5 shrink-0';
   }
-  renderPrepaidCyclesBoard();
+  onGlobalSearch(playerName);
   const container = document.getElementById('cyclesGridContainer');
   if (container) {
     container.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1410,9 +1422,9 @@ function viewAllLowBalanceInCycles() {
     btn.className = 'h-11 px-3 rounded-lg text-sm font-semibold border border-warning bg-warning-soft text-warning transition flex items-center gap-1.5 shrink-0 shadow-sm';
     btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> <span>只看告急 (已啟用)</span>';
   }
-  const searchInput = document.getElementById('cycleMemberSearch');
+  const searchInput = document.getElementById('kanbanQuickSearch');
   if (searchInput) searchInput.value = '';
-  renderPrepaidCyclesBoard();
+  onGlobalSearch('');
   const container = document.getElementById('cyclesGridContainer');
   if (container) {
     container.scrollIntoView({ behavior: 'smooth', block: 'start' });
