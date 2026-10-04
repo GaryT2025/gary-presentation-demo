@@ -128,7 +128,7 @@ function triggerIncomeBounce() {
   el.classList.add('income-bounce');
 }
 
-// ===== 人員分類與零打性別邏輯 =====
+// ===== 人員分類與性別邏輯 =====
 function getPlayerCategory(item) {
   const name = item.name;
   if (item.planType === '年繳' || OFFICIAL_YEARLY_MEMBERS.includes(name)) return '年繳';
@@ -138,26 +138,38 @@ function getPlayerCategory(item) {
   return '零打';
 }
 
-function getCasualGender(name, date) {
+function getPlayerGender(name, date) {
   const d = date || currentData.activeDate || 'all';
-  const key = `badminton_gender_${d}_${name}`;
-  return localStorage.getItem(key) || '男'; // 預設為男生
+  // 優先讀取當日特定設定，次優先讀取球員全域設定，預設為男生
+  return localStorage.getItem(`badminton_gender_${d}_${name}`) || localStorage.getItem(`badminton_gender_${name}`) || '男';
 }
 
-function toggleCasualGender(name, event) {
+function getCasualGender(name, date) {
+  return getPlayerGender(name, date);
+}
+
+function togglePlayerGender(name, event) {
   if (event) {
     event.stopPropagation();
     event.preventDefault();
   }
   const d = currentData.activeDate || 'all';
-  const key = `badminton_gender_${d}_${name}`;
-  const currentGender = localStorage.getItem(key) || '男';
+  const currentGender = getPlayerGender(name, d);
   const nextGender = currentGender === '男' ? '女' : '男';
-  localStorage.setItem(key, nextGender);
+  localStorage.setItem(`badminton_gender_${d}_${name}`, nextGender);
+  localStorage.setItem(`badminton_gender_${name}`, nextGender);
 
   renderKanban();
   updateFinancialReport();
-  showToast('性別費用已更新', `${name} 已切換為【${nextGender}生】（$${nextGender === '女' ? 200 : 220}）`, 'blue');
+
+  const dummyItem = (currentData.attendance || []).find(it => it.name === name);
+  const cat = dummyItem ? getPlayerCategory(dummyItem) : '零打';
+  const feeMsg = cat === '零打' ? `（收費 $${nextGender === '女' ? 200 : 220}）` : '';
+  showToast('性別已更新', `${name} 已切換為【${nextGender}生】${nextGender === '女' ? '（紅字）' : '（藍字）'}${feeMsg}`, nextGender === '女' ? 'rose' : 'blue');
+}
+
+function toggleCasualGender(name, event) {
+  return togglePlayerGender(name, event);
 }
 
 function getPlayerFee(category, gender) {
@@ -1482,23 +1494,9 @@ function createCardElement(item) {
     ? `<span class="bg-danger text-white text-xs font-bold px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap">近1月未到${item.noshowCount}次</span>`
     : '';
 
-  // 費用徽章與零打即時切換性別按鈕
-  let feeBadge = '';
-  if (category === '年繳') {
-    feeBadge = `<span class="text-xs font-semibold px-2 py-0.5 rounded bg-purple-100 text-purple-800 shrink-0 whitespace-nowrap">👑 年繳 $200</span>`;
-  } else if (category === '月繳') {
-    feeBadge = `<span class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 shrink-0 whitespace-nowrap">月繳 $200</span>`;
-  } else if (category === '儲值') {
-    feeBadge = `<span class="text-xs font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-800 shrink-0 whitespace-nowrap">💳 儲值 $200</span>`;
-  } else {
-    // 零打 (男 220, 女 200，支援即時點擊切換性別並自動記憶)
-    const gender = getCasualGender(item.name, currentData.activeDate);
-    if (gender === '女') {
-      feeBadge = `<button type="button" onclick="toggleCasualGender('${item.name}', event)" class="text-xs font-bold px-2 py-0.5 rounded bg-pink-100 text-pink-700 hover:bg-pink-200 active:scale-95 transition flex items-center gap-1 shrink-0 whitespace-nowrap cursor-pointer shadow-sm" title="點擊切換為男生 ($220)"><i class="fa-solid fa-venus"></i> ♀ 女 $200</button>`;
-    } else {
-      feeBadge = `<button type="button" onclick="toggleCasualGender('${item.name}', event)" class="text-xs font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 active:scale-95 transition flex items-center gap-1 shrink-0 whitespace-nowrap cursor-pointer shadow-sm" title="點擊切換為女生 ($200)"><i class="fa-solid fa-mars"></i> ♂ 男 $220</button>`;
-    }
-  }
+  // 性別顏色：男藍色、女紅色，預設為男生
+  const gender = getPlayerGender(item.name, currentData.activeDate);
+  const nameColorClass = gender === '女' ? 'text-rose-600' : 'text-blue-600';
 
   let actionButtons = '';
   if (isAdmin && (item.status === '已報名' || item.status === '報名成功')) {
@@ -1541,8 +1539,7 @@ function createCardElement(item) {
       <div class="flex items-center gap-1.5 overflow-hidden min-w-0 flex-1">
         ${checkboxHtml}
         ${planStyle.dot}
-        <span onclick="openMemberModal('${item.name}')" class="font-semibold text-ink text-base truncate active:text-accent-strong cursor-pointer">${item.name}</span>
-        ${feeBadge}
+        <span onclick="togglePlayerGender('${item.name}', event)" class="font-bold ${nameColorClass} text-base truncate cursor-pointer hover:opacity-80 active:scale-95 transition" title="點擊切換性別 (目前: ${gender}生)">${item.name}</span>
         ${blacklistBadge}
       </div>
       <div class="flex items-center gap-1 shrink-0">
