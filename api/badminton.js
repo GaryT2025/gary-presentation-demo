@@ -10,6 +10,7 @@ export const maxDuration = 60;
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const ATTENDANCE_DB_ID = process.env.NOTION_ATTENDANCE_DB_ID;
 const MEMBERS_DB_ID = process.env.NOTION_MEMBERS_DB_ID;
+const FINANCE_DB_ID = process.env.NOTION_FINANCE_DB_ID || '3efe2c8bd278809ba96ad72e390d1adc';
 
 const NOTION_HEADERS = {
   'Authorization': `Bearer ${NOTION_TOKEN}`,
@@ -1077,6 +1078,170 @@ export default async function handler(req, res) {
       });
 
       return res.status(200).json({ success: true, pageId, date });
+    }
+
+    // 7. POST api/finance/save
+    if (req.method === 'POST' && path === 'finance/save') {
+      const {
+        date,
+        actualIncome,
+        expectedIncome,
+        attendedCount,
+        totalCount,
+        courtRate,
+        courtHours,
+        courtFee,
+        shuttleCount,
+        shuttleCost,
+        shuttleFee,
+        totalExpense,
+        netProfit,
+        breakdownText
+      } = req.body || {};
+
+      if (!date) {
+        return res.status(400).json({ success: false, error: 'Missing date parameter' });
+      }
+
+      // 檢查是否已有該日期的頁面
+      const queryRes = await fetch(`https://api.notion.com/v1/databases/${FINANCE_DB_ID}/query`, {
+        method: 'POST',
+        headers: NOTION_HEADERS,
+        body: JSON.stringify({
+          filter: {
+            property: '日期',
+            date: { equals: date }
+          }
+        })
+      });
+
+      if (!queryRes.ok) {
+        const errText = await queryRes.text();
+        throw new Error(`Notion Query Error (${queryRes.status}): ${errText}`);
+      }
+
+      const queryData = await queryRes.json();
+      let existingPageId = queryData.results && queryData.results.length > 0 ? queryData.results[0].id : null;
+
+      const properties = {
+        'Name': { title: [{ text: { content: `${date}` } }] },
+        '日期': { date: { start: date } },
+        '實收收入': { number: Number(actualIncome) || 0 },
+        '預估應收': { number: Number(expectedIncome) || 0 },
+        '出席人數': { number: Number(attendedCount) || 0 },
+        '報名人數': { number: Number(totalCount) || 0 },
+        '每小時場租': { number: Number(courtRate) || 0 },
+        '場地時數': { number: Number(courtHours) || 0 },
+        '場地費': { number: Number(courtFee) || 0 },
+        '用球數': { number: Number(shuttleCount) || 0 },
+        '單球成本': { number: Number(shuttleCost) || 0 },
+        '球費支出': { number: Number(shuttleFee) || 0 },
+        '總支出': { number: Number(totalExpense) || 0 },
+        '今日結餘': { number: Number(netProfit) || 0 },
+        '人員明細': { rich_text: [{ text: { content: breakdownText || '' } }] }
+      };
+
+      if (existingPageId) {
+        await updateNotionPage(existingPageId, properties);
+        return res.status(200).json({ success: true, updated: true, pageId: existingPageId });
+      } else {
+        const newPage = await createNotionPage(FINANCE_DB_ID, properties);
+        return res.status(200).json({ success: true, updated: false, pageId: newPage.id });
+      }
+    }
+
+    // 8. GET api/finance/get
+    if (req.method === 'GET' && path === 'finance/get') {
+      const targetDate = req.query.date;
+      if (!targetDate) {
+        return res.status(400).json({ success: false, error: 'Missing date parameter' });
+      }
+
+      const queryRes = await fetch(`https://api.notion.com/v1/databases/${FINANCE_DB_ID}/query`, {
+        method: 'POST',
+        headers: NOTION_HEADERS,
+        body: JSON.stringify({
+          filter: {
+            property: '日期',
+            date: { equals: targetDate }
+          }
+        })
+      });
+
+      if (!queryRes.ok) {
+        const errText = await queryRes.text();
+        throw new Error(`Notion Query Error (${queryRes.status}): ${errText}`);
+      }
+
+      const queryData = await queryRes.json();
+      if (!queryData.results || queryData.results.length === 0) {
+        return res.status(200).json({ success: true, record: null });
+      }
+
+      const page = queryData.results[0];
+      const p = page.properties || {};
+
+      const record = {
+        id: page.id,
+        date: p['日期']?.date?.start || targetDate,
+        name: getPlainText(p['Name']),
+        actualIncome: p['實收收入']?.number ?? 0,
+        expectedIncome: p['預估應收']?.number ?? 0,
+        attendedCount: p['出席人數']?.number ?? 0,
+        totalCount: p['報名人數']?.number ?? 0,
+        courtRate: p['每小時場租']?.number ?? 0,
+        courtHours: p['場地時數']?.number ?? 0,
+        courtFee: p['場地費']?.number ?? 0,
+        shuttleCount: p['用球數']?.number ?? 0,
+        shuttleCost: p['單球成本']?.number ?? 0,
+        shuttleFee: p['球費支出']?.number ?? 0,
+        totalExpense: p['總支出']?.number ?? 0,
+        netProfit: p['今日結餘']?.number ?? 0,
+        breakdownText: getPlainText(p['人員明細'])
+      };
+
+      return res.status(200).json({ success: true, record });
+    }
+
+    // 9. GET api/finance/month
+    if (req.method === 'GET' && path === 'finance/month') {
+      const targetMonth = req.query.month; // e.g. "2026-10"
+      if (!targetMonth) {
+        return res.status(400).json({ success: false, error: 'Missing month parameter' });
+      }
+
+      const allPages = await queryAllNotionDatabase(FINANCE_DB_ID);
+
+      const records = [];
+      for (const page of allPages) {
+        const p = page.properties || {};
+        const d = p['日期']?.date?.start ? p['日期'].date.start.slice(0, 10) : getPlainText(p['Name']);
+        if (d && d.startsWith(targetMonth)) {
+          records.push({
+            id: page.id,
+            date: d,
+            name: getPlainText(p['Name']),
+            actualIncome: p['實收收入']?.number ?? 0,
+            expectedIncome: p['預估應收']?.number ?? 0,
+            attendedCount: p['出席人數']?.number ?? 0,
+            totalCount: p['報名人數']?.number ?? 0,
+            courtRate: p['每小時場租']?.number ?? 0,
+            courtHours: p['場地時數']?.number ?? 0,
+            courtFee: p['場地費']?.number ?? 0,
+            shuttleCount: p['用球數']?.number ?? 0,
+            shuttleCost: p['單球成本']?.number ?? 0,
+            shuttleFee: p['球費支出']?.number ?? 0,
+            totalExpense: p['總支出']?.number ?? 0,
+            netProfit: p['今日結餘']?.number ?? 0,
+            breakdownText: getPlainText(p['人員明細'])
+          });
+        }
+      }
+
+      // 按日期升冪排序
+      records.sort((a, b) => (a.date > b.date ? 1 : -1));
+
+      return res.status(200).json({ success: true, month: targetMonth, records });
     }
 
     return res.status(404).json({ success: false, error: `Route not found: ${req.method} ${path}` });

@@ -1,6 +1,542 @@
+// [PASSED_BY_QA]
 let currentData = { attendance: [], members: [], availableDates: [], activeDate: '', prepaidCyclesMap: {}, funBanners: {} };
 let layoutDensity = 'compact'; // 'compact' or 'normal'
 let cycleWarningOnly = false;
+
+// ===== 固定名單與收費常數 =====
+const OFFICIAL_YEARLY_MEMBERS = ['小鄭', '阿峻', '蘇聯', '賴董', '誠仁'];
+const OFFICIAL_MONTHLY_MEMBERS = ['富哥', '福哥', '光廷', '阿娟', '小洪', '年興'];
+const OFFICIAL_PREPAID_MEMBERS = [
+  '糖果寶', '淑湘', '賓哥', 'Sam', '小潘', '小卉', '為欽', '羽辰',
+  '世昌', '文和', '智文', '浩騰', 'Justin', '進宗', '庭偉', '柏村',
+  '昆疆', '牧民', 'Gary', '弘峻', '慶鴻', '柳大神', '俊佳'
+];
+
+// ===== Web Audio API 金幣音效合成器 =====
+let audioCtx = null;
+function getAudioContext() {
+  if (!audioCtx) {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (AudioCtx) {
+      audioCtx = new AudioCtx();
+    }
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+  return audioCtx;
+}
+
+function isSoundEnabled() {
+  return localStorage.getItem('badminton_sound_enabled') !== 'false';
+}
+
+function toggleSound() {
+  const current = isSoundEnabled();
+  const next = !current;
+  localStorage.setItem('badminton_sound_enabled', String(next));
+  updateSoundUI();
+  if (next) {
+    playCashSound();
+    showToast('音效已開啟', '報到時將播放金幣入帳音效 💰', 'emerald');
+  } else {
+    showToast('已靜音', '報到入帳音效已關閉', 'blue');
+  }
+}
+
+function updateSoundUI() {
+  const enabled = isSoundEnabled();
+  const icon = document.getElementById('soundIcon');
+  const text = document.getElementById('soundText');
+  const btn = document.getElementById('soundToggleBtn');
+  if (icon) {
+    icon.className = enabled ? 'fa-solid fa-volume-high text-accent' : 'fa-solid fa-volume-xmark text-muted';
+  }
+  if (text) {
+    text.innerText = enabled ? '音效開' : '靜音';
+  }
+  if (btn) {
+    btn.title = enabled ? '金幣音效：已開啟（點擊靜音）' : '金幣音效：已靜音（點擊開啟）';
+  }
+}
+
+function playCashSound() {
+  if (!isSoundEnabled()) return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+
+    // 第一音 (Sine): 988Hz 快速滑升至 1318Hz (高音叮噹)
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(988, now);
+    osc1.frequency.exponentialRampToValueAtTime(1318, now + 0.08);
+    gain1.gain.setValueAtTime(0.28, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.35);
+
+    // 第二音 (Triangle): 1318Hz 滑升至 1568Hz，雙音堆疊出金屬清脆收銀機質感
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(1318, now + 0.07);
+    osc2.frequency.exponentialRampToValueAtTime(1568, now + 0.16);
+    gain2.gain.setValueAtTime(0.22, now + 0.07);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(now + 0.07);
+    osc2.stop(now + 0.45);
+  } catch (err) {
+    console.warn('[Audio] 金幣音效播放未成功 (可能需使用者互動):', err);
+  }
+}
+
+// 報到時浮動金幣標籤
+function showFloatingIncome(fee, targetEl) {
+  if (!targetEl) return;
+  const rect = targetEl.getBoundingClientRect();
+  const badge = document.createElement('div');
+  badge.className = 'floating-income-badge';
+  badge.innerText = typeof fee === 'number' ? `+NT$ ${fee} 💸` : `${fee}`;
+
+  const x = rect.left + rect.width / 2;
+  const y = rect.top;
+  badge.style.left = `${x}px`;
+  badge.style.top = `${y}px`;
+
+  document.body.appendChild(badge);
+  setTimeout(() => {
+    if (badge && badge.parentNode) {
+      badge.parentNode.removeChild(badge);
+    }
+  }, 900);
+}
+
+// 實收收入跳動動畫
+function triggerIncomeBounce() {
+  const el = document.getElementById('financeActualIncome');
+  if (!el) return;
+  el.classList.remove('income-bounce');
+  void el.offsetWidth;
+  el.classList.add('income-bounce');
+}
+
+// ===== 人員分類與零打性別邏輯 =====
+function getPlayerCategory(item) {
+  const name = item.name;
+  if (item.planType === '年繳' || OFFICIAL_YEARLY_MEMBERS.includes(name)) return '年繳';
+  if (item.planType === '月繳' || OFFICIAL_MONTHLY_MEMBERS.includes(name)) return '月繳';
+  if (item.planType === '零打') return '零打';
+  if (item.memberPageId || OFFICIAL_PREPAID_MEMBERS.includes(name)) return '儲值';
+  return '零打';
+}
+
+function getCasualGender(name, date) {
+  const d = date || currentData.activeDate || 'all';
+  const key = `badminton_gender_${d}_${name}`;
+  return localStorage.getItem(key) || '男'; // 預設為男生
+}
+
+function toggleCasualGender(name, event) {
+  if (event) {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+  const d = currentData.activeDate || 'all';
+  const key = `badminton_gender_${d}_${name}`;
+  const currentGender = localStorage.getItem(key) || '男';
+  const nextGender = currentGender === '男' ? '女' : '男';
+  localStorage.setItem(key, nextGender);
+
+  renderKanban();
+  updateFinancialReport();
+  showToast('性別費用已更新', `${name} 已切換為【${nextGender}生】（$${nextGender === '女' ? 200 : 220}）`, 'blue');
+}
+
+function getPlayerFee(category, gender) {
+  if (category === '年繳' || category === '月繳') return 200;
+  if (category === '儲值') return 200;
+  return gender === '女' ? 200 : 220;
+}
+
+function getPlayerCategoryPriority(category) {
+  switch (category) {
+    case '年繳': return 1;
+    case '月繳': return 2;
+    case '儲值': return 3;
+    case '零打': return 4;
+    default: return 5;
+  }
+}
+
+// ===== 每日財報設定持久化與計算邏輯 =====
+function getFinanceStorageKey(date) {
+  return `badminton_finance_${date || currentData.activeDate || 'default'}`;
+}
+
+function loadFinanceSettings(date) {
+  const key = getFinanceStorageKey(date);
+  const saved = localStorage.getItem(key);
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch (e) { }
+  }
+  return {
+    hourlyRate: 300,
+    courtHours: 13,
+    shuttleCount: 12,
+    shuttlePrice: 71
+  };
+}
+
+function saveCurrentFinanceSettings() {
+  const date = currentData.activeDate || 'default';
+  const hourlyRate = parseFloat(document.getElementById('inputHourlyRate')?.value) || 0;
+  const courtHours = parseFloat(document.getElementById('inputCourtHours')?.value) || 0;
+  const shuttleCount = parseInt(document.getElementById('inputShuttleCount')?.value, 10) || 0;
+  const shuttlePrice = parseFloat(document.getElementById('inputShuttlePrice')?.value) || 0;
+
+  const settings = { hourlyRate, courtHours, shuttleCount, shuttlePrice };
+  localStorage.setItem(getFinanceStorageKey(date), JSON.stringify(settings));
+}
+
+function initFinanceInputs(date) {
+  const s = loadFinanceSettings(date);
+  const hourlyEl = document.getElementById('inputHourlyRate');
+  const courtEl = document.getElementById('inputCourtHours');
+  const countEl = document.getElementById('inputShuttleCount');
+  const priceEl = document.getElementById('inputShuttlePrice');
+
+  if (hourlyEl) hourlyEl.value = s.hourlyRate ?? 300;
+  if (courtEl) courtEl.value = s.courtHours ?? 13;
+  if (countEl) countEl.value = s.shuttleCount ?? 12;
+  if (priceEl) priceEl.value = s.shuttlePrice ?? 71;
+
+  const dateBadge = document.getElementById('financeDateBadge');
+  if (dateBadge) {
+    dateBadge.innerText = (date && date !== 'all') ? date : '全部歷史結算';
+  }
+}
+
+function onFinanceInputChange() {
+  saveCurrentFinanceSettings();
+  updateFinancialReport();
+}
+
+function setQuickHours(hours) {
+  const input = document.getElementById('inputCourtHours');
+  if (input) {
+    input.value = hours;
+    onFinanceInputChange();
+  }
+}
+
+function toggleFinanceSettings() {
+  const panel = document.getElementById('financeSettingsPanel');
+  if (!panel) return;
+  const isHidden = panel.classList.toggle('hidden');
+  localStorage.setItem('badminton_finance_settings_open', String(!isHidden));
+}
+
+function updateFinancialReport() {
+  const list = currentData.attendance || [];
+  const date = currentData.activeDate || 'all';
+
+  let yearlyCount = 0, yearlyAttended = 0;
+  let monthlyCount = 0, monthlyAttended = 0;
+  let prepaidCount = 0, prepaidAttended = 0;
+  let casualMaleCount = 0, casualMaleAttended = 0;
+  let casualFemaleCount = 0, casualFemaleAttended = 0;
+
+  let totalExpectedIncome = 0;
+  let totalActualIncome = 0;
+  let attendedTotal = 0;
+
+  list.forEach(item => {
+    const cat = getPlayerCategory(item);
+    const isAttended = item.status === '已出席';
+    if (isAttended) attendedTotal++;
+
+    let fee = 200;
+    if (cat === '年繳') {
+      yearlyCount++;
+      if (isAttended) yearlyAttended++;
+      fee = 200;
+    } else if (cat === '月繳') {
+      monthlyCount++;
+      if (isAttended) monthlyAttended++;
+      fee = 200;
+    } else if (cat === '儲值') {
+      prepaidCount++;
+      if (isAttended) prepaidAttended++;
+      fee = 200;
+    } else {
+      const gender = getCasualGender(item.name, date);
+      if (gender === '女') {
+        casualFemaleCount++;
+        if (isAttended) casualFemaleAttended++;
+        fee = 200;
+      } else {
+        casualMaleCount++;
+        if (isAttended) casualMaleAttended++;
+        fee = 220;
+      }
+    }
+
+    totalExpectedIncome += fee;
+    if (isAttended) {
+      totalActualIncome += fee;
+    }
+  });
+
+  const hourlyRate = parseFloat(document.getElementById('inputHourlyRate')?.value) || 0;
+  const courtHours = parseFloat(document.getElementById('inputCourtHours')?.value) || 0;
+  const shuttleCount = parseInt(document.getElementById('inputShuttleCount')?.value, 10) || 0;
+  const shuttlePrice = parseFloat(document.getElementById('inputShuttlePrice')?.value) || 0;
+
+  const courtFee = Math.round(hourlyRate * courtHours);
+  const shuttleFee = Math.round(shuttleCount * shuttlePrice);
+  const totalExpense = courtFee + shuttleFee;
+  const netProfit = totalActualIncome - totalExpense;
+
+  const courtSubEl = document.getElementById('courtFeeSubtotalText');
+  if (courtSubEl) courtSubEl.innerText = `小計: $${courtFee.toLocaleString()}`;
+  const shuttleSubEl = document.getElementById('shuttleFeeSubtotalText');
+  if (shuttleSubEl) shuttleSubEl.innerText = `小計: $${shuttleFee.toLocaleString()}`;
+
+  const actualIncomeEl = document.getElementById('financeActualIncome');
+  const actualSubEl = document.getElementById('financeActualSubtext');
+  if (actualIncomeEl) actualIncomeEl.innerText = `$${totalActualIncome.toLocaleString()}`;
+  if (actualSubEl) actualSubEl.innerText = `已出席 ${attendedTotal} 人 / 應收 $${totalExpectedIncome.toLocaleString()}`;
+
+  const expIncomeEl = document.getElementById('financeExpectedIncome');
+  const expSubEl = document.getElementById('financeExpectedSubtext');
+  if (expIncomeEl) expIncomeEl.innerText = `$${totalExpectedIncome.toLocaleString()}`;
+  if (expSubEl) expSubEl.innerText = `總報名 ${list.length} 人`;
+
+  const expenseEl = document.getElementById('financeTotalExpense');
+  const expBreakdownEl = document.getElementById('financeExpenseBreakdown');
+  if (expenseEl) expenseEl.innerText = `$${totalExpense.toLocaleString()}`;
+  if (expBreakdownEl) expBreakdownEl.innerText = `場地 $${courtFee.toLocaleString()} · 球費 $${shuttleFee.toLocaleString()}`;
+
+  const profitEl = document.getElementById('financeNetProfit');
+  const profitStatusEl = document.getElementById('financeProfitStatus');
+  const profitDotEl = document.getElementById('financeProfitDot');
+
+  if (profitEl) {
+    if (netProfit >= 0) {
+      profitEl.innerText = `+$${netProfit.toLocaleString()}`;
+      profitEl.className = 'text-2xl sm:text-3xl font-black text-accent-strong mt-1 transition-all duration-200';
+      if (profitStatusEl) {
+        profitStatusEl.innerText = netProfit === 0 ? '損益平衡 ($0)' : `盈餘 +$${netProfit.toLocaleString()}`;
+        profitStatusEl.className = 'text-xs font-semibold text-accent-strong mt-1 truncate';
+      }
+      if (profitDotEl) profitDotEl.className = 'w-2 h-2 rounded-full bg-accent';
+    } else {
+      profitEl.innerText = `-$${Math.abs(netProfit).toLocaleString()}`;
+      profitEl.className = 'text-2xl sm:text-3xl font-black text-danger mt-1 transition-all duration-200';
+      if (profitStatusEl) {
+        profitStatusEl.innerText = `赤字虧損 -$${Math.abs(netProfit).toLocaleString()}`;
+        profitStatusEl.className = 'text-xs font-semibold text-danger mt-1 truncate';
+      }
+      if (profitDotEl) profitDotEl.className = 'w-2 h-2 rounded-full bg-danger';
+    }
+  }
+
+  const yEl = document.getElementById('breakdownYearly');
+  if (yEl) yEl.innerText = `👑 年繳: ${yearlyCount}人 (已到${yearlyAttended}人) · $200`;
+
+  const pEl = document.getElementById('breakdownPrepaid');
+  if (pEl) pEl.innerText = `💳 儲值: ${prepaidCount}人 (已到${prepaidAttended}人) · $200`;
+
+  const cmEl = document.getElementById('breakdownCasualMale');
+  if (cmEl) cmEl.innerText = `🏸 零打(男): ${casualMaleCount}人 (已到${casualMaleAttended}人) · $220`;
+
+  const cfEl = document.getElementById('breakdownCasualFemale');
+  if (cfEl) cfEl.innerText = `🏸 零打(女): ${casualFemaleCount}人 (已到${casualFemaleAttended}人) · $200`;
+}
+
+// ===== 每日財報 Notion 持久化與同步 =====
+function getCurrentFinanceData() {
+  const list = currentData.attendance || [];
+  const date = currentData.activeDate;
+  let yearlyCount = 0, yearlyAttended = 0;
+  let monthlyCount = 0, monthlyAttended = 0;
+  let prepaidCount = 0, prepaidAttended = 0;
+  let casualMaleCount = 0, casualMaleAttended = 0;
+  let casualFemaleCount = 0, casualFemaleAttended = 0;
+  let totalExpectedIncome = 0;
+  let totalActualIncome = 0;
+  let attendedTotal = 0;
+
+  list.forEach(item => {
+    const cat = getPlayerCategory(item);
+    const isAttended = item.status === '已出席';
+    if (isAttended) attendedTotal++;
+
+    let fee = 200;
+    if (cat === '年繳') {
+      yearlyCount++;
+      if (isAttended) yearlyAttended++;
+      fee = 200;
+    } else if (cat === '月繳') {
+      monthlyCount++;
+      if (isAttended) monthlyAttended++;
+      fee = 200;
+    } else if (cat === '儲值') {
+      prepaidCount++;
+      if (isAttended) prepaidAttended++;
+      fee = 200;
+    } else {
+      const gender = getCasualGender(item.name, date);
+      if (gender === '女') {
+        casualFemaleCount++;
+        if (isAttended) casualFemaleAttended++;
+        fee = 200;
+      } else {
+        casualMaleCount++;
+        if (isAttended) casualMaleAttended++;
+        fee = 220;
+      }
+    }
+
+    totalExpectedIncome += fee;
+    if (isAttended) totalActualIncome += fee;
+  });
+
+  const courtRate = parseFloat(document.getElementById('inputHourlyRate')?.value) || 0;
+  const courtHours = parseFloat(document.getElementById('inputCourtHours')?.value) || 0;
+  const shuttleCount = parseInt(document.getElementById('inputShuttleCount')?.value, 10) || 0;
+  const shuttleCost = parseFloat(document.getElementById('inputShuttlePrice')?.value) || 0;
+
+  const courtFee = Math.round(courtRate * courtHours);
+  const shuttleFee = Math.round(shuttleCount * shuttleCost);
+  const totalExpense = courtFee + shuttleFee;
+  const netProfit = totalActualIncome - totalExpense;
+
+  const breakdownParts = [];
+  if (yearlyCount > 0) breakdownParts.push(`年繳 ${yearlyCount}人(到${yearlyAttended})`);
+  if (monthlyCount > 0) breakdownParts.push(`月繳 ${monthlyCount}人(到${monthlyAttended})`);
+  if (prepaidCount > 0) breakdownParts.push(`儲值 ${prepaidCount}人(到${prepaidAttended})`);
+  if (casualMaleCount > 0) breakdownParts.push(`零打男 ${casualMaleCount}人(到${casualMaleAttended})`);
+  if (casualFemaleCount > 0) breakdownParts.push(`零打女 ${casualFemaleCount}人(到${casualFemaleAttended})`);
+  const breakdownText = breakdownParts.join(' · ');
+
+  return {
+    date,
+    actualIncome: totalActualIncome,
+    expectedIncome: totalExpectedIncome,
+    attendedCount: attendedTotal,
+    totalCount: list.length,
+    courtRate,
+    courtHours,
+    courtFee,
+    shuttleCount,
+    shuttleCost,
+    shuttleFee,
+    totalExpense,
+    netProfit,
+    breakdownText
+  };
+}
+
+async function saveFinanceToNotion() {
+  if (!isAdmin) {
+    showToast('需要管理者權限', '請先點擊右上角鎖頭登入管理者，再儲存財報至 Notion', 'rose');
+    handleAdminAuthClick();
+    return;
+  }
+
+  const fData = getCurrentFinanceData();
+  if (!fData.date || fData.date === 'all') {
+    showToast('無法儲存', '請先在日期下拉選單中選定特定羽球日！', 'rose');
+    return;
+  }
+
+  const btn = document.getElementById('saveFinanceBtn');
+  const btnText = document.getElementById('saveFinanceBtnText');
+  const icon = document.getElementById('saveFinanceIcon');
+  const originalText = btnText ? btnText.innerText : '儲存至 Notion';
+
+  if (btn) btn.disabled = true;
+  if (btnText) btnText.innerText = '儲存中...';
+  if (icon) icon.className = 'fa-solid fa-spinner fa-spin text-accent';
+
+  try {
+    const res = await fetch('api/finance/save', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(fData)
+    });
+
+    const data = await res.json();
+    if (res.status === 401) {
+      forceLogout(data.error);
+      return;
+    }
+
+    if (data.success) {
+      showToast('已同步至 Notion', `【${fData.date}】財報已成功儲存至 Notion 每日報表！`, 'emerald');
+      const syncBadge = document.getElementById('notionSyncBadge');
+      if (syncBadge) syncBadge.classList.remove('hidden');
+      if (currentMonthlyRecords && currentMonthlyRecords.length > 0) {
+        fetchMonthlyFinance();
+      }
+    } else {
+      showToast('儲存失敗', data.error || '無法寫入 Notion 資料庫', 'rose');
+    }
+  } catch (err) {
+    showToast('連線錯誤', '無法連線至後端伺服器', 'rose');
+  } finally {
+    if (btn) btn.disabled = false;
+    if (btnText) btnText.innerText = originalText;
+    if (icon) icon.className = 'fa-solid fa-cloud-arrow-up text-accent';
+  }
+}
+
+async function fetchDailyFinanceRecord(date) {
+  const syncBadge = document.getElementById('notionSyncBadge');
+  if (!date || date === 'all') {
+    if (syncBadge) syncBadge.classList.add('hidden');
+    return;
+  }
+
+  try {
+    const res = await fetch(`api/finance/get?date=${encodeURIComponent(date)}`);
+    const data = await res.json();
+
+    if (data.success && data.record) {
+      const r = data.record;
+      const hourlyEl = document.getElementById('inputHourlyRate');
+      const courtEl = document.getElementById('inputCourtHours');
+      const countEl = document.getElementById('inputShuttleCount');
+      const priceEl = document.getElementById('inputShuttlePrice');
+
+      if (hourlyEl && r.courtRate != null && r.courtRate > 0) hourlyEl.value = r.courtRate;
+      if (courtEl && r.courtHours != null && r.courtHours > 0) courtEl.value = r.courtHours;
+      if (countEl && r.shuttleCount != null && r.shuttleCount > 0) countEl.value = r.shuttleCount;
+      if (priceEl && r.shuttleCost != null && r.shuttleCost > 0) priceEl.value = r.shuttleCost;
+
+      saveCurrentFinanceSettings();
+      updateFinancialReport();
+
+      if (syncBadge) syncBadge.classList.remove('hidden');
+    } else {
+      if (syncBadge) syncBadge.classList.add('hidden');
+    }
+  } catch (e) {
+    console.warn('[Finance] 無法載入歷史財報設定:', e);
+    if (syncBadge) syncBadge.classList.add('hidden');
+  }
+}
 
 // ===== Admin auth state (D-01, D-06) =====
 let adminToken = '';
@@ -11,6 +547,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load-bearing ordering: initAuthState() must run first, before
   // applyAdminVisibility() and before fetchAttendance().
   initAuthState();
+  updateSoundUI();
+
+  // 讀取設定面板展開偏好
+  const settingsOpen = localStorage.getItem('badminton_finance_settings_open');
+  const panel = document.getElementById('financeSettingsPanel');
+  if (panel && settingsOpen === 'false') {
+    panel.classList.add('hidden');
+  }
 
   const dateDropdown = document.getElementById('dateSelectDropdown');
 
@@ -20,6 +564,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Apply admin gating & Fetch Data
   applyAdminVisibility();
+  initMonthlyDateSelector();
   fetchAttendance();
 });
 
@@ -190,13 +735,16 @@ async function fetchAttendance(selectedDate = '') {
       currentData.activeDate = data.activeDate || '';
       currentData.availableDates = data.availableDates || [];
 
+      initFinanceInputs(currentData.activeDate);
       renderDateDropdown();
       renderKanban();
       updateKPIs();
+      updateFinancialReport();
       clearBatchSelection();
 
       // 背景非同步載入年度/月度指標榜與儲值期別履歷
       fetchStats();
+      fetchDailyFinanceRecord(currentData.activeDate);
     } else {
       showToast('錯誤', data.error || '無法讀取 Notion 資料', 'rose');
     }
@@ -820,7 +1368,7 @@ function setLayoutDensity(density) {
   renderKanban();
 }
 
-// Render Kanban Cards
+// Render Kanban Cards (依照 👑 年繳 ➔ 💳 儲值 ➔ 🏸 零打 排序)
 function renderKanban() {
   const pendingCol = document.getElementById('colPending');
   const attendedCol = document.getElementById('colAttended');
@@ -832,7 +1380,17 @@ function renderKanban() {
 
   let countPending = 0, countAttended = 0, countNoshow = 0;
 
-  currentData.attendance.forEach(item => {
+  // 依類別排序：👑 年繳 (1) ➔ 💳 儲值 (3) [月繳 2] ➔ 🏸 零打 (4)（同類別依姓名排序）
+  const sortedList = [...currentData.attendance].sort((a, b) => {
+    const catA = getPlayerCategory(a);
+    const catB = getPlayerCategory(b);
+    const prioA = getPlayerCategoryPriority(catA);
+    const prioB = getPlayerCategoryPriority(catB);
+    if (prioA !== prioB) return prioA - prioB;
+    return a.name.localeCompare(b.name, 'zh-Hant');
+  });
+
+  sortedList.forEach(item => {
     const cardHtml = createCardElement(item);
 
     if (item.status === '已出席') {
@@ -857,32 +1415,53 @@ function renderKanban() {
   }
 }
 
-// Helper: Get Plan Type Color Dot & Left Bar Color (kept hue identity: 年繳=purple, 月繳=green, 儲值=amber)
-function getPlanStyle(planType) {
-  if (planType === '年繳') {
+// Helper: 取得人員方案/分類色標與左側邊條 (年繳=purple, 月繳=green, 儲值=amber, 零打=blue)
+function getPlanStyle(category) {
+  if (category === '年繳') {
     return {
       dot: `<span style="background-color: #6d3fa0; width: 10px; height: 10px; min-width: 10px; border-radius: 9999px; display: inline-block;" title="年繳"></span>`,
       barColor: '#6d3fa0'
     };
   }
-  if (planType === '月繳') {
+  if (category === '月繳') {
     return {
       dot: `<span style="background-color: #1f7a54; width: 10px; height: 10px; min-width: 10px; border-radius: 9999px; display: inline-block;" title="月繳"></span>`,
       barColor: '#1f7a54'
     };
   }
-  // 儲值 (Prepaid)
+  if (category === '儲值') {
+    return {
+      dot: `<span style="background-color: #a3620c; width: 10px; height: 10px; min-width: 10px; border-radius: 9999px; display: inline-block;" title="儲值"></span>`,
+      barColor: '#a3620c'
+    };
+  }
+  // 零打 (Casual)
   return {
-    dot: `<span style="background-color: #a3620c; width: 10px; height: 10px; min-width: 10px; border-radius: 9999px; display: inline-block;" title="儲值"></span>`,
-    barColor: '#a3620c'
+    dot: `<span style="background-color: #2563a8; width: 10px; height: 10px; min-width: 10px; border-radius: 9999px; display: inline-block;" title="零打"></span>`,
+    barColor: '#2563a8'
   };
+}
+
+// 點擊「已到」事件處理：觸發金幣音效、浮動數字特效、跳動動畫與狀態寫入
+function handleAttendClick(pageId, memberPageId, currentStatus, name, btnElement, event) {
+  const dummyItem = (currentData.attendance || []).find(it => it.id === pageId) || { name };
+  const cat = getPlayerCategory(dummyItem);
+  const gender = getCasualGender(name, currentData.activeDate);
+  const fee = getPlayerFee(cat, gender);
+
+  playCashSound();
+  showFloatingIncome(fee, btnElement || event?.target);
+  triggerIncomeBounce();
+
+  updateStatus(pageId, '已出席', memberPageId, currentStatus);
 }
 
 // Create Kanban Card DOM Element
 function createCardElement(item) {
   const card = document.createElement('div');
   const isCompact = layoutDensity === 'compact';
-  const planStyle = getPlanStyle(item.planType);
+  const category = getPlayerCategory(item);
+  const planStyle = getPlanStyle(category);
 
   card.className = `kanban-card card rounded-lg transition-all duration-150 relative cursor-grab active:cursor-grabbing ${isCompact ? 'py-2 px-2.5' : 'py-2.5 px-3'
     }`;
@@ -897,15 +1476,34 @@ function createCardElement(item) {
   card.dataset.name = item.name;
   card.dataset.memberpageid = item.memberPageId || '';
   card.dataset.status = item.status;
+  card.dataset.category = category;
 
   const blacklistBadge = item.isBlacklisted
-    ? `<span class="bg-danger text-white text-sm font-bold px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap">近1月未到${item.noshowCount}次</span>`
+    ? `<span class="bg-danger text-white text-xs font-bold px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap">近1月未到${item.noshowCount}次</span>`
     : '';
+
+  // 費用徽章與零打即時切換性別按鈕
+  let feeBadge = '';
+  if (category === '年繳') {
+    feeBadge = `<span class="text-xs font-semibold px-2 py-0.5 rounded bg-purple-100 text-purple-800 shrink-0 whitespace-nowrap">👑 年繳 $200</span>`;
+  } else if (category === '月繳') {
+    feeBadge = `<span class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 shrink-0 whitespace-nowrap">月繳 $200</span>`;
+  } else if (category === '儲值') {
+    feeBadge = `<span class="text-xs font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-800 shrink-0 whitespace-nowrap">💳 儲值 $200</span>`;
+  } else {
+    // 零打 (男 220, 女 200，支援即時點擊切換性別並自動記憶)
+    const gender = getCasualGender(item.name, currentData.activeDate);
+    if (gender === '女') {
+      feeBadge = `<button type="button" onclick="toggleCasualGender('${item.name}', event)" class="text-xs font-bold px-2 py-0.5 rounded bg-pink-100 text-pink-700 hover:bg-pink-200 active:scale-95 transition flex items-center gap-1 shrink-0 whitespace-nowrap cursor-pointer shadow-sm" title="點擊切換為男生 ($220)"><i class="fa-solid fa-venus"></i> ♀ 女 $200</button>`;
+    } else {
+      feeBadge = `<button type="button" onclick="toggleCasualGender('${item.name}', event)" class="text-xs font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 active:scale-95 transition flex items-center gap-1 shrink-0 whitespace-nowrap cursor-pointer shadow-sm" title="點擊切換為女生 ($200)"><i class="fa-solid fa-mars"></i> ♂ 男 $220</button>`;
+    }
+  }
 
   let actionButtons = '';
   if (isAdmin && (item.status === '已報名' || item.status === '報名成功')) {
     actionButtons = `
-      <button onclick="updateStatus('${item.id}', '已出席', '${item.memberPageId}', '${item.status}')" title="點名出席" class="h-9 px-2.5 rounded-md text-sm font-semibold text-accent-strong bg-success-soft active:bg-accent active:text-white transition">
+      <button onclick="handleAttendClick('${item.id}', '${item.memberPageId}', '${item.status}', '${item.name}', this, event)" title="點名出席" class="h-9 px-2.5 rounded-md text-sm font-semibold text-accent-strong bg-success-soft active:bg-accent active:text-white transition">
         <i class="fa-solid fa-check"></i> 已到
       </button>
       <button onclick="updateStatus('${item.id}', '未到', '${item.memberPageId}', '${item.status}')" title="標記未到" class="h-9 px-2.5 rounded-md text-sm font-semibold text-danger bg-danger-soft active:bg-danger active:text-white transition">
@@ -923,7 +1521,7 @@ function createCardElement(item) {
     `;
   } else if (isAdmin && (item.status === '未到' || item.status === '放鳥')) {
     actionButtons = `
-      <button onclick="updateStatus('${item.id}', '已出席', '${item.memberPageId}', '${item.status}')" title="改為出席" class="h-9 px-2.5 rounded-md text-sm font-semibold text-accent-strong bg-success-soft active:bg-accent active:text-white transition">
+      <button onclick="handleAttendClick('${item.id}', '${item.memberPageId}', '${item.status}', '${item.name}', this, event)" title="改為出席" class="h-9 px-2.5 rounded-md text-sm font-semibold text-accent-strong bg-success-soft active:bg-accent active:text-white transition">
         改已到
       </button>
       <button onclick="updateStatus('${item.id}', '已報名', '${item.memberPageId}', '${item.status}')" title="重設狀態" class="h-9 px-2.5 rounded-md text-sm font-semibold text-muted bg-surface active:bg-surface-strong transition">
@@ -940,10 +1538,11 @@ function createCardElement(item) {
 
   card.innerHTML = `
     <div class="flex items-center justify-between gap-1.5">
-      <div class="flex items-center gap-2 overflow-hidden min-w-0">
+      <div class="flex items-center gap-1.5 overflow-hidden min-w-0 flex-1">
         ${checkboxHtml}
         ${planStyle.dot}
-        <span onclick="openMemberModal('${item.name}')" class="font-semibold text-ink text-base truncate flex-1 min-w-0 active:text-accent-strong cursor-pointer">${item.name}</span>
+        <span onclick="openMemberModal('${item.name}')" class="font-semibold text-ink text-base truncate active:text-accent-strong cursor-pointer">${item.name}</span>
+        ${feeBadge}
         ${blacklistBadge}
       </div>
       <div class="flex items-center gap-1 shrink-0">
@@ -1007,6 +1606,8 @@ async function quickAllAttend() {
     const data = await res.json();
 
     if (data.success) {
+      playCashSound();
+      triggerIncomeBounce();
       showToast('一鍵點名完成！', `全場 ${data.updatedCount} 位球員成功標記【已到】`, 'emerald');
       const activeDate = document.getElementById('dateSelectDropdown').value;
       fetchAttendance(activeDate);
@@ -1076,6 +1677,10 @@ async function executeBatchAction(targetStatus) {
     const data = await res.json();
 
     if (data.success) {
+      if (targetStatus === '已出席') {
+        playCashSound();
+        triggerIncomeBounce();
+      }
       showToast('批次點名成功！', `成功將 ${data.updatedCount} 位球員標記為【${targetStatus}】`, 'emerald');
       const activeDate = document.getElementById('dateSelectDropdown').value;
       fetchAttendance(activeDate);
@@ -1184,28 +1789,207 @@ function closeMemberModal() {
 function switchTab(tab) {
   const kanbanSec = document.getElementById('tabKanban');
   const cyclesSec = document.getElementById('tabCycles');
+  const monthlySec = document.getElementById('tabMonthly');
 
   const kanbanBtn = document.getElementById('tabKanbanBtn');
   const cyclesBtn = document.getElementById('tabCyclesBtn');
+  const monthlyBtn = document.getElementById('tabMonthlyBtn');
 
-  kanbanSec.classList.add('hidden');
-  cyclesSec.classList.add('hidden');
+  if (kanbanSec) kanbanSec.classList.add('hidden');
+  if (cyclesSec) cyclesSec.classList.add('hidden');
+  if (monthlySec) monthlySec.classList.add('hidden');
 
-  kanbanBtn.className = 'tab-btn text-base font-semibold pb-2.5 flex items-center gap-2';
-  cyclesBtn.className = 'tab-btn text-base font-semibold pb-2.5 flex items-center gap-2';
+  if (kanbanBtn) kanbanBtn.className = 'tab-btn text-base font-semibold pb-2.5 flex items-center gap-2 shrink-0';
+  if (cyclesBtn) cyclesBtn.className = 'tab-btn text-base font-semibold pb-2.5 flex items-center gap-2 shrink-0';
+  if (monthlyBtn) monthlyBtn.className = 'tab-btn text-base font-semibold pb-2.5 flex items-center gap-2 shrink-0';
 
   const searchInput = document.getElementById('kanbanQuickSearch');
   const query = searchInput ? searchInput.value : '';
 
   if (tab === 'kanban') {
-    kanbanSec.classList.remove('hidden');
-    kanbanBtn.className = 'tab-btn active text-base font-semibold pb-2.5 flex items-center gap-2';
+    if (kanbanSec) kanbanSec.classList.remove('hidden');
+    if (kanbanBtn) kanbanBtn.className = 'tab-btn active text-base font-semibold pb-2.5 flex items-center gap-2 shrink-0';
     filterKanbanCards(query || '');
   } else if (tab === 'cycles') {
-    cyclesSec.classList.remove('hidden');
-    cyclesBtn.className = 'tab-btn active text-base font-semibold pb-2.5 flex items-center gap-2';
+    if (cyclesSec) cyclesSec.classList.remove('hidden');
+    if (cyclesBtn) cyclesBtn.className = 'tab-btn active text-base font-semibold pb-2.5 flex items-center gap-2 shrink-0';
     renderPrepaidCyclesBoard();
+  } else if (tab === 'monthly') {
+    if (monthlySec) monthlySec.classList.remove('hidden');
+    if (monthlyBtn) monthlyBtn.className = 'tab-btn active text-base font-semibold pb-2.5 flex items-center gap-2 shrink-0';
+    fetchMonthlyFinance();
   }
+}
+
+// ===== 月度財報邏輯 =====
+let currentMonthlyRecords = [];
+let currentMonthlyMonth = '';
+
+function initMonthlyDateSelector() {
+  const yearSelect = document.getElementById('monthlyYearSelect');
+  const monthSelect = document.getElementById('monthlyMonthSelect');
+  const today = new Date();
+  const twNow = new Date(today.getTime() + 8 * 60 * 60 * 1000);
+  const currentYear = twNow.toISOString().slice(0, 4);
+  const currentMonth = twNow.toISOString().slice(5, 7);
+
+  if (yearSelect && !yearSelect.value) yearSelect.value = currentYear;
+  if (monthSelect && !monthSelect.value) monthSelect.value = currentMonth;
+}
+
+function onMonthlyDateChange() {
+  fetchMonthlyFinance();
+}
+
+async function fetchMonthlyFinance() {
+  const yearSelect = document.getElementById('monthlyYearSelect');
+  const monthSelect = document.getElementById('monthlyMonthSelect');
+  if (!yearSelect || !monthSelect) return;
+
+  const y = yearSelect.value;
+  const m = monthSelect.value;
+  const targetMonth = `${y}-${m}`;
+  currentMonthlyMonth = targetMonth;
+
+  const badge = document.getElementById('monthlySelectedBadge');
+  if (badge) badge.innerText = `結算期間: ${targetMonth}`;
+
+  const refreshIcon = document.getElementById('monthlyRefreshIcon');
+  if (refreshIcon) refreshIcon.classList.add('fa-spin');
+
+  try {
+    const res = await fetch(`api/finance/month?month=${encodeURIComponent(targetMonth)}`);
+    const data = await res.json();
+
+    if (data.success) {
+      currentMonthlyRecords = data.records || [];
+      renderMonthlyFinance(currentMonthlyRecords, targetMonth);
+    } else {
+      showToast('月報載入錯誤', data.error || '無法讀取 Notion 月報資料', 'rose');
+    }
+  } catch (err) {
+    console.error('[Monthly Finance Error]', err);
+    showToast('連線失敗', '無法載入月度財報資料', 'rose');
+  } finally {
+    if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+  }
+}
+
+function renderMonthlyFinance(records, monthStr) {
+  const tbody = document.getElementById('monthlyReportTableBody');
+  const emptyState = document.getElementById('monthlyEmptyState');
+  const countBadge = document.getElementById('monthlyRecordsCountBadge');
+
+  if (countBadge) countBadge.innerText = `共 ${records.length} 場`;
+
+  let totalActual = 0;
+  let totalExpense = 0;
+  let totalCourt = 0;
+  let totalShuttle = 0;
+  let totalAttended = 0;
+  let totalRegistered = 0;
+
+  records.forEach(r => {
+    totalActual += (r.actualIncome || 0);
+    totalExpense += (r.totalExpense || 0);
+    totalCourt += (r.courtFee || 0);
+    totalShuttle += (r.shuttleFee || 0);
+    totalAttended += (r.attendedCount || 0);
+    totalRegistered += (r.totalCount || 0);
+  });
+
+  const netProfit = totalActual - totalExpense;
+
+  const actualEl = document.getElementById('monthKpiActualIncome');
+  const actualSub = document.getElementById('monthKpiActualSubtext');
+  if (actualEl) actualEl.innerText = `$${totalActual.toLocaleString()}`;
+  if (actualSub) actualSub.innerText = `共 ${records.length} 場次記錄`;
+
+  const expEl = document.getElementById('monthKpiTotalExpense');
+  const expSub = document.getElementById('monthKpiExpenseSubtext');
+  if (expEl) expEl.innerText = `$${totalExpense.toLocaleString()}`;
+  if (expSub) expSub.innerText = `場地 $${totalCourt.toLocaleString()} · 球費 $${totalShuttle.toLocaleString()}`;
+
+  const profitEl = document.getElementById('monthKpiNetProfit');
+  const profitStatus = document.getElementById('monthKpiProfitStatus');
+  const profitDot = document.getElementById('monthKpiProfitDot');
+  if (profitEl) {
+    if (netProfit >= 0) {
+      profitEl.innerText = `+$${netProfit.toLocaleString()}`;
+      profitEl.className = 'text-2xl sm:text-3xl font-black text-accent-strong mt-1 transition-all duration-200';
+      if (profitStatus) {
+        profitStatus.innerText = netProfit === 0 ? '損益平衡 ($0)' : `淨盈餘 +$${netProfit.toLocaleString()}`;
+        profitStatus.className = 'text-xs font-semibold text-accent-strong mt-1 truncate';
+      }
+      if (profitDot) profitDot.className = 'w-2 h-2 rounded-full bg-accent';
+    } else {
+      profitEl.innerText = `-$${Math.abs(netProfit).toLocaleString()}`;
+      profitEl.className = 'text-2xl sm:text-3xl font-black text-danger mt-1 transition-all duration-200';
+      if (profitStatus) {
+        profitStatus.innerText = `赤字虧損 -$${Math.abs(netProfit).toLocaleString()}`;
+        profitStatus.className = 'text-xs font-semibold text-danger mt-1 truncate';
+      }
+      if (profitDot) profitDot.className = 'w-2 h-2 rounded-full bg-danger';
+    }
+  }
+
+  const attendedEl = document.getElementById('monthKpiAttendedCount');
+  const attendedSub = document.getElementById('monthKpiAttendedSubtext');
+  if (attendedEl) attendedEl.innerText = `${totalAttended} 人次`;
+  if (attendedSub) attendedSub.innerText = `總報名 ${totalRegistered} 人次`;
+
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  if (records.length === 0) {
+    if (emptyState) emptyState.classList.remove('hidden');
+    return;
+  }
+
+  if (emptyState) emptyState.classList.add('hidden');
+
+  records.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.className = 'hover:bg-surface/50 transition-colors';
+
+    const isProfitable = (r.netProfit || 0) >= 0;
+    const profitClass = isProfitable ? 'text-accent-strong font-bold' : 'text-danger font-bold';
+    const profitText = (r.netProfit || 0) >= 0 ? `+$${(r.netProfit || 0).toLocaleString()}` : `-$${Math.abs(r.netProfit || 0).toLocaleString()}`;
+
+    tr.innerHTML = `
+      <td class="p-3 font-semibold text-ink whitespace-nowrap">
+        <span class="inline-flex items-center gap-1.5">
+          <i class="fa-regular fa-calendar text-accent"></i> ${r.date}
+        </span>
+      </td>
+      <td class="p-3 whitespace-nowrap">
+        <span class="font-semibold text-accent-strong">${r.attendedCount}</span>
+        <span class="text-muted">/ ${r.totalCount} 人</span>
+      </td>
+      <td class="p-3 text-right font-semibold text-ink whitespace-nowrap">$${(r.actualIncome || 0).toLocaleString()}</td>
+      <td class="p-3 text-right text-muted whitespace-nowrap">$${(r.courtFee || 0).toLocaleString()}</td>
+      <td class="p-3 text-right text-muted whitespace-nowrap">$${(r.shuttleFee || 0).toLocaleString()}</td>
+      <td class="p-3 text-right font-medium text-ink whitespace-nowrap">$${(r.totalExpense || 0).toLocaleString()}</td>
+      <td class="p-3 text-right ${profitClass} whitespace-nowrap">${profitText}</td>
+      <td class="p-3 text-muted max-w-xs truncate" title="${r.breakdownText || ''}">${r.breakdownText || '-'}</td>
+      <td class="p-3 text-center whitespace-nowrap">
+        <button onclick="jumpToKanbanDate('${r.date}')" class="px-2.5 py-1 rounded bg-surface hover:bg-surface-strong text-accent-strong font-semibold text-xs border border-hairline transition" title="切換至該日點名看板">
+          查看看板
+        </button>
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+}
+
+function jumpToKanbanDate(targetDate) {
+  const dateDropdown = document.getElementById('dateSelectDropdown');
+  if (dateDropdown) {
+    dateDropdown.value = targetDate;
+  }
+  switchTab('kanban');
+  fetchAttendance(targetDate);
 }
 
 // Global Toast Alert

@@ -49,6 +49,48 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
   <link rel="stylesheet" href="style.css">
+  <style>
+    @keyframes floatIncome {
+      0% {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(0.9);
+      }
+      50% {
+        opacity: 1;
+        transform: translate(-50%, -26px) scale(1.15);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50px) scale(1);
+      }
+    }
+
+    .floating-income-badge {
+      position: fixed;
+      pointer-events: none;
+      z-index: 99999;
+      font-weight: 800;
+      font-size: 0.875rem;
+      padding: 5px 12px;
+      border-radius: 9999px;
+      background-color: #16603f;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(22, 96, 63, 0.4);
+      animation: floatIncome 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      letter-spacing: -0.01em;
+    }
+
+    @keyframes incomeBounceAnim {
+      0% { transform: scale(1); }
+      30% { transform: scale(1.22); color: #16603f; }
+      60% { transform: scale(0.96); }
+      100% { transform: scale(1); }
+    }
+
+    .income-bounce {
+      animation: incomeBounceAnim 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+  </style>
 </head>
 <body class="font-sans bg-canvas text-ink min-h-screen">
 
@@ -110,6 +152,146 @@
       <div onclick="openLowBalanceModal()" class="card rounded-xl p-4 cursor-pointer hover:border-warning/80 hover:shadow-md transition active:scale-[0.98]" title="點擊查看儲值快用完名單">
         <p class="text-sm font-medium text-muted">儲值快用完(&le;2次)</p>
         <h3 id="statWarning" class="text-4xl font-bold text-warning mt-1">0</h3>
+      </div>
+    </section>
+
+    <!-- 每日收支財報 (Daily Financial Report) -->
+    <section class="card rounded-xl p-4 space-y-4 border border-hairline bg-surface/40">
+      <!-- 標題與工具按鈕 -->
+      <div class="flex flex-wrap items-center justify-between gap-2.5">
+        <div class="flex items-center gap-2">
+          <span class="text-xl shrink-0">💵</span>
+          <div class="flex items-center gap-2 flex-wrap">
+            <h2 class="text-base font-bold text-ink tracking-tight">每日收支財報</h2>
+            <span id="financeDateBadge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-surface-strong text-muted border border-hairline/80">當日結算</span>
+            <span id="notionSyncBadge" class="hidden text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center gap-1">
+              <i class="fa-solid fa-cloud-check text-emerald-600"></i>已同步至 Notion
+            </span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <button id="saveFinanceBtn" onclick="saveFinanceToNotion()" class="h-9 px-3 rounded-lg border border-hairline bg-white text-xs font-semibold text-accent-strong hover:bg-surface-strong active:bg-surface transition flex items-center gap-1.5 shadow-sm" title="將今日財報儲存至 Notion 每日報表">
+            <i class="fa-solid fa-cloud-arrow-up text-accent" id="saveFinanceIcon"></i>
+            <span id="saveFinanceBtnText">儲存至 Notion</span>
+          </button>
+          <button id="soundToggleBtn" onclick="toggleSound()" class="h-9 px-3 rounded-lg border border-hairline bg-white text-xs font-semibold text-muted hover:text-ink active:bg-surface transition flex items-center gap-1.5 shadow-sm" title="點擊切換報到入帳音效">
+            <i id="soundIcon" class="fa-solid fa-volume-high text-accent"></i>
+            <span id="soundText">音效開</span>
+          </button>
+          <button onclick="toggleFinanceSettings()" class="h-9 px-3 rounded-lg border border-hairline bg-white text-xs font-semibold text-muted hover:text-ink active:bg-surface transition flex items-center gap-1.5 shadow-sm" title="展開或收合支出設定">
+            <i class="fa-solid fa-sliders text-muted"></i>
+            <span>支出設定</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 大核心 KPI 數據卡片 -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <!-- 實收收入 -->
+        <div class="card rounded-xl p-3.5 bg-white border border-hairline shadow-sm relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-muted">實收收入 (已到)</span>
+            <span class="w-2 h-2 rounded-full bg-accent"></span>
+          </div>
+          <h3 id="financeActualIncome" class="text-2xl sm:text-3xl font-black text-accent-strong mt-1 transition-all duration-200">$0</h3>
+          <p id="financeActualSubtext" class="text-xs text-muted mt-1 truncate">已出席 0 人</p>
+        </div>
+
+        <!-- 預估應收 -->
+        <div class="card rounded-xl p-3.5 bg-white border border-hairline shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-muted">預估應收 (全額)</span>
+            <span class="w-2 h-2 rounded-full bg-info"></span>
+          </div>
+          <h3 id="financeExpectedIncome" class="text-2xl sm:text-3xl font-bold text-ink mt-1">$0</h3>
+          <p id="financeExpectedSubtext" class="text-xs text-muted mt-1 truncate">總報名 0 人</p>
+        </div>
+
+        <!-- 總支出 -->
+        <div class="card rounded-xl p-3.5 bg-white border border-hairline shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-muted">總支出 (場地+球)</span>
+            <span class="w-2 h-2 rounded-full bg-warning"></span>
+          </div>
+          <h3 id="financeTotalExpense" class="text-2xl sm:text-3xl font-bold text-ink mt-1">$0</h3>
+          <p id="financeExpenseBreakdown" class="text-xs text-muted mt-1 truncate">場地 $0 · 球費 $0</p>
+        </div>
+
+        <!-- 今日結餘 -->
+        <div class="card rounded-xl p-3.5 bg-white border border-hairline shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-muted">今日結餘 (淨盈虧)</span>
+            <span id="financeProfitDot" class="w-2 h-2 rounded-full bg-accent"></span>
+          </div>
+          <h3 id="financeNetProfit" class="text-2xl sm:text-3xl font-black text-accent-strong mt-1">$0</h3>
+          <p id="financeProfitStatus" class="text-xs font-medium text-accent-strong mt-1 truncate">損益平衡</p>
+        </div>
+      </div>
+
+      <!-- 人員類別概況與收費標準條 -->
+      <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-hairline text-xs font-medium">
+        <span class="text-muted shrink-0 flex items-center gap-1"><i class="fa-solid fa-users text-muted-soft"></i> 人員明細:</span>
+        <span class="px-2.5 py-1 rounded-md bg-purple-50 text-purple-700 border border-purple-200/60 font-semibold" id="breakdownYearly">👑 年繳: 0人 (已到0人) · $200</span>
+        <span class="px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 border border-amber-200/60 font-semibold" id="breakdownPrepaid">💳 儲值: 0人 (已到0人) · $200</span>
+        <span class="px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-200/60 font-semibold" id="breakdownCasualMale">🏸 零打(男): 0人 (已到0人) · $220</span>
+        <span class="px-2.5 py-1 rounded-md bg-pink-50 text-pink-700 border border-pink-200/60 font-semibold" id="breakdownCasualFemale">🏸 零打(女): 0人 (已到0人) · $200</span>
+      </div>
+
+      <!-- 支出設定折疊面板 (預設可展開或收合，依 activeDate 自動記憶) -->
+      <div id="financeSettingsPanel" class="bg-surface/80 rounded-lg p-3.5 border border-hairline space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold text-ink uppercase tracking-wide flex items-center gap-1.5">
+            <i class="fa-solid fa-calculator text-accent"></i> 支出費用設定（依所選日期個別記憶）
+          </h3>
+          <span class="text-[11px] text-muted-soft">數值變動立即即時保存與重算</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          <!-- 場地費設定 -->
+          <div class="space-y-2 bg-white p-3 rounded-lg border border-hairline shadow-sm">
+            <div class="flex items-center justify-between text-xs font-semibold text-ink">
+              <span class="flex items-center gap-1.5"><i class="fa-solid fa-landmark text-accent"></i> 場地費設定</span>
+              <span class="text-accent-strong font-bold" id="courtFeeSubtotalText">小計: $3,900</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <label for="inputHourlyRate" class="block text-muted mb-1 text-[11px]">每小時租金 (元/h)</label>
+                <input type="number" id="inputHourlyRate" value="300" min="0" step="10" oninput="onFinanceInputChange()" class="w-full h-9 px-2.5 rounded-lg border border-hairline bg-canvas text-ink font-semibold focus:outline-none focus:border-accent">
+              </div>
+              <div>
+                <label for="inputCourtHours" class="block text-muted mb-1 text-[11px]">總時數 (小時)</label>
+                <input type="number" id="inputCourtHours" value="13" min="0" step="0.5" oninput="onFinanceInputChange()" class="w-full h-9 px-2.5 rounded-lg border border-hairline bg-canvas text-ink font-semibold focus:outline-none focus:border-accent">
+              </div>
+            </div>
+            <!-- 快速時數按鈕 -->
+            <div class="flex flex-wrap items-center gap-1.5 pt-1">
+              <span class="text-[11px] text-muted">快速時數：</span>
+              <button type="button" onclick="setQuickHours(13)" class="text-[11px] font-medium px-2 py-1 rounded bg-surface hover:bg-surface-strong text-ink border border-hairline active:scale-95 transition">4場(2場3.5h+2場3h=13h)</button>
+              <button type="button" onclick="setQuickHours(12)" class="text-[11px] font-medium px-2 py-1 rounded bg-surface hover:bg-surface-strong text-ink border border-hairline active:scale-95 transition">4場各3h(12h)</button>
+              <button type="button" onclick="setQuickHours(9)" class="text-[11px] font-medium px-2 py-1 rounded bg-surface hover:bg-surface-strong text-ink border border-hairline active:scale-95 transition">3場各3h(9h)</button>
+            </div>
+          </div>
+
+          <!-- 用球費用設定 -->
+          <div class="space-y-2 bg-white p-3 rounded-lg border border-hairline shadow-sm">
+            <div class="flex items-center justify-between text-xs font-semibold text-ink">
+              <span class="flex items-center gap-1.5"><i class="fa-solid fa-baseball text-warning"></i> 用球費用設定</span>
+              <span class="text-accent-strong font-bold" id="shuttleFeeSubtotalText">小計: $852</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <label for="inputShuttleCount" class="block text-muted mb-1 text-[11px]">今日用球數 (顆)</label>
+                <input type="number" id="inputShuttleCount" value="12" min="0" step="1" oninput="onFinanceInputChange()" class="w-full h-9 px-2.5 rounded-lg border border-hairline bg-canvas text-ink font-semibold focus:outline-none focus:border-accent">
+              </div>
+              <div>
+                <label for="inputShuttlePrice" class="block text-muted mb-1 text-[11px]">每顆球成本 (元/顆)</label>
+                <input type="number" id="inputShuttlePrice" value="71" min="0" step="1" oninput="onFinanceInputChange()" class="w-full h-9 px-2.5 rounded-lg border border-hairline bg-canvas text-ink font-semibold focus:outline-none focus:border-accent">
+              </div>
+            </div>
+            <p class="text-[11px] text-muted-soft pt-1">
+              標準單筒 12 顆，每球預設 71 元（可依當日拆開使用球數隨時修訂）。
+            </p>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -176,12 +358,15 @@
 
     <!-- Tabs + Search + Density -->
     <div class="space-y-3">
-      <div class="flex items-center gap-6 border-b border-hairline">
-        <button id="tabKanbanBtn" onclick="switchTab('kanban')" class="tab-btn active text-base font-semibold pb-2.5 flex items-center gap-2">
+      <div class="flex items-center gap-6 border-b border-hairline overflow-x-auto">
+        <button id="tabKanbanBtn" onclick="switchTab('kanban')" class="tab-btn active text-base font-semibold pb-2.5 flex items-center gap-2 shrink-0">
           <i class="fa-solid fa-border-all"></i> 今日點名
         </button>
-        <button id="tabCyclesBtn" onclick="switchTab('cycles')" class="tab-btn text-base font-semibold pb-2.5 flex items-center gap-2">
+        <button id="tabCyclesBtn" onclick="switchTab('cycles')" class="tab-btn text-base font-semibold pb-2.5 flex items-center gap-2 shrink-0">
           <i class="fa-solid fa-arrows-spin"></i> 期別履歷
+        </button>
+        <button id="tabMonthlyBtn" onclick="switchTab('monthly')" class="tab-btn text-base font-semibold pb-2.5 flex items-center gap-2 shrink-0">
+          <i class="fa-solid fa-calendar-days"></i> 📆 月度財報
         </button>
       </div>
 
@@ -293,6 +478,139 @@
 
         <div id="cyclesGridContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
           <!-- Dynamic Member Cycle Cards -->
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 3: MONTHLY FINANCIAL REPORT (月度財報) -->
+    <section id="tabMonthly" class="hidden space-y-4">
+      <div class="card rounded-xl p-4 space-y-4">
+
+        <div class="flex flex-wrap items-start justify-between gap-3 border-b border-hairline pb-3.5">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xl">📆</span>
+              <h2 class="text-lg font-semibold text-ink">月度財務結算報表</h2>
+            </div>
+            <p class="text-sm text-muted mt-1">彙總 Notion 每日財報歷史資料，呈現單月收支盈虧與出場明細。</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="fetchMonthlyFinance()" class="h-9 px-3 rounded-lg border border-hairline bg-white text-xs font-semibold text-muted hover:text-ink active:bg-surface transition flex items-center gap-1.5 shadow-sm" title="重新載入當月資料">
+              <i class="fa-solid fa-rotate text-accent" id="monthlyRefreshIcon"></i>
+              <span>重新整理</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 月份選擇器 -->
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-1.5">
+            <label for="monthlyYearSelect" class="text-xs font-semibold text-muted">年份</label>
+            <select id="monthlyYearSelect" onchange="onMonthlyDateChange()" class="h-10 rounded-lg border border-hairline bg-white px-3 text-sm font-semibold text-ink focus:outline-none focus:border-accent">
+              <option value="2026" selected>2026 年</option>
+              <option value="2025">2025 年</option>
+              <option value="2024">2024 年</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            <label for="monthlyMonthSelect" class="text-xs font-semibold text-muted">月份</label>
+            <select id="monthlyMonthSelect" onchange="onMonthlyDateChange()" class="h-10 rounded-lg border border-hairline bg-white px-3 text-sm font-semibold text-ink focus:outline-none focus:border-accent">
+              <option value="01">1 月</option>
+              <option value="02">2 月</option>
+              <option value="03">3 月</option>
+              <option value="04">4 月</option>
+              <option value="05">5 月</option>
+              <option value="06">6 月</option>
+              <option value="07">7 月</option>
+              <option value="08">8 月</option>
+              <option value="09">9 月</option>
+              <option value="10">10 月</option>
+              <option value="11">11 月</option>
+              <option value="12">12 月</option>
+            </select>
+          </div>
+
+          <span id="monthlySelectedBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-surface text-accent-strong border border-hairline">
+            結算期間: 2026-10
+          </span>
+        </div>
+
+        <!-- 月度 4 大核心 KPI 卡片 -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="card rounded-xl p-3.5 bg-white border border-hairline shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-muted">當月總實收</span>
+              <span class="w-2 h-2 rounded-full bg-accent"></span>
+            </div>
+            <h3 id="monthKpiActualIncome" class="text-2xl sm:text-3xl font-black text-accent-strong mt-1">$0</h3>
+            <p id="monthKpiActualSubtext" class="text-xs text-muted mt-1 truncate">共 0 場次記錄</p>
+          </div>
+
+          <div class="card rounded-xl p-3.5 bg-white border border-hairline shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-muted">當月總支出</span>
+              <span class="w-2 h-2 rounded-full bg-warning"></span>
+            </div>
+            <h3 id="monthKpiTotalExpense" class="text-2xl sm:text-3xl font-bold text-ink mt-1">$0</h3>
+            <p id="monthKpiExpenseSubtext" class="text-xs text-muted mt-1 truncate">場地 $0 · 球費 $0</p>
+          </div>
+
+          <div class="card rounded-xl p-3.5 bg-white border border-hairline shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-muted">當月淨盈餘</span>
+              <span id="monthKpiProfitDot" class="w-2 h-2 rounded-full bg-accent"></span>
+            </div>
+            <h3 id="monthKpiNetProfit" class="text-2xl sm:text-3xl font-black text-accent-strong mt-1">$0</h3>
+            <p id="monthKpiProfitStatus" class="text-xs font-medium text-accent-strong mt-1 truncate">損益平衡</p>
+          </div>
+
+          <div class="card rounded-xl p-3.5 bg-white border border-hairline shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-muted">當月出勤人次</span>
+              <span class="w-2 h-2 rounded-full bg-info"></span>
+            </div>
+            <h3 id="monthKpiAttendedCount" class="text-2xl sm:text-3xl font-bold text-ink mt-1">0</h3>
+            <p id="monthKpiAttendedSubtext" class="text-xs text-muted mt-1 truncate">總報名 0 人次</p>
+          </div>
+        </div>
+
+        <!-- 每日明細清單 / 報表格 -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-ink flex items-center gap-1.5">
+              <i class="fa-solid fa-table-list text-accent"></i> 每日財報收支明細
+            </h3>
+            <span id="monthlyRecordsCountBadge" class="text-xs font-medium text-muted">共 0 場</span>
+          </div>
+
+          <div class="overflow-x-auto rounded-lg border border-hairline bg-white shadow-sm">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-surface/80 border-b border-hairline text-muted font-semibold">
+                <tr>
+                  <th class="p-3">場次日期</th>
+                  <th class="p-3">出勤 / 報名</th>
+                  <th class="p-3 text-right">實收收入</th>
+                  <th class="p-3 text-right">場地費</th>
+                  <th class="p-3 text-right">球費</th>
+                  <th class="p-3 text-right">總支出</th>
+                  <th class="p-3 text-right">結餘 (淨盈虧)</th>
+                  <th class="p-3">人員明細</th>
+                  <th class="p-3 text-center">操作</th>
+                </tr>
+              </thead>
+              <tbody id="monthlyReportTableBody" class="divide-y divide-hairline">
+                <!-- 動態注入記錄 -->
+              </tbody>
+            </table>
+          </div>
+
+          <div id="monthlyEmptyState" class="hidden text-center py-10 px-4 bg-surface/30 rounded-lg border border-dashed border-hairline">
+            <p class="text-2xl mb-2">🏸</p>
+            <p class="text-sm font-semibold text-ink">本月份尚無存檔之每日財報紀錄</p>
+            <p class="text-xs text-muted mt-1">請在「今日點名」Tab 選擇該日，並於每日收支財報卡片點擊「儲存至 Notion」進行存檔。</p>
+          </div>
         </div>
 
       </div>
