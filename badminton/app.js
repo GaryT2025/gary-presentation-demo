@@ -138,10 +138,25 @@ function getPlayerCategory(item) {
   return '零打';
 }
 
+const DEFAULT_FEMALE_MEMBERS = new Set([
+  '阿娟', '淑湘', '小卉', '糖果寶', 'jenna', 'Jenna',
+  '蘇聯女友', '蘇聯貴妃2', '李欣', '李欣(月繳-Sun)',
+  '妍', '慧如', 'ANNE', 'Anne', '阿如', '羽辰', '黃羽辰', '燦燦', 'Wing'
+]);
+
 function getPlayerGender(name, date) {
   const d = date || currentData.activeDate || 'all';
-  // 優先讀取當日特定設定，次優先讀取球員全域設定，預設為男生
-  return localStorage.getItem(`badminton_gender_${d}_${name}`) || localStorage.getItem(`badminton_gender_${name}`) || '男';
+  // 1. 優先讀取當日特定設定，次優先讀取球員全域設定 (使用者手動切換過的值)
+  const stored = localStorage.getItem(`badminton_gender_${d}_${name}`) || localStorage.getItem(`badminton_gender_${name}`);
+  if (stored) return stored;
+
+  // 2. 若無手動紀錄，檢查已知固定常客女性清單，或 Notion 會員資料庫性別設定
+  if (DEFAULT_FEMALE_MEMBERS.has(name)) return '女';
+  const mInfo = (currentData.members || []).find(m => m.name === name);
+  if (mInfo && (mInfo.gender === '女' || mInfo.gender === 'Female' || mInfo.gender === 'female')) return '女';
+
+  // 3. 其餘人員預設為男生
+  return '男';
 }
 
 function getCasualGender(name, date) {
@@ -165,7 +180,7 @@ function togglePlayerGender(name, event) {
   const dummyItem = (currentData.attendance || []).find(it => it.name === name);
   const cat = dummyItem ? getPlayerCategory(dummyItem) : '零打';
   const feeMsg = cat === '零打' ? `（收費 $${nextGender === '女' ? 200 : 220}）` : '';
-  showToast('性別已更新', `${name} 已切換為【${nextGender}生】${nextGender === '女' ? '（紅字）' : '（藍字）'}${feeMsg}`, nextGender === '女' ? 'rose' : 'blue');
+  showToast('性別已更新', `${name} 已切換為【${nextGender}生】${nextGender === '女' ? '（紅字）' : '（藍字）'}${feeMsg}`, nextGender === '女' ? 'female' : 'male');
 }
 
 function toggleCasualGender(name, event) {
@@ -476,10 +491,10 @@ async function saveFinanceToNotion() {
   const btn = document.getElementById('saveFinanceBtn');
   const btnText = document.getElementById('saveFinanceBtnText');
   const icon = document.getElementById('saveFinanceIcon');
-  const originalText = btnText ? btnText.innerText : '儲存至 Notion';
+  const originalText = btnText ? btnText.innerText : '💾 儲存日報';
 
   if (btn) btn.disabled = true;
-  if (btnText) btnText.innerText = '儲存中...';
+  if (btnText) btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>儲存中...';
   if (icon) icon.className = 'fa-solid fa-spinner fa-spin text-accent';
 
   try {
@@ -509,8 +524,8 @@ async function saveFinanceToNotion() {
     showToast('連線錯誤', '無法連線至後端伺服器', 'rose');
   } finally {
     if (btn) btn.disabled = false;
-    if (btnText) btnText.innerText = originalText;
-    if (icon) icon.className = 'fa-solid fa-cloud-arrow-up text-accent';
+    if (btnText) btnText.innerText = originalText || '💾 儲存日報';
+    if (icon) icon.className = 'hidden';
   }
 }
 
@@ -1999,12 +2014,29 @@ function showToast(title, msg, color = 'emerald') {
   toastTitle.innerText = title;
   toastMsg.innerText = msg;
 
-  if (color === 'rose') {
-    toastIcon.className = 'fa-solid fa-circle-xmark text-danger text-xl shrink-0';
+  if (color === 'female') {
+    toastIcon.className = 'fa-solid fa-venus text-rose-500 text-xl shrink-0';
     toast.className = 'fixed z-50 toast-box rounded-xl p-3.5 flex items-center gap-3';
-    toast.style.borderLeft = '4px solid var(--danger)';
-  } else if (color === 'blue') {
-    toastIcon.className = 'fa-solid fa-spinner fa-spin text-info text-xl shrink-0';
+    toast.style.borderLeft = '4px solid #f43f5e';
+  } else if (color === 'male') {
+    toastIcon.className = 'fa-solid fa-mars text-blue-500 text-xl shrink-0';
+    toast.className = 'fixed z-50 toast-box rounded-xl p-3.5 flex items-center gap-3';
+    toast.style.borderLeft = '4px solid #3b82f6';
+  } else if (color === 'rose' || color === 'danger' || color === 'error') {
+    if (title.includes('性別') || msg.includes('切換為') || msg.includes('女生')) {
+      toastIcon.className = 'fa-solid fa-venus text-rose-500 text-xl shrink-0';
+      toast.className = 'fixed z-50 toast-box rounded-xl p-3.5 flex items-center gap-3';
+      toast.style.borderLeft = '4px solid #f43f5e';
+    } else {
+      toastIcon.className = 'fa-solid fa-circle-xmark text-danger text-xl shrink-0';
+      toast.className = 'fixed z-50 toast-box rounded-xl p-3.5 flex items-center gap-3';
+      toast.style.borderLeft = '4px solid var(--danger)';
+    }
+  } else if (color === 'blue' || color === 'info') {
+    const isSpinner = msg.includes('處理中') || msg.includes('建立中') || msg.includes('修改中') || msg.includes('儲存中') || msg.includes('扣卡處理');
+    toastIcon.className = isSpinner
+      ? 'fa-solid fa-spinner fa-spin text-info text-xl shrink-0'
+      : 'fa-solid fa-circle-info text-info text-xl shrink-0';
     toast.className = 'fixed z-50 toast-box rounded-xl p-3.5 flex items-center gap-3';
     toast.style.borderLeft = '4px solid var(--info)';
   } else {
@@ -2017,7 +2049,8 @@ function showToast(title, msg, color = 'emerald') {
   toast.style.maxWidth = 'calc(100% - 2rem)';
 
   toast.classList.remove('hidden');
-  setTimeout(() => {
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(() => {
     toast.classList.add('hidden');
   }, 3000);
 }

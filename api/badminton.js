@@ -24,6 +24,12 @@ const OFFICIAL_PREPAID = ['糖果寶', '淑湘', '賓哥', 'Sam', '小潘', '小
 
 const NAME_ALIASES = { '黃羽辰': '羽辰', '柳大俠': '柳大神', '銘仁': '小卉', '文': '智文', '阿宗': '進宗' };
 
+const DEFAULT_FEMALE_MEMBERS = new Set([
+  '阿娟', '淑湘', '小卉', '糖果寶', 'jenna', 'Jenna',
+  '蘇聯女友', '蘇聯貴妃2', '李欣', '李欣(月繳-Sun)',
+  '妍', '慧如', 'ANNE', 'Anne', '阿如', '羽辰', '黃羽辰', '燦燦', 'Wing'
+]);
+
 // Real registrants whose 姓名(Name) happens to be all digits -- everything else numeric stays filtered as dirty data.
 const NUMERIC_NAME_WHITELIST = new Set(['138']);
 
@@ -618,11 +624,14 @@ export default async function handler(req, res) {
           const planType = getPlainText(props['繳費類型']);
           const count = props['Number'] ? (props['Number'].number ?? 0) : 0;
           const lastPrepaidDate = props[LAST_PREPAID_DATE_PROP]?.date?.start || null;
+          const genderProp = props['性別'] ? (getPlainText(props['性別']) || props['性別']?.select?.name || '') : '';
+          const gender = (genderProp === '女' || genderProp === 'Female' || genderProp === 'female' || DEFAULT_FEMALE_MEMBERS.has(name)) ? '女' : (genderProp || '男');
 
           const memberInfo = {
             memberPageId: m.id,
             userId,
             name,
+            gender,
             planType,
             remainingCount: count,
             hasConfirmedPrepay: !!lastPrepaidDate,
@@ -766,11 +775,14 @@ export default async function handler(req, res) {
         const planType = getPlainText(props['繳費類型']);
         const count = props['Number'] ? (props['Number'].number ?? 0) : 0;
         const lastPrepaidDate = props[LAST_PREPAID_DATE_PROP]?.date?.start || null;
+        const genderProp = props['性別'] ? (getPlainText(props['性別']) || props['性別']?.select?.name || '') : '';
+        const gender = (genderProp === '女' || genderProp === 'Female' || genderProp === 'female' || DEFAULT_FEMALE_MEMBERS.has(name)) ? '女' : (genderProp || '男');
 
         const memberInfo = {
           memberPageId: m.id,
           userId,
           name,
+          gender,
           planType,
           remainingCount: count,
           year2026Count: 0,
