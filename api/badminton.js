@@ -25,9 +25,10 @@ const OFFICIAL_PREPAID = ['糖果寶', '淑湘', '賓哥', 'Sam', '小潘', '小
 const NAME_ALIASES = { '黃羽辰': '羽辰', '柳大俠': '柳大神', '銘仁': '小卉', '文': '智文', '阿宗': '進宗' };
 
 const DEFAULT_FEMALE_MEMBERS = new Set([
-  '阿娟', '淑湘', '小卉', '糖果寶', 'jenna', 'Jenna',
-  '蘇聯女友', '蘇聯貴妃2', '李欣', '李欣(月繳-Sun)',
-  '妍', '慧如', 'ANNE', 'Anne', '阿如', '羽辰', '黃羽辰', '燦燦', 'Wing'
+  '淑湘', '阿娟', '小卉', '羽辰', 'jenna', 'Jenna',
+  '糖果寶', '蘇聯女友', '蘇聯貴妃2', '妍', '慧如',
+  '李欣', '李欣(月繳-Sun)', 'ANNE', 'Anne', '阿如',
+  '羽辰', '黃羽辰', '燦燦', '維榆', 'Wing'
 ]);
 
 // Real registrants whose 姓名(Name) happens to be all digits -- everything else numeric stays filtered as dirty data.
@@ -44,7 +45,7 @@ function getOfficialPlan(name) {
   if (OFFICIAL_YEARLY.includes(name)) return '年繳';
   if (OFFICIAL_MONTHLY.includes(name)) return '月繳';
   if (OFFICIAL_PREPAID.includes(name)) return '儲值';
-  return '儲值';
+  return '零打';
 }
 
 // Pagination is driven exclusively by Notion's own has_more/next_cursor
@@ -582,12 +583,15 @@ export default async function handler(req, res) {
           const planType = getPlainText(props['繳費類型']);
           const count = props['Number'] ? (props['Number'].number ?? 0) : 0;
           const lastPrepaidDate = props[LAST_PREPAID_DATE_PROP]?.date?.start || null;
+          const genderProp = props['性別'] ? (getPlainText(props['性別']) || props['性別']?.select?.name || '') : '';
+          const gender = (genderProp === '女' || genderProp === 'Female' || genderProp === 'female' || DEFAULT_FEMALE_MEMBERS.has(name)) ? '女' : (genderProp || '男');
 
           if (name) {
             memberNameMap[name] = {
               memberPageId: m.id,
               userId: getPlainText(props['userId']),
               name,
+              gender,
               planType,
               remainingCount: count,
               hasConfirmedPrepay: !!lastPrepaidDate,
@@ -909,6 +913,34 @@ export default async function handler(req, res) {
       });
 
       return res.status(200).json({ success: true, memberPageId, newCount, amount, lastPrepaidDate: todayTw });
+    }
+
+    // 3.1 POST api/members/update-gender
+    if (req.method === 'POST' && path === 'members/update-gender') {
+      const { memberPageId, name, gender } = req.body;
+      const targetGender = (gender === '女' || gender === 'Female' || gender === 'female') ? '女' : '男';
+
+      let resolvedPageId = memberPageId;
+      if (!resolvedPageId && name) {
+        const memberResults = await queryAllNotionDatabase(MEMBERS_DB_ID);
+        const match = memberResults.find(m => {
+          const mName = getPlainText(m.properties['Name']) || getPlainText(m.properties['item']) || '';
+          return mName === name;
+        });
+        if (match) {
+          resolvedPageId = match.id;
+        }
+      }
+
+      if (!resolvedPageId) {
+        return res.status(404).json({ success: false, error: 'Member not found in Members DB' });
+      }
+
+      await updateNotionPage(resolvedPageId, {
+        '性別': { select: { name: targetGender } }
+      });
+
+      return res.status(200).json({ success: true, memberPageId: resolvedPageId, name, gender: targetGender });
     }
 
     // 4. POST api/attendance/update

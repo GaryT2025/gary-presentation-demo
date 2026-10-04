@@ -133,29 +133,41 @@ function getPlayerCategory(item) {
   const name = item.name;
   if (item.planType === '年繳' || OFFICIAL_YEARLY_MEMBERS.includes(name)) return '年繳';
   if (item.planType === '月繳' || OFFICIAL_MONTHLY_MEMBERS.includes(name)) return '月繳';
-  if (item.planType === '零打') return '零打';
-  if (item.memberPageId || OFFICIAL_PREPAID_MEMBERS.includes(name)) return '儲值';
+  if (OFFICIAL_PREPAID_MEMBERS.includes(name)) return '儲值';
+  if (item.memberPageId && item.planType === '儲值') return '儲值';
   return '零打';
 }
 
 const DEFAULT_FEMALE_MEMBERS = new Set([
-  '阿娟', '淑湘', '小卉', '糖果寶', 'jenna', 'Jenna',
-  '蘇聯女友', '蘇聯貴妃2', '李欣', '李欣(月繳-Sun)',
-  '妍', '慧如', 'ANNE', 'Anne', '阿如', '羽辰', '黃羽辰', '燦燦', 'Wing'
+  '淑湘', '阿娟', '小卉', '羽辰', 'jenna', 'Jenna',
+  '糖果寶', '蘇聯女友', '蘇聯貴妃2', '妍', '慧如',
+  '李欣', 'ANNE', 'Anne', '阿如', '燦燦', '維榆', 'Wing'
 ]);
 
 function getPlayerGender(name, date) {
+  if (!name) return '男';
   const d = date || currentData.activeDate || 'all';
-  // 1. 優先讀取當日特定設定，次優先讀取球員全域設定 (使用者手動切換過的值)
-  const stored = localStorage.getItem(`badminton_gender_${d}_${name}`) || localStorage.getItem(`badminton_gender_${name}`);
-  if (stored) return stored;
 
-  // 2. 若無手動紀錄，檢查已知固定常客女性清單，或 Notion 會員資料庫性別設定
-  if (DEFAULT_FEMALE_MEMBERS.has(name)) return '女';
+  // 1. 當日手動暫存 (localStorage)
+  const daily = localStorage.getItem(`badminton_gender_${d}_${name}`);
+  if (daily) return daily;
+
+  // 2. Notion Members DB 該成員的 gender (若在 Notion 標記是女，打開系統永遠自動是女生紅點)
   const mInfo = (currentData.members || []).find(m => m.name === name);
-  if (mInfo && (mInfo.gender === '女' || mInfo.gender === 'Female' || mInfo.gender === 'female')) return '女';
+  if (mInfo && mInfo.gender) {
+    if (mInfo.gender === '女' || mInfo.gender === 'Female' || mInfo.gender === 'female') return '女';
+    if (mInfo.gender === '男' || mInfo.gender === 'Male' || mInfo.gender === 'male') return '男';
+  }
 
-  // 3. 其餘人員預設為男生
+  // 全域自訂手動暫存 (使用者曾經切換過)
+  const global = localStorage.getItem(`badminton_gender_${name}`);
+  if (global) return global;
+
+  // 3. 內建固定常客女性名單集合 (含別名相容)
+  if (DEFAULT_FEMALE_MEMBERS.has(name) || DEFAULT_FEMALE_MEMBERS.has(name.trim())) return '女';
+  if (name === '黃羽辰' || name.startsWith('李欣')) return '女';
+
+  // 4. 預設男性
   return '男';
 }
 
@@ -171,8 +183,31 @@ function togglePlayerGender(name, event) {
   const d = currentData.activeDate || 'all';
   const currentGender = getPlayerGender(name, d);
   const nextGender = currentGender === '男' ? '女' : '男';
-  localStorage.setItem(`badminton_gender_${d}_${name}`, nextGender);
+
+  // 同步寫入當日與全域自訂，永久記住
+  if (d && d !== 'all') {
+    localStorage.setItem(`badminton_gender_${d}_${name}`, nextGender);
+  }
   localStorage.setItem(`badminton_gender_${name}`, nextGender);
+
+  // 同步更新記憶體中 members 的性別
+  const mInfo = (currentData.members || []).find(m => m.name === name);
+  if (mInfo) {
+    mInfo.gender = nextGender;
+  }
+
+  // 若為管理者，背景非同步同步回寫至 Notion Members DB
+  if (isAdmin) {
+    const attItem = (currentData.attendance || []).find(it => it.name === name);
+    const memberPageId = mInfo?.memberPageId || attItem?.memberPageId;
+    fetch('api/members/update-gender', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ memberPageId, name, gender: nextGender })
+    }).catch(err => {
+      console.warn('[Gender Sync] Notion 性別同步未成功:', err);
+    });
+  }
 
   renderKanban();
   updateFinancialReport();
@@ -180,7 +215,7 @@ function togglePlayerGender(name, event) {
   const dummyItem = (currentData.attendance || []).find(it => it.name === name);
   const cat = dummyItem ? getPlayerCategory(dummyItem) : '零打';
   const feeMsg = cat === '零打' ? `（收費 $${nextGender === '女' ? 200 : 220}）` : '';
-  showToast('性別已更新', `${name} 已切換為【${nextGender}生】${nextGender === '女' ? '（紅字）' : '（藍字）'}${feeMsg}`, nextGender === '女' ? 'female' : 'male');
+  showToast('性別已更新', `${name} 已切換為【${nextGender}生】${nextGender === '女' ? '（紅點）' : '（藍點）'}${feeMsg}`, nextGender === '女' ? 'female' : 'male');
 }
 
 function toggleCasualGender(name, event) {
@@ -1442,31 +1477,19 @@ function renderKanban() {
   }
 }
 
-// Helper: 取得人員方案/分類色標與左側邊條 (年繳=purple, 月繳=green, 儲值=amber, 零打=blue)
+// Helper: 方案邊線顏色 (年繳=purple, 月繳=green, 儲值=amber, 零打=light blue)
 function getPlanStyle(category) {
   if (category === '年繳') {
-    return {
-      dot: `<span style="background-color: #6d3fa0; width: 10px; height: 10px; min-width: 10px; border-radius: 9999px; display: inline-block;" title="年繳"></span>`,
-      barColor: '#6d3fa0'
-    };
+    return { barColor: '#7c3aed', label: '年繳' }; // 紫色
   }
   if (category === '月繳') {
-    return {
-      dot: `<span style="background-color: #1f7a54; width: 10px; height: 10px; min-width: 10px; border-radius: 9999px; display: inline-block;" title="月繳"></span>`,
-      barColor: '#1f7a54'
-    };
+    return { barColor: '#059669', label: '月繳' }; // 綠色
   }
   if (category === '儲值') {
-    return {
-      dot: `<span style="background-color: #a3620c; width: 10px; height: 10px; min-width: 10px; border-radius: 9999px; display: inline-block;" title="儲值"></span>`,
-      barColor: '#a3620c'
-    };
+    return { barColor: '#d97706', label: '儲值' }; // 琥珀色
   }
-  // 零打 (Casual)
-  return {
-    dot: `<span style="background-color: #2563a8; width: 10px; height: 10px; min-width: 10px; border-radius: 9999px; display: inline-block;" title="零打"></span>`,
-    barColor: '#2563a8'
-  };
+  // 零打 (Casual) 淺藍
+  return { barColor: '#0284c7', label: '零打' };
 }
 
 // 點擊「已到」事件處理：觸發金幣音效、浮動數字特效、跳動動畫與狀態寫入
@@ -1490,9 +1513,11 @@ function createCardElement(item) {
   const category = getPlayerCategory(item);
   const planStyle = getPlanStyle(category);
 
-  card.className = `kanban-card card rounded-lg transition-all duration-150 relative cursor-grab active:cursor-grabbing ${isCompact ? 'py-2 px-2.5' : 'py-2.5 px-3'
-    }`;
+  card.className = `kanban-card card rounded-lg transition-all duration-150 relative cursor-grab active:cursor-grabbing ${
+    isCompact ? 'py-2 px-2.5' : 'py-2.5 px-3'
+  }`;
 
+  // 左側邊條識別方案 (4px 邊框)
   card.style.borderLeft = `4px solid ${planStyle.barColor}`;
   if (item.isBlacklisted) {
     card.style.borderColor = '#c23b3b';
@@ -1509,9 +1534,9 @@ function createCardElement(item) {
     ? `<span class="bg-danger text-white text-xs font-bold px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap">近1月未到${item.noshowCount}次</span>`
     : '';
 
-  // 性別顏色：男藍色、女紅色，預設為男生
+  // 性別小圓點識別：男生藍色圓點 (bg-blue-500)、女生粉紅圓點 (bg-rose-500)
   const gender = getPlayerGender(item.name, currentData.activeDate);
-  const nameColorClass = gender === '女' ? 'text-rose-600' : 'text-blue-600';
+  const dotColorClass = gender === '女' ? 'bg-rose-500' : 'bg-blue-500';
 
   let actionButtons = '';
   if (isAdmin && (item.status === '已報名' || item.status === '報名成功')) {
@@ -1551,10 +1576,12 @@ function createCardElement(item) {
 
   card.innerHTML = `
     <div class="flex items-center justify-between gap-1.5">
-      <div class="flex items-center gap-1.5 overflow-hidden min-w-0 flex-1">
+      <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
         ${checkboxHtml}
-        ${planStyle.dot}
-        <span onclick="togglePlayerGender('${item.name}', event)" class="font-bold ${nameColorClass} text-base truncate cursor-pointer hover:opacity-80 active:scale-95 transition" title="點擊切換性別 (目前: ${gender}生)">${item.name}</span>
+        <div onclick="togglePlayerGender('${item.name}', event)" class="flex items-center gap-1.5 min-w-0 cursor-pointer group" title="點擊切換性別 (目前: ${gender}生)">
+          <span class="w-2 h-2 rounded-full ${dotColorClass} shrink-0 inline-block transition-colors duration-150"></span>
+          <span class="font-semibold text-ink text-base truncate group-hover:text-accent transition-colors">${item.name}</span>
+        </div>
         ${blacklistBadge}
       </div>
       <div class="flex items-center gap-1 shrink-0">
@@ -2014,22 +2041,23 @@ function showToast(title, msg, color = 'emerald') {
   toastTitle.innerText = title;
   toastMsg.innerText = msg;
 
-  if (color === 'female') {
+  if (color === 'female' || (title.includes('性別') && msg.includes('女生'))) {
     toastIcon.className = 'fa-solid fa-venus text-rose-500 text-xl shrink-0';
-    toast.className = 'fixed z-50 toast-box rounded-xl p-3.5 flex items-center gap-3';
+    toast.className = 'fixed z-50 toast-box rounded-xl p-3.5 flex items-center gap-3 bg-white border border-rose-200 shadow-lg';
     toast.style.borderLeft = '4px solid #f43f5e';
-  } else if (color === 'male') {
+  } else if (color === 'male' || (title.includes('性別') && msg.includes('男生'))) {
     toastIcon.className = 'fa-solid fa-mars text-blue-500 text-xl shrink-0';
-    toast.className = 'fixed z-50 toast-box rounded-xl p-3.5 flex items-center gap-3';
+    toast.className = 'fixed z-50 toast-box rounded-xl p-3.5 flex items-center gap-3 bg-white border border-blue-200 shadow-lg';
     toast.style.borderLeft = '4px solid #3b82f6';
   } else if (color === 'rose' || color === 'danger' || color === 'error') {
-    if (title.includes('性別') || msg.includes('切換為') || msg.includes('女生')) {
-      toastIcon.className = 'fa-solid fa-venus text-rose-500 text-xl shrink-0';
-      toast.className = 'fixed z-50 toast-box rounded-xl p-3.5 flex items-center gap-3';
-      toast.style.borderLeft = '4px solid #f43f5e';
+    if (title.includes('性別') || msg.includes('切換為') || msg.includes('女') || msg.includes('男')) {
+      const isFemale = msg.includes('女');
+      toastIcon.className = isFemale ? 'fa-solid fa-venus text-rose-500 text-xl shrink-0' : 'fa-solid fa-mars text-blue-500 text-xl shrink-0';
+      toast.className = `fixed z-50 toast-box rounded-xl p-3.5 flex items-center gap-3 bg-white border ${isFemale ? 'border-rose-200' : 'border-blue-200'} shadow-lg`;
+      toast.style.borderLeft = `4px solid ${isFemale ? '#f43f5e' : '#3b82f6'}`;
     } else {
       toastIcon.className = 'fa-solid fa-circle-xmark text-danger text-xl shrink-0';
-      toast.className = 'fixed z-50 toast-box rounded-xl p-3.5 flex items-center gap-3';
+      toast.className = 'fixed z-50 toast-box rounded-xl p-3.5 flex items-center gap-3 bg-white border border-red-200 shadow-lg';
       toast.style.borderLeft = '4px solid var(--danger)';
     }
   } else if (color === 'blue' || color === 'info') {
