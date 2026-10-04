@@ -414,16 +414,28 @@ function updateFinancialReport() {
   }
 
   const yEl = document.getElementById('breakdownYearly');
-  if (yEl) yEl.innerText = `👑 年繳: ${yearlyCount}人 (已到${yearlyAttended}人) · $200`;
+  if (yEl) {
+    const countStr = yearlyCount > yearlyAttended ? `${yearlyAttended}/${yearlyCount}人` : `${yearlyAttended}人`;
+    yEl.innerText = `👑 年繳: ${countStr} × $200 = $${(yearlyAttended * 200).toLocaleString()}`;
+  }
 
   const pEl = document.getElementById('breakdownPrepaid');
-  if (pEl) pEl.innerText = `💳 儲值: ${prepaidCount}人 (已到${prepaidAttended}人) · $200`;
+  if (pEl) {
+    const countStr = prepaidCount > prepaidAttended ? `${prepaidAttended}/${prepaidCount}人` : `${prepaidAttended}人`;
+    pEl.innerText = `💳 儲值: ${countStr} × $200 = $${(prepaidAttended * 200).toLocaleString()}`;
+  }
 
   const cmEl = document.getElementById('breakdownCasualMale');
-  if (cmEl) cmEl.innerText = `🏸 零打(男): ${casualMaleCount}人 (已到${casualMaleAttended}人) · $220`;
+  if (cmEl) {
+    const countStr = casualMaleCount > casualMaleAttended ? `${casualMaleAttended}/${casualMaleCount}人` : `${casualMaleAttended}人`;
+    cmEl.innerText = `🏸 零打(男): ${countStr} × $220 = $${(casualMaleAttended * 220).toLocaleString()}`;
+  }
 
   const cfEl = document.getElementById('breakdownCasualFemale');
-  if (cfEl) cfEl.innerText = `🏸 零打(女): ${casualFemaleCount}人 (已到${casualFemaleAttended}人) · $200`;
+  if (cfEl) {
+    const countStr = casualFemaleCount > casualFemaleAttended ? `${casualFemaleAttended}/${casualFemaleCount}人` : `${casualFemaleAttended}人`;
+    cfEl.innerText = `🏸 零打(女): ${countStr} × $200 = $${(casualFemaleAttended * 200).toLocaleString()}`;
+  }
 }
 
 // ===== 每日財報 Notion 持久化與同步 =====
@@ -485,11 +497,11 @@ function getCurrentFinanceData() {
   const netProfit = totalActualIncome - totalExpense;
 
   const breakdownParts = [];
-  if (yearlyCount > 0) breakdownParts.push(`年繳 ${yearlyCount}人(到${yearlyAttended})`);
-  if (monthlyCount > 0) breakdownParts.push(`月繳 ${monthlyCount}人(到${monthlyAttended})`);
-  if (prepaidCount > 0) breakdownParts.push(`儲值 ${prepaidCount}人(到${prepaidAttended})`);
-  if (casualMaleCount > 0) breakdownParts.push(`零打男 ${casualMaleCount}人(到${casualMaleAttended})`);
-  if (casualFemaleCount > 0) breakdownParts.push(`零打女 ${casualFemaleCount}人(到${casualFemaleAttended})`);
+  if (yearlyCount > 0) breakdownParts.push(`年繳 ${yearlyAttended}人×$200=$${yearlyAttended * 200}`);
+  if (monthlyCount > 0) breakdownParts.push(`月繳 ${monthlyAttended}人×$200=$${monthlyAttended * 200}`);
+  if (prepaidCount > 0) breakdownParts.push(`儲值 ${prepaidAttended}人×$200=$${prepaidAttended * 200}`);
+  if (casualMaleCount > 0) breakdownParts.push(`零打男 ${casualMaleAttended}人×$220=$${casualMaleAttended * 220}`);
+  if (casualFemaleCount > 0) breakdownParts.push(`零打女 ${casualFemaleAttended}人×$200=$${casualFemaleAttended * 200}`);
   const breakdownText = breakdownParts.join(' · ');
 
   return {
