@@ -1308,7 +1308,7 @@ function closeCycleLegendModal() {
 function openAddMemberModal(defaultPlan = '儲值') {
   document.getElementById('addMemberNameInput').value = '';
   document.getElementById('addMemberCountInput').value = '10';
-  document.getElementById('addMemberAmountInput').value = '1500';
+  document.getElementById('addMemberAmountInput').value = '2000';
   document.getElementById('addMemberModal').classList.remove('hidden');
 }
 
@@ -1386,7 +1386,7 @@ function openRenewPassModal(memberPageId, memberName) {
   document.getElementById('renewMemberPageIdInput').value = memberPageId;
   document.getElementById('renewModalMemberName').innerText = `球員: ${memberName}`;
   document.getElementById('renewCountInput').value = String(defaultCount);
-  document.getElementById('renewAmountInput').value = '20000';
+  document.getElementById('renewAmountInput').value = '2000';
   document.getElementById('renewPassModal').classList.remove('hidden');
 }
 

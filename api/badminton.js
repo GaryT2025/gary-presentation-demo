@@ -339,6 +339,28 @@ function computeFullStats(attendanceResults, memberNameMap, currentYear, current
     }
   });
 
+  // 補齊在 memberNameMap 中標記為儲值但尚未有出勤紀錄的球員，避免在期別履歷表中遺漏
+  if (memberNameMap) {
+    Object.values(memberNameMap).forEach(m => {
+      const officialPlan = getOfficialPlan(m.name);
+      const resolvedPlan = m.planType || officialPlan;
+      if (resolvedPlan === '儲值' || OFFICIAL_PREPAID.includes(m.name)) {
+        if (!playerStatsMap[m.name]) {
+          playerStatsMap[m.name] = {
+            name: m.name,
+            userId: m.userId || '',
+            planType: resolvedPlan,
+            remainingCount: m.remainingCount ?? 10,
+            year2026Count: 0,
+            monthCount: 0,
+            streakCount: 0,
+            history: []
+          };
+        }
+      }
+    });
+  }
+
   const prepaidCyclesMap = {};
 
   function computeMaxStreak(history, datePrefix) {
@@ -364,7 +386,7 @@ function computeFullStats(attendanceResults, memberNameMap, currentYear, current
     p.monthStreakCount = computeMaxStreak(p.history, currentMonthPrefix);
 
     const resolvedPlan = p.planType;
-    if (OFFICIAL_PREPAID.includes(p.name) && resolvedPlan === '儲值') {
+    if (resolvedPlan === '儲值' || OFFICIAL_PREPAID.includes(p.name)) {
       prepaidCyclesMap[p.name] = calculatePrepaidCycles(p.history);
     }
   });
