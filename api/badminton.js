@@ -206,9 +206,10 @@ function toTaiwanDateStr(isoString) {
   return twDate.toISOString().split('T')[0];
 }
 
-function calculatePrepaidCycles(attendanceHistory) {
+function calculatePrepaidCycles(attendanceHistory, firstPrepaidDate = null) {
   const validAttendances = attendanceHistory
     .filter(h => h.originStatus === '報名成功' && h.attendanceStatus === '已出席')
+    .filter(h => !firstPrepaidDate || (h.date && h.date >= firstPrepaidDate))
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 
   const seenDates = new Set();
@@ -252,6 +253,20 @@ function calculatePrepaidCycles(attendanceHistory) {
       currentCycle.totalDays = Math.max(1, Math.round((endD - startD) / (1000 * 60 * 60 * 24)));
     }
   });
+
+  if (cycles.length === 0) {
+    const startStr = firstPrepaidDate || toTaiwanDateStr(new Date().toISOString());
+    const startYear = startStr.slice(0, 4) || '2026';
+    cycles.push({
+      cycleNum: 1,
+      startDate: startStr,
+      endDate: null,
+      isCompleted: false,
+      totalDays: 0,
+      year: startYear,
+      items: []
+    });
+  }
 
   return cycles;
 }
@@ -387,7 +402,9 @@ function computeFullStats(attendanceResults, memberNameMap, currentYear, current
 
     const resolvedPlan = p.planType;
     if (resolvedPlan === '儲值' || OFFICIAL_PREPAID.includes(p.name)) {
-      prepaidCyclesMap[p.name] = calculatePrepaidCycles(p.history);
+      const mInfo = memberNameMap[p.name];
+      const firstDate = mInfo ? mInfo.firstPrepaidDate : (OFFICIAL_PREPAID.includes(p.name) ? null : null);
+      prepaidCyclesMap[p.name] = calculatePrepaidCycles(p.history, firstDate);
     }
   });
 
@@ -605,6 +622,7 @@ export default async function handler(req, res) {
           const planType = getPlainText(props['繳費類型']);
           const count = props['Number'] ? (props['Number'].number ?? 0) : 0;
           const lastPrepaidDate = props[LAST_PREPAID_DATE_PROP]?.date?.start || null;
+          const firstPrepaidDate = props['首次儲值日期']?.date?.start || (OFFICIAL_PREPAID.includes(name) ? null : lastPrepaidDate);
           const genderProp = props['性別'] ? (getPlainText(props['性別']) || props['性別']?.select?.name || '') : '';
           const gender = (genderProp === '女' || genderProp === 'Female' || genderProp === 'female' || DEFAULT_FEMALE_MEMBERS.has(name)) ? '女' : (genderProp || '男');
 
@@ -617,7 +635,8 @@ export default async function handler(req, res) {
               planType,
               remainingCount: count,
               hasConfirmedPrepay: !!lastPrepaidDate,
-              lastPrepaidDate
+              lastPrepaidDate,
+              firstPrepaidDate
             };
           }
         });
@@ -650,6 +669,7 @@ export default async function handler(req, res) {
           const planType = getPlainText(props['繳費類型']);
           const count = props['Number'] ? (props['Number'].number ?? 0) : 0;
           const lastPrepaidDate = props[LAST_PREPAID_DATE_PROP]?.date?.start || null;
+          const firstPrepaidDate = props['首次儲值日期']?.date?.start || (OFFICIAL_PREPAID.includes(name) ? null : lastPrepaidDate);
           const genderProp = props['性別'] ? (getPlainText(props['性別']) || props['性別']?.select?.name || '') : '';
           const gender = (genderProp === '女' || genderProp === 'Female' || genderProp === 'female' || DEFAULT_FEMALE_MEMBERS.has(name)) ? '女' : (genderProp || '男');
 
@@ -661,7 +681,8 @@ export default async function handler(req, res) {
             planType,
             remainingCount: count,
             hasConfirmedPrepay: !!lastPrepaidDate,
-            lastPrepaidDate
+            lastPrepaidDate,
+            firstPrepaidDate
           };
 
           if (name) memberNameMap[name] = memberInfo;
@@ -801,6 +822,7 @@ export default async function handler(req, res) {
         const planType = getPlainText(props['繳費類型']);
         const count = props['Number'] ? (props['Number'].number ?? 0) : 0;
         const lastPrepaidDate = props[LAST_PREPAID_DATE_PROP]?.date?.start || null;
+        const firstPrepaidDate = props['首次儲值日期']?.date?.start || (OFFICIAL_PREPAID.includes(name) ? null : lastPrepaidDate);
         const genderProp = props['性別'] ? (getPlainText(props['性別']) || props['性別']?.select?.name || '') : '';
         const gender = (genderProp === '女' || genderProp === 'Female' || genderProp === 'female' || DEFAULT_FEMALE_MEMBERS.has(name)) ? '女' : (genderProp || '男');
 
@@ -814,7 +836,8 @@ export default async function handler(req, res) {
           year2026Count: 0,
           monthCount: 0,
           hasConfirmedPrepay: !!lastPrepaidDate,
-          lastPrepaidDate
+          lastPrepaidDate,
+          firstPrepaidDate
         };
 
         if (name) memberNameMap[name] = memberInfo;

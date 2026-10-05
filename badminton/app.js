@@ -1220,18 +1220,24 @@ function renderPrepaidCyclesBoard() {
 
         const dateRangeStr = c.isCompleted
           ? `<span class="text-accent-strong font-semibold">${c.startDate}</span> &rarr; <span class="text-accent-strong font-semibold">${c.endDate}</span> <span class="text-muted font-normal">(歷時 ${c.totalDays} 天)</span>`
-          : `<span class="text-warning font-semibold">${c.startDate} 開始</span> &rarr; <span class="text-muted">進行中 (已打 ${c.items.length}/10 次)</span>`;
+          : (c.items.length === 0
+            ? `<span class="text-warning font-semibold">${c.startDate} 起</span> &rarr; <span class="text-muted">等待開打 (已打 0/10 次)</span>`
+            : `<span class="text-warning font-semibold">${c.startDate} 開始</span> &rarr; <span class="text-muted">進行中 (已打 ${c.items.length}/10 次)</span>`);
 
         // 10 Detailed Dates Accordion/List for verification
         let dateItemsHtml = '';
-        c.items.forEach(it => {
-          dateItemsHtml += `
-            <div class="flex items-center justify-between text-sm bg-white px-2.5 py-1.5 rounded-md border border-hairline">
-              <span class="font-medium text-body">第 ${it.sessionNo} 次打球</span>
-              <span class="font-semibold text-accent-strong">${it.date}</span>
-            </div>
-          `;
-        });
+        if (c.items.length === 0) {
+          dateItemsHtml = `<div class="col-span-2 text-center text-xs text-muted py-2">尚未開打，目前出席 0 次</div>`;
+        } else {
+          c.items.forEach(it => {
+            dateItemsHtml += `
+              <div class="flex items-center justify-between text-sm bg-white px-2.5 py-1.5 rounded-md border border-hairline">
+                <span class="font-medium text-body">第 ${it.sessionNo} 次打球</span>
+                <span class="font-semibold text-accent-strong">${it.date}</span>
+              </div>
+            `;
+          });
+        }
 
         const collapseId = `cycleDetail_${name}_${c.cycleNum}`;
 
