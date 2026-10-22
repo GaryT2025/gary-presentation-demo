@@ -1,75 +1,88 @@
-{
-  "rewrites": [
-    {
-      "source": "/power-epc-monthly",
-      "destination": "/Power_EPC_Monthly_Meeting_202609.html"
-    },
-    {
-      "source": "/rodan-security/(.*)",
-      "destination": "/rodan-security/$1"
-    },
-    {
-      "source": "/rodan-security",
-      "destination": "/rodan-security/index.html"
-    },
-    {
-      "source": "/vlms-hart",
-      "destination": "/VLMS infra and furture plan/VLMS_HART_Signal_Extraction.html"
-    },
-    {
-      "source": "/vlms-clean",
-      "destination": "/VLMS infra and furture plan/VLMS_Presentation_Clean.html"
-    },
-    {
-      "source": "/neuralink",
-      "destination": "/Neuralink_Presentation.html"
-    },
-    {
-      "source": "/masoneilan-comparison",
-      "destination": "/07_Mid_Year_Review/masoneilan-comparison.html"
-    },
-    {
-      "source": "/daxin-rag/(.*)",
-      "destination": "/daxin-rag/$1"
-    },
-    {
-      "source": "/daxin-rag",
-      "destination": "/daxin-rag/index.html"
-    },
-    {
-      "source": "/travel-rag",
-      "destination": "/daxin-rag/index.html"
-    },
-    {
-      "source": "/fci-sales/(.*)",
-      "destination": "/fci-sales/$1"
-    },
-    {
-      "source": "/fci-sales",
-      "destination": "/fci-sales/index.html"
-    },
-    {
-      "source": "/badminton/api/(.*)",
-      "destination": "/api/badminton?path=$1"
-    },
-    {
-      "source": "/badminton/(.*)",
-      "destination": "/badminton/$1"
-    },
-    {
-      "source": "/badminton",
-      "destination": "/badminton/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
-        }
-      ]
-    }
-  ]
+﻿{
+    "rewrites":  [
+                     {
+                         "source":  "/vlms-demo/assets/(.*)",
+                         "destination": "/vlms-demo/assets/$1"
+                     },
+                     {
+                         "source":  "/vlms-demo/(.*)",
+                         "destination":  "/vlms-demo/index.html"
+                     },
+                     {
+                         "source":  "/vlms-demo",
+                         "destination":  "/vlms-demo/index.html"
+                     },
+                     {
+                         "source":  "/power-epc-monthly",
+                         "destination":  "/Power_EPC_Monthly_Meeting_202609.html"
+                     },
+                     {
+                         "source":  "/rodan-security/(.*)",
+                         "destination":  "/rodan-security/$1"
+                     },
+                     {
+                         "source":  "/rodan-security",
+                         "destination":  "/rodan-security/index.html"
+                     },
+                     {
+                         "source":  "/vlms-hart",
+                         "destination":  "/VLMS infra and furture plan/VLMS_HART_Signal_Extraction.html"
+                     },
+                     {
+                         "source":  "/vlms-clean",
+                         "destination":  "/VLMS infra and furture plan/VLMS_Presentation_Clean.html"
+                     },
+                     {
+                         "source":  "/neuralink",
+                         "destination":  "/Neuralink_Presentation.html"
+                     },
+                     {
+                         "source":  "/masoneilan-comparison",
+                         "destination":  "/07_Mid_Year_Review/masoneilan-comparison.html"
+                     },
+                     {
+                         "source":  "/daxin-rag/(.*)",
+                         "destination":  "/daxin-rag/$1"
+                     },
+                     {
+                         "source":  "/daxin-rag",
+                         "destination":  "/daxin-rag/index.html"
+                     },
+                     {
+                         "source":  "/travel-rag",
+                         "destination":  "/daxin-rag/index.html"
+                     },
+                     {
+                         "source":  "/fci-sales/(.*)",
+                         "destination":  "/fci-sales/$1"
+                     },
+                     {
+                         "source":  "/fci-sales",
+                         "destination":  "/fci-sales/index.html"
+                     },
+                     {
+                         "source":  "/badminton/api/(.*)",
+                         "destination":  "/api/badminton?path=$1"
+                     },
+                     {
+                         "source":  "/badminton/(.*)",
+                         "destination":  "/badminton/$1"
+                     },
+                     {
+                         "source":  "/badminton",
+                         "destination":  "/badminton/index.html"
+                     }
+                 ],
+    "headers":  [
+                    {
+                        "source":  "/(.*)",
+                        "headers":  [
+                                        {
+                                            "key":  "Cache-Control",
+                                            "value":  "no-cache, no-store, must-revalidate"
+                                        }
+                                    ]
+                    }
+                ]
 }
+
