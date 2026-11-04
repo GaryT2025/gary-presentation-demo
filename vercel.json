@@ -1,6 +1,14 @@
 {
     "rewrites": [
         {
+            "source": "/mt3d-showcase/(.*)",
+            "destination": "/mt3d-showcase/$1"
+        },
+        {
+            "source": "/mt3d-showcase",
+            "destination": "/mt3d-showcase/index.html"
+        },
+        {
             "source": "/srvhold-changeover",
             "destination": "/srvhold-changeover.html"
         },
