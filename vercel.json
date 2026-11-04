@@ -1,6 +1,10 @@
 {
     "rewrites": [
         {
+            "source": "/srvhold-changeover",
+            "destination": "/srvhold-changeover.html"
+        },
+        {
             "source": "/ragic-sop",
             "destination": "/ragic-sop.html"
         },
